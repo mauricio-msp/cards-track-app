@@ -1,0 +1,6 @@
+export { getDebtsTrend } from '@/features/dashboard/api/get-debts-trend'
+export { getDebtsYears } from '@/features/dashboard/api/get-debts-years'
+export { getMonthHighestDebtsAmount } from '@/features/dashboard/api/get-month-highest-debts-amount'
+export { getMonthLowestDebtsAmount } from '@/features/dashboard/api/get-month-lowest-debts-amount'
+export { getMonthTotalDebtsAmount } from '@/features/dashboard/api/get-month-total-debts-amount'
+export { getTotalDebtsAmount } from '@/features/dashboard/api/get-total-debts-amount'

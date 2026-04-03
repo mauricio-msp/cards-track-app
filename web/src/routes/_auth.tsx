@@ -1,5 +1,6 @@
 import { createFileRoute, Link, Outlet, redirect } from '@tanstack/react-router'
 import { CreditCard } from 'lucide-react'
+
 import { ModeToggle } from '@/components/mode-toggle'
 import { FieldDescription } from '@/components/ui/field'
 import { authClient } from '@/lib/auth-client'

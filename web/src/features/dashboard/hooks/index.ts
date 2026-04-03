@@ -1,0 +1,6 @@
+export { useDebtsTrend } from '@/features/dashboard/hooks/use-debts-trend'
+export { useDebtsYears } from '@/features/dashboard/hooks/use-debts-years'
+export { useMonthHighestDebtsAmount } from '@/features/dashboard/hooks/use-month-highest-debts-amount'
+export { useMonthLowestDebtsAmount } from '@/features/dashboard/hooks/use-month-lowest-debts-amount'
+export { useMonthTotalDebtsAmount } from '@/features/dashboard/hooks/use-month-total-debts-amount'
+export { useTotalDebtsAmount } from '@/features/dashboard/hooks/use-total-debts-amount'

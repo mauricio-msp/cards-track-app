@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { MemberOverview } from '@/components/members/member-overview'
 import { TooltipProvider } from '@/components/ui/tooltip'
+import { MemberOverview } from '@/features/member/components/overview'
 
 export const Route = createFileRoute('/_app/members/$id')({
   loader: () => ({ crumbs: ['Member', 'Overview'] }),

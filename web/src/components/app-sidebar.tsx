@@ -5,14 +5,9 @@ import { Command, LayoutDashboard, Settings2 } from 'lucide-react'
 import { type ComponentProps, Suspense } from 'react'
 import { ErrorBoundary } from 'react-error-boundary'
 
-import { CardsNav } from '@/components/navigates/cards-nav'
-import { CardsNavError } from '@/components/navigates/error/cards-nav-error'
-import { MembersNavError } from '@/components/navigates/error/members-nav-error'
-import { MembersNav } from '@/components/navigates/members-nav'
-import { MenuNav } from '@/components/navigates/menu-nav'
-import { CardsNavSkeleton } from '@/components/navigates/skeleton/cards-nav-skeleton'
-import { MembersNavSkeleton } from '@/components/navigates/skeleton/members-nav-skeleton'
-import { UserNav } from '@/components/navigates/user-nav'
+import { CardsNav, MembersNav, MenuNav, UserNav } from '@/components/navigates'
+import { CardsNavError, MembersNavError } from '@/components/navigates/error'
+import { CardsNavSkeleton, MembersNavSkeleton } from '@/components/navigates/skeleton'
 import {
   Sidebar,
   SidebarContent,
@@ -32,7 +27,7 @@ const data = {
     },
     {
       url: '/settings',
-      name: 'Settings',
+      name: 'Configurações',
       icon: Settings2,
     },
   ],

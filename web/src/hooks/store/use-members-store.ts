@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { Member } from '@/api/get-members'
+import type { Member } from '@/features/member/api/get-members'
 
 interface MembersStore {
   members: Member[]

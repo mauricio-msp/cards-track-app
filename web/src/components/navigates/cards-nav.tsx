@@ -1,11 +1,6 @@
-import { useSuspenseQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 
 import { CirclePlus, CreditCard, Inbox, Plus } from 'lucide-react'
-
-import { getCards } from '@/api/get-cards'
-import { CreateCreditCardForm } from '@/components/forms/create-credit-card-form'
-
 import { Button } from '@/components/ui/button'
 import {
   Empty,
@@ -22,30 +17,29 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui/sidebar'
-
+import { CreateCardForm } from '@/features/credit-card/components/forms'
+import { useCards } from '@/features/credit-card/hooks'
 import { creditCards } from '@/helpers/credit-cards'
-import { formatPrice } from '@/helpers/format-price'
+import { formatPrice } from '@/lib/utils'
 
 export function CardsNav() {
-  const { data } = useSuspenseQuery({
-    queryKey: ['credit-cards'],
-    queryFn: getCards,
-    refetchOnWindowFocus: false,
-  })
+  const {
+    data: { cards },
+  } = useCards()
 
   return (
     <SidebarGroup className="group-data-[collapsible=icon]:hidden">
       <SidebarGroupLabel>
         <CreditCard className="mr-2" />
-        My Credit Cards ({data.cards.length})
-        <CreateCreditCardForm>
+        Meus cartões ({cards.length})
+        <CreateCardForm>
           <Button size="icon-sm" variant="ghost" className="ml-auto cursor-pointer">
             <CirclePlus />
           </Button>
-        </CreateCreditCardForm>
+        </CreateCardForm>
       </SidebarGroupLabel>
       <SidebarMenu className="gap-2">
-        {data.cards.map(card => (
+        {cards.map(card => (
           <SidebarMenuItem key={card.id}>
             <SidebarMenuButton asChild>
               <Link to="/credit-card/$id" params={{ id: card.id }} className="h-auto">
@@ -63,24 +57,25 @@ export function CardsNav() {
           </SidebarMenuItem>
         ))}
 
-        {!data.cards.length && (
+        {!cards.length && (
           <Empty className="p-2 md:p-2 border border-dashed mt-2">
             <EmptyHeader>
               <EmptyMedia variant="icon">
                 <Inbox />
               </EmptyMedia>
-              <EmptyTitle>No credit cards yet</EmptyTitle>
+              <EmptyTitle>Nenhum cartão de crédito adicionado</EmptyTitle>
               <EmptyDescription>
-                Add your first credit card to start tracking limits, debts, and monthly spending.
+                Adicione seu primeiro cartão de crédito para começar a rastrear limites, dívidas e
+                gastos mensais.
               </EmptyDescription>
             </EmptyHeader>
             <EmptyContent>
-              <CreateCreditCardForm>
+              <CreateCardForm>
                 <Button variant="outline" size="sm" className="cursor-pointer">
                   <Plus />
-                  Add credit card
+                  Adicionar cartão de crédito
                 </Button>
-              </CreateCreditCardForm>
+              </CreateCardForm>
             </EmptyContent>
           </Empty>
         )}

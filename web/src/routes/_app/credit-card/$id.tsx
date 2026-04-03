@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { CreditCardOverview } from '@/components/credit-card/credit-card-overview'
+import { Overview } from '@/features/credit-card/components/overview'
 
 export const Route = createFileRoute('/_app/credit-card/$id')({
   loader: () => ({ crumbs: ['Credit Card', 'Overview'] }),
@@ -14,5 +14,5 @@ export const Route = createFileRoute('/_app/credit-card/$id')({
 })
 
 function RouteComponent() {
-  return <CreditCardOverview />
+  return <Overview />
 }
