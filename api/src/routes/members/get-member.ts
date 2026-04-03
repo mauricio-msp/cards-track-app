@@ -13,7 +13,9 @@ export const getMember: FastifyPluginAsyncZod = async app => {
     {
       preHandler: [authMiddleware],
       schema: {
-        summary: 'Get member details by ID',
+        summary: 'Obter detalhes do membro pelo ID',
+        description:
+          'Retorna as informações completas de um membro específico (nome, parentesco/relacionamento) cadastrado pelo usuário.',
         tags: ['Members'],
         params: z.object({
           memberId: z.string(),

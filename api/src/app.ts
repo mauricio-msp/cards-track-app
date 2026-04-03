@@ -11,24 +11,10 @@ import {
 } from 'fastify-type-provider-zod'
 
 import { auth } from '@/lib/auth'
-
-import { createCard } from '@/routes/create-card'
-import { createDebt } from '@/routes/create-debt'
-import { createMember } from '@/routes/create-member'
-
-import { getCard } from '@/routes/get-card'
-import { getCardDebts } from '@/routes/get-card-debts'
-import { getCards } from '@/routes/get-cards'
-import { getDebtsYearlyEvolution } from '@/routes/get-debts-yearly-evolution'
-import { getMember } from '@/routes/get-member'
-import { getMemberDebts } from '@/routes/get-member-debts'
-import { getMembers } from '@/routes/get-members'
-import { getMonthHighestDebtsAmount } from '@/routes/get-month-highest-debts-amount'
-import { getMonthLowestDebtsAmount } from '@/routes/get-month-lowest-debts-amount'
-import { getMonthTotalAmountCard } from '@/routes/get-month-total-amount-card'
-import { getMonthTotalDebtsAmount } from '@/routes/get-month-total-debts-amount'
-import { getTotalAmountCard } from '@/routes/get-total-amount-card'
-import { getTotalDebtsAmount } from '@/routes/get-total-debts-amount'
+import { cardRoutes } from '@/routes/credit-card'
+import { debtsRoutes } from '@/routes/debts'
+import { installmentRoutes } from '@/routes/installment'
+import { memberRoutes } from '@/routes/members'
 
 export const app = fastify({ logger: true }).withTypeProvider<ZodTypeProvider>()
 
@@ -38,7 +24,7 @@ app.setSerializerCompiler(serializerCompiler)
 // Configure CORS policies
 app.register(fastifyCors, {
   origin: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   credentials: true,
   maxAge: 86400,
@@ -61,31 +47,17 @@ app.register(ScalarApiReference, {
   routePrefix: '/docs',
 })
 
-// Create Registers
-app.register(createCard)
-app.register(createDebt)
-app.register(createMember)
-
 // Card
-app.register(getCard)
-app.register(getCards)
-app.register(getCardDebts)
-app.register(getTotalAmountCard)
-app.register(getMonthTotalAmountCard)
+app.register(cardRoutes)
+
+// Installments
+app.register(installmentRoutes)
 
 // Members
-app.register(getMember)
-app.register(getMembers)
-app.register(getMemberDebts)
+app.register(memberRoutes)
 
-// Overview
-app.register(getTotalDebtsAmount)
-app.register(getMonthTotalDebtsAmount)
-app.register(getMonthLowestDebtsAmount)
-app.register(getMonthHighestDebtsAmount)
-
-// Charts
-app.register(getDebtsYearlyEvolution)
+// Debts/Overview
+app.register(debtsRoutes)
 
 // Proxy authentication requests to Better Auth
 app.route({

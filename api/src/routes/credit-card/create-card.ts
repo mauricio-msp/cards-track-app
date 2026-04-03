@@ -11,13 +11,17 @@ export const createCard: FastifyPluginAsyncZod = async app => {
     {
       preHandler: [authMiddleware],
       schema: {
-        summary: 'Create a new credit card for the authenticated user',
+        summary: 'Criar um novo cartão de crédito',
+        description: 'Cadastra um cartão definindo limite, dia de fechamento e dia de vencimento.',
         tags: ['Cards'],
         body: z.object({
           name: z.string().min(3),
-          limit: z.coerce.number().positive(),
-          closingOffsetDays: z.coerce.number().positive(),
-          dueDay: z.coerce.number().positive(),
+          limit: z.coerce.number().positive().describe('Limite total do cartão em centavos'),
+          closingOffsetDays: z.coerce
+            .number()
+            .positive()
+            .describe('Número de dias anteriores ao fechamento da fatura'),
+          dueDay: z.coerce.number().positive().describe('Dia do fechamento da fatura'),
         }),
         response: {
           201: z.object({
@@ -48,13 +52,13 @@ export const createCard: FastifyPluginAsyncZod = async app => {
 
         return reply.status(201).send({
           card,
-          message: 'Card created successfully!',
+          message: 'Cartão criado com sucesso!',
         })
       } catch (error) {
         request.log.error(error)
 
         return reply.status(400).send({
-          message: 'Failed to create card',
+          message: 'Falha ao criar cartão. Verifique os dados e tente novamente.',
         })
       }
     },

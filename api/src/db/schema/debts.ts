@@ -1,6 +1,6 @@
 import { date, integer, pgTable, text, timestamp } from 'drizzle-orm/pg-core'
 import { uuidv7 } from 'uuidv7'
-import { cards, members } from '@/db/schema'
+import { cards, invoices, members } from '@/db/schema'
 
 export const debts = pgTable('debts', {
   id: text('id')
@@ -30,9 +30,12 @@ export const debts = pgTable('debts', {
 
   purchaseDate: date('purchase_date').notNull(),
 
-  // 🔑 NOVOS CAMPOS (ESSENCIAIS)
+  invoiceId: text('invoice_id')
+    .notNull()
+    .references(() => invoices.id, { onDelete: 'cascade' }),
   invoiceYear: integer('invoice_year').notNull(),
   invoiceMonth: integer('invoice_month').notNull(), // 0–11
 
+  anticipatedAt: timestamp('anticipated_at'),
   createdAt: timestamp('created_at').notNull().defaultNow(),
 })

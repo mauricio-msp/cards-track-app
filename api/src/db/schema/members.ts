@@ -11,9 +11,10 @@ export const members = pgTable(
 
     userId: text('user_id')
       .notNull()
-      .references(() => users.id),
+      .references(() => users.id, { onDelete: 'cascade' }),
 
     name: text('name').notNull(),
+    phone: text('phone'),
     relationship: text('relationship').notNull(),
 
     createdAt: timestamp('created_at').notNull().defaultNow(),

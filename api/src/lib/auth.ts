@@ -15,7 +15,7 @@ import { resend } from '@/lib/resend'
 
 export const auth = betterAuth({
   trustedOrigins: [
-    'http://localhost:5173',
+    env.BETTER_AUTH_LOCALHOST_URL,
     // env.BETTER_AUTH_TRUSTED_ORIGIN
   ],
   database: drizzleAdapter(db, {
@@ -41,27 +41,6 @@ export const auth = betterAuth({
         })
     }),
   },
-  // hooks: {
-  //   after: createAuthMiddleware(async ctx => {
-  //     const session = ctx.context.newSession
-  //     if (!session) return
-
-  //     const user = session.user
-
-  //     const [exists] = await db
-  //       .select()
-  //       .from(members)
-  //       .where(and(eq(members.userId, user.id), eq(members.relationship, 'OWNER')))
-
-  //     if (exists) return
-
-  //     await db.insert(members).values({
-  //       userId: user.id,
-  //       name: user.name,
-  //       relationship: 'Titular',
-  //     })
-  //   }),
-  // },
   plugins: [openAPI()],
   secret: env.BETTER_AUTH_SECRET,
   baseUrl: env.BETTER_AUTH_URL,
@@ -78,7 +57,7 @@ export const auth = betterAuth({
 
       await resend.emails.send({
         to: user.email,
-        from: 'Resend <orboarding@resend.dev>',
+        from: '',
         subject: 'Reset your password',
         html,
       })
@@ -94,7 +73,7 @@ export const auth = betterAuth({
 
       await resend.emails.send({
         to: user.email,
-        from: 'Resend <orboarding@resend.dev>',
+        from: env.RESEND_EMAIL_FROM,
         subject: 'Verify your email',
         html,
       })

@@ -11,7 +11,9 @@ export const getCard: FastifyPluginAsyncZod = async app => {
     {
       preHandler: [authMiddleware],
       schema: {
-        summary: 'Get card details by ID',
+        summary: 'Obter detalhes do cartão pelo ID',
+        description:
+          'Retorna as informações completas de um cartão de crédito específico (nome, limite, datas de fechamento e vencimento) pertencente ao usuário autenticado.',
         tags: ['Cards'],
         params: z.object({
           cardId: z.string(),
@@ -21,8 +23,8 @@ export const getCard: FastifyPluginAsyncZod = async app => {
             card: z.object({
               name: z.string(),
               limit: z.coerce.number(),
-              closingOffsetDays: z.coerce.number(),
               dueDay: z.coerce.number(),
+              closingOffsetDays: z.coerce.number(),
             }),
           }),
           404: z.object({
@@ -45,7 +47,7 @@ export const getCard: FastifyPluginAsyncZod = async app => {
         .from(cards)
         .where(and(eq(cards.id, cardId), eq(cards.ownerUserId, userId)))
 
-      if (!card) return reply.status(404).send({ message: 'Card not found' })
+      if (!card) return reply.status(404).send({ message: 'Cartão não encontrado' })
 
       return reply.send({ card })
     },

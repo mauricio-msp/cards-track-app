@@ -34,9 +34,33 @@ CREATE TABLE "debts" (
 	"amount" integer NOT NULL,
 	"installments_count" integer NOT NULL,
 	"installments_amount" integer NOT NULL,
+	"start_installment" integer DEFAULT 1 NOT NULL,
+	"end_installment" integer,
 	"purchase_date" date NOT NULL,
+	"invoice_id" text,
 	"invoice_year" integer NOT NULL,
 	"invoice_month" integer NOT NULL,
+	"created_at" timestamp DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE "installments" (
+	"id" text PRIMARY KEY NOT NULL,
+	"debt_id" text NOT NULL,
+	"invoice_id" text NOT NULL,
+	"member_id" text NOT NULL,
+	"number" integer NOT NULL,
+	"amount" integer NOT NULL,
+	"paid_at" timestamp,
+	"created_at" timestamp DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE "invoices" (
+	"id" text PRIMARY KEY NOT NULL,
+	"card_id" text NOT NULL,
+	"month" integer NOT NULL,
+	"year" integer NOT NULL,
+	"due_date" timestamp NOT NULL,
+	"status" text DEFAULT 'open',
 	"created_at" timestamp DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
@@ -84,9 +108,15 @@ ALTER TABLE "accounts" ADD CONSTRAINT "accounts_user_id_users_id_fk" FOREIGN KEY
 ALTER TABLE "cards" ADD CONSTRAINT "cards_owner_user_id_users_id_fk" FOREIGN KEY ("owner_user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "debts" ADD CONSTRAINT "debts_card_id_cards_id_fk" FOREIGN KEY ("card_id") REFERENCES "public"."cards"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "debts" ADD CONSTRAINT "debts_member_id_members_id_fk" FOREIGN KEY ("member_id") REFERENCES "public"."members"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "debts" ADD CONSTRAINT "debts_invoice_id_invoices_id_fk" FOREIGN KEY ("invoice_id") REFERENCES "public"."invoices"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "installments" ADD CONSTRAINT "installments_debt_id_debts_id_fk" FOREIGN KEY ("debt_id") REFERENCES "public"."debts"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "installments" ADD CONSTRAINT "installments_invoice_id_invoices_id_fk" FOREIGN KEY ("invoice_id") REFERENCES "public"."invoices"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "installments" ADD CONSTRAINT "installments_member_id_members_id_fk" FOREIGN KEY ("member_id") REFERENCES "public"."members"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "invoices" ADD CONSTRAINT "invoices_card_id_cards_id_fk" FOREIGN KEY ("card_id") REFERENCES "public"."cards"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "members" ADD CONSTRAINT "members_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "sessions" ADD CONSTRAINT "sessions_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 CREATE INDEX "accounts_userId_idx" ON "accounts" USING btree ("user_id");--> statement-breakpoint
+CREATE UNIQUE INDEX "card_month_year_idx" ON "invoices" USING btree ("card_id","month","year");--> statement-breakpoint
 CREATE UNIQUE INDEX "members_user_name_unique" ON "members" USING btree ("user_id","name");--> statement-breakpoint
 CREATE INDEX "sessions_userId_idx" ON "sessions" USING btree ("user_id");--> statement-breakpoint
 CREATE INDEX "verifications_identifier_idx" ON "verifications" USING btree ("identifier");

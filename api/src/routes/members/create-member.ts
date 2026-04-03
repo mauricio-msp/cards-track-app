@@ -12,7 +12,7 @@ export const createMember: FastifyPluginAsyncZod = async app => {
     {
       preHandler: [authMiddleware],
       schema: {
-        summary: 'Create a new member',
+        summary: 'Cria um novo membro',
         tags: ['Members'],
         body: z.object({
           name: z.string().min(3),
@@ -23,7 +23,10 @@ export const createMember: FastifyPluginAsyncZod = async app => {
             member: createSelectSchema(members).nullable(),
             message: z.string(),
           }),
-          404: z.object({
+          409: z.object({
+            message: z.string(),
+          }),
+          500: z.object({
             message: z.string(),
           }),
         },
@@ -36,7 +39,7 @@ export const createMember: FastifyPluginAsyncZod = async app => {
       try {
         const normalizedName = name.trim()
 
-        const [existing] = await db
+        const [memberExisting] = await db
           .select({ id: members.id })
           .from(members)
           .where(
@@ -44,9 +47,9 @@ export const createMember: FastifyPluginAsyncZod = async app => {
           )
           .limit(1)
 
-        if (existing) {
-          return reply.status(404).send({
-            message: 'Member already exists',
+        if (memberExisting) {
+          return reply.status(409).send({
+            message: 'Membro já existe para este usuário',
           })
         }
 
@@ -61,13 +64,13 @@ export const createMember: FastifyPluginAsyncZod = async app => {
 
         return reply.status(201).send({
           member,
-          message: 'Member created successfully!',
+          message: 'Membro criado com sucesso!',
         })
       } catch (error) {
         request.log.error(error)
 
-        return reply.status(404).send({
-          message: 'Failed to create member',
+        return reply.status(500).send({
+          message: 'Falha ao criar o membro',
         })
       }
     },

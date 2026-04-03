@@ -12,7 +12,9 @@ export const getCards: FastifyPluginAsyncZod = async app => {
     {
       preHandler: [authMiddleware],
       schema: {
-        summary: 'Get all credit cards for the authenticated user',
+        summary: 'Listar todos os cartões de crédito do usuário',
+        description:
+          'Retorna uma lista de todos os cartões cadastrados pelo usuário autenticado, incluindo informações de limite e datas de faturamento.',
         tags: ['Cards'],
         response: {
           200: z.object({

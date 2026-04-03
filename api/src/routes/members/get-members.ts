@@ -13,7 +13,9 @@ export const getMembers: FastifyPluginAsyncZod = async app => {
     {
       preHandler: [authMiddleware],
       schema: {
-        summary: 'Get all members',
+        summary: 'Lista todos os membros',
+        description:
+          'Retorna a lista completa de membros (familiares, amigos, etc.) cadastrados pelo usuário autenticado para divisão de despesas.',
         tags: ['Members'],
         response: {
           200: z.object({
