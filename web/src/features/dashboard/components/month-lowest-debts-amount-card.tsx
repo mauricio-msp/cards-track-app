@@ -1,5 +1,6 @@
 import { TrendingDown } from 'lucide-react'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
+import { HiddenValue } from '@/components/ui/hidden-value'
 import { useMonthLowestDebtsAmount } from '@/features/dashboard/hooks/use-month-lowest-debts-amount'
 import { formatPrice } from '@/lib/utils'
 
@@ -22,7 +23,9 @@ export function MonthLowestDebtsAmountCard() {
             'Sem cartões com dívidas'
           )}
         </span>
-        <span className="text-xs text-destructive">{formatPrice(data.amount / 100)}</span>
+        <HiddenValue className="w-24 h-4">
+          <span className="text-xs text-destructive">{formatPrice(data.amount / 100)}</span>
+        </HiddenValue>
       </CardContent>
     </Card>
   )

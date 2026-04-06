@@ -15,6 +15,7 @@ import { Route as AuthIndexRouteImport } from './routes/_auth/index'
 import { Route as AuthSignUpRouteImport } from './routes/_auth/sign-up'
 import { Route as AuthResetPasswordRouteImport } from './routes/_auth/reset-password'
 import { Route as AuthForgotPasswordRouteImport } from './routes/_auth/forgot-password'
+import { Route as AppSettingsRouteImport } from './routes/_app/settings'
 import { Route as AppDashboardRouteImport } from './routes/_app/dashboard'
 import { Route as AppMembersIdRouteImport } from './routes/_app/members/$id'
 import { Route as AppCreditCardIdRouteImport } from './routes/_app/credit-card/$id'
@@ -47,6 +48,11 @@ const AuthForgotPasswordRoute = AuthForgotPasswordRouteImport.update({
   path: '/forgot-password',
   getParentRoute: () => AuthRoute,
 } as any)
+const AppSettingsRoute = AppSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppDashboardRoute = AppDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -66,6 +72,7 @@ const AppCreditCardIdRoute = AppCreditCardIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof AuthIndexRoute
   '/dashboard': typeof AppDashboardRoute
+  '/settings': typeof AppSettingsRoute
   '/forgot-password': typeof AuthForgotPasswordRoute
   '/reset-password': typeof AuthResetPasswordRoute
   '/sign-up': typeof AuthSignUpRoute
@@ -75,6 +82,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof AuthIndexRoute
   '/dashboard': typeof AppDashboardRoute
+  '/settings': typeof AppSettingsRoute
   '/forgot-password': typeof AuthForgotPasswordRoute
   '/reset-password': typeof AuthResetPasswordRoute
   '/sign-up': typeof AuthSignUpRoute
@@ -86,6 +94,7 @@ export interface FileRoutesById {
   '/_app': typeof AppRouteWithChildren
   '/_auth': typeof AuthRouteWithChildren
   '/_app/dashboard': typeof AppDashboardRoute
+  '/_app/settings': typeof AppSettingsRoute
   '/_auth/forgot-password': typeof AuthForgotPasswordRoute
   '/_auth/reset-password': typeof AuthResetPasswordRoute
   '/_auth/sign-up': typeof AuthSignUpRoute
@@ -98,6 +107,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/dashboard'
+    | '/settings'
     | '/forgot-password'
     | '/reset-password'
     | '/sign-up'
@@ -107,6 +117,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/dashboard'
+    | '/settings'
     | '/forgot-password'
     | '/reset-password'
     | '/sign-up'
@@ -117,6 +128,7 @@ export interface FileRouteTypes {
     | '/_app'
     | '/_auth'
     | '/_app/dashboard'
+    | '/_app/settings'
     | '/_auth/forgot-password'
     | '/_auth/reset-password'
     | '/_auth/sign-up'
@@ -174,6 +186,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthForgotPasswordRouteImport
       parentRoute: typeof AuthRoute
     }
+    '/_app/settings': {
+      id: '/_app/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AppSettingsRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/dashboard': {
       id: '/_app/dashboard'
       path: '/dashboard'
@@ -200,12 +219,14 @@ declare module '@tanstack/react-router' {
 
 interface AppRouteChildren {
   AppDashboardRoute: typeof AppDashboardRoute
+  AppSettingsRoute: typeof AppSettingsRoute
   AppCreditCardIdRoute: typeof AppCreditCardIdRoute
   AppMembersIdRoute: typeof AppMembersIdRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
   AppDashboardRoute: AppDashboardRoute,
+  AppSettingsRoute: AppSettingsRoute,
   AppCreditCardIdRoute: AppCreditCardIdRoute,
   AppMembersIdRoute: AppMembersIdRoute,
 }

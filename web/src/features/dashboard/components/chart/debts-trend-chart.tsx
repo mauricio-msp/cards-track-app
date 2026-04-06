@@ -8,6 +8,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from '@/components/ui/chart'
+import { HiddenValue } from '@/components/ui/hidden-value'
 import {
   Select,
   SelectContent,
@@ -130,7 +131,9 @@ export function DebtsTrendChart() {
                         />
                         {chartConfig[name as keyof typeof chartConfig]?.label || name}
                         <div className="ml-auto flex items-baseline gap-0.5 font-mono font-medium tabular-nums text-foreground">
-                          {formatPrice(Number(value) / 100)}
+                          <HiddenValue placeholder="****">
+                            {formatPrice(Number(value) / 100)}
+                          </HiddenValue>
                         </div>
                       </div>
                     )

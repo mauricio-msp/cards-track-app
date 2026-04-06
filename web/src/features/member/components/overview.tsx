@@ -14,12 +14,12 @@ export function MemberOverview() {
   const { id } = useParams({ from: '/_app/members/$id' })
 
   return (
-    <div className="flex flex-col gap-4 p-4 pt-0">
+    <div className="flex flex-col gap-4 p-4 pt-0 overflow-hidden min-w-0">
       <div className="flex items-center justify-between mb-2">
         <Button variant="ghost" className="self-start cursor-pointer" asChild>
           <Link to="/dashboard">
             <ArrowLeft />
-            Back to dashboard
+            Voltar para o dashboard
           </Link>
         </Button>
 

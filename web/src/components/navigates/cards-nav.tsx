@@ -17,6 +17,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui/sidebar'
+import { HiddenValue } from '@/components/ui/hidden-value'
 import { CreateCardForm } from '@/features/credit-card/components/forms'
 import { useCards } from '@/features/credit-card/hooks'
 import { creditCards } from '@/helpers/credit-cards'
@@ -48,9 +49,11 @@ export function CardsNav() {
                   ?.icon({})}
                 <div className="flex-1 flex items-center justify-between">
                   <span className="inline-flex">{card.name}</span>
-                  <span className="inline-flex text-muted-foreground">
-                    {formatPrice(card.limit / 100)}
-                  </span>
+                  <HiddenValue className="w-20 h-5">
+                    <span className="inline-flex text-muted-foreground">
+                      {formatPrice(card.limit / 100)}
+                    </span>
+                  </HiddenValue>
                 </div>
               </Link>
             </SidebarMenuButton>

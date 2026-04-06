@@ -1,4 +1,4 @@
-import { Loader, Plus } from 'lucide-react'
+import { Loader, Save } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Controller } from 'react-hook-form'
 
@@ -29,11 +29,26 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 
-import { useCreateCardForm } from '@/features/credit-card/hooks'
+import { useUpdateCardForm } from '@/features/credit-card/hooks'
 import { creditCards } from '@/helpers/credit-cards'
 
-export function CreateCardForm({ children }: { children: ReactNode }) {
-  const { form, isPending, onSubmit } = useCreateCardForm()
+// O card completo (com closingOffsetDays e dueDay) precisa vir do endpoint GET /api/cards/:id.
+// A listagem GET /api/cards retorna apenas { id, name, limit } — use useCard(id) no componente pai.
+type Card = {
+  id: string
+  name: string
+  limit: number
+  closingOffsetDays: number
+  dueDay: number
+}
+
+interface UpdateCardFormProps {
+  card: Card
+  children: ReactNode
+}
+
+export function UpdateCardForm({ card, children }: UpdateCardFormProps) {
+  const { form, isPending, onSubmit } = useUpdateCardForm(card)
   const {
     control,
     register,
@@ -47,9 +62,9 @@ export function CreateCardForm({ children }: { children: ReactNode }) {
       <DialogContent className="sm:max-w-md" onCloseAutoFocus={() => form.reset()}>
         <form onSubmit={onSubmit} className="flex flex-col justify-end flex-1 gap-4">
           <DialogHeader>
-            <DialogTitle>Adicionar cartão de crédito</DialogTitle>
+            <DialogTitle>Editar cartão de crédito</DialogTitle>
             <DialogDescription>
-              Adicione um novo cartão de crédito para rastrear limites, despesas e parcelamentos.
+              Atualize as informações do cartão de crédito selecionado.
             </DialogDescription>
           </DialogHeader>
 
@@ -142,8 +157,8 @@ export function CreateCardForm({ children }: { children: ReactNode }) {
               </Button>
             </DialogClose>
             <Button type="submit" className="cursor-pointer" disabled={isPending}>
-              {isPending ? <Loader className="size-4 animate-spin" /> : <Plus className="size-4" />}
-              {isPending ? 'Criando cartão...' : 'Criar cartão'}
+              {isPending ? <Loader className="size-4 animate-spin" /> : <Save className="size-4" />}
+              {isPending ? 'Salvando...' : 'Salvar alterações'}
             </Button>
           </DialogFooter>
         </form>

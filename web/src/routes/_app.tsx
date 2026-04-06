@@ -25,6 +25,7 @@ export const Route = createFileRoute('/_app')({
 
     return { ...session }
   },
+  shouldReload: false,
   component: RouteComponent,
 })
 
@@ -47,17 +48,17 @@ function RouteComponent() {
     }))
 
   const flatCrumbs = breadcrumbs.flatMap(breadcrumb =>
-    breadcrumb?.crumbs?.map((label, index) => ({
-      label,
-      to: breadcrumb.to,
-      key: `${breadcrumb.id}-${label}-${index}`,
-    })),
+    breadcrumb?.crumbs?.map((crumb: string | { label: string; to: string }, index: number) => {
+      const label = typeof crumb === 'string' ? crumb : crumb.label
+      const to = typeof crumb === 'string' ? breadcrumb.to : crumb.to
+      return { label, to, key: `${breadcrumb.id}-${label}-${index}` }
+    }),
   )
 
   return (
     <SidebarProvider>
       <AppSidebar />
-      <SidebarInset>
+      <SidebarInset className="min-w-0">
         <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
           <div className="flex items-center gap-2 px-4">
             <SidebarTrigger className="-ml-1" />

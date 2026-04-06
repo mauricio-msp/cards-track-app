@@ -1,5 +1,6 @@
 import { BadgeDollarSign } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { HiddenValue } from '@/components/ui/hidden-value'
 import { useCardDebts, useMonthTotalAmountCard } from '@/features/credit-card/hooks'
 import { formatPrice } from '@/lib/utils'
 
@@ -21,9 +22,11 @@ export function TotalAmount({ cardId }: { cardId: string }) {
         </CardTitle>
       </CardHeader>
       <CardContent className="flex-1 flex flex-col mt-6 space-y-2">
-        <span className="text-3xl text-destructive font-bold">
-          {formatPrice(totalAmountMonth / 100)}
-        </span>
+        <HiddenValue className="w-40 h-9">
+          <span className="text-3xl text-destructive font-bold">
+            {formatPrice(totalAmountMonth / 100)}
+          </span>
+        </HiddenValue>
         <span className="text-sm text-muted-foreground">
           {debts.length} despesa(s) registrada(s)
         </span>

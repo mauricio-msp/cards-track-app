@@ -12,6 +12,7 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from '@/components/ui/empty'
+import { HiddenValue } from '@/components/ui/hidden-value'
 import { Progress } from '@/components/ui/progress'
 import { Separator } from '@/components/ui/separator'
 
@@ -90,11 +91,13 @@ export function DebtsMembersList({ cardId }: { cardId: string }) {
                   </div>
 
                   <div className="flex flex-col text-right ml-auto">
-                    <span className="text-sm font-semibold">
-                      {formatPrice(member.installmentAmount / 100)}
-                    </span>
+                    <HiddenValue className="w-16 h-4 mb-0.5">
+                      <span className="text-sm font-semibold">
+                        {formatPrice(member.installmentAmount / 100)}
+                      </span>
+                    </HiddenValue>
                     <span className="text-xs text-muted-foreground">
-                      {percentUsage.toFixed(1)}%
+                      <HiddenValue placeholder="****">{percentUsage.toFixed(1)}%</HiddenValue>
                     </span>
                   </div>
                 </div>
@@ -109,9 +112,11 @@ export function DebtsMembersList({ cardId }: { cardId: string }) {
 
             <div className="flex items-center justify-between">
               <span className="text-lg">Total Geral</span>
-              <span className="text-xl font-semibold text-destructive">
-                {formatPrice(totalAmountMonth / 100)}
-              </span>
+              <HiddenValue className="w-24 h-7">
+                <span className="text-xl font-semibold text-destructive">
+                  {formatPrice(totalAmountMonth / 100)}
+                </span>
+              </HiddenValue>
             </div>
           </>
         ) : (

@@ -1,5 +1,6 @@
 import { User, UserStar } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
+import { HiddenValue } from '@/components/ui/hidden-value'
 import { useMember, useMemberDebts } from '@/features/member/hooks'
 import { formatPrice } from '@/lib/utils'
 
@@ -26,9 +27,11 @@ export function Details({ memberId }: { memberId: string }) {
         <Badge variant="outline">{member.relationship}</Badge>
       </div>
       <div className="ml-auto flex flex-col items-end">
-        <span className="text-3xl text-destructive font-semibold">
-          {formatPrice(totalAmount / 100)}
-        </span>
+        <HiddenValue className="w-36 h-9">
+          <span className="text-3xl text-destructive font-semibold">
+            {formatPrice(totalAmount / 100)}
+          </span>
+        </HiddenValue>
         <span className="text-sm text-muted-foreground">Total de dívidas</span>
       </div>
     </header>

@@ -24,6 +24,7 @@ import {
   ContextMenuSubTrigger,
   ContextMenuTrigger,
 } from '@/components/ui/context-menu'
+import { HiddenValue } from '@/components/ui/hidden-value'
 import { Progress } from '@/components/ui/progress'
 import type { GetCardDebtsItem } from '@/features/credit-card/api/get-card-debts'
 import { formatPrice } from '@/lib/utils'
@@ -60,7 +61,7 @@ export function DebtsItem({ debt, onAnticipate, onDelete }: DebtsItemProps) {
         <ContextMenuTrigger
           disabled={isComplete}
           data-complete={isComplete}
-          className="py-4 not-last:border-b flex items-center gap-4 data-[complete=true]:opacity-45 rounded-t-lg px-2 hover:bg-muted/30 transition-colors cursor-context-menu"
+          className="py-4 not-last:border-b flex items-center gap-4 data-[complete=true]:opacity-45 rounded-t-lg px-2 cursor-context-menu"
         >
           <div className="size-10 bg-muted/50 rounded-lg grid place-items-center shrink-0">
             <CreditCard className="size-4 text-muted-foreground" />
@@ -129,15 +130,21 @@ export function DebtsItem({ debt, onAnticipate, onDelete }: DebtsItemProps) {
           </div>
 
           <div className="ml-auto flex flex-col text-right shrink-0">
-            <p className="text-lg font-semibold">{formatPrice(totalMembersAmount)}</p>
+            <HiddenValue className="w-24 h-7 mb-0.5">
+              <p className="text-lg font-semibold">{formatPrice(totalMembersAmount)}</p>
+            </HiddenValue>
             <span className="text-xs text-muted-foreground">
-              Total: {formatPrice(fullDebtTotal)}
+              Total: <HiddenValue placeholder="****">{formatPrice(fullDebtTotal)}</HiddenValue>
             </span>
             <div className="text-xs text-muted-foreground flex flex-col">
               {debt.members.length > 1
                 ? debt.members.map(member => (
                     <span key={member.name}>
-                      {member.name} ({formatPrice(member.installmentAmount / 100)})
+                      {member.name} (
+                      <HiddenValue placeholder="****">
+                        {formatPrice(member.installmentAmount / 100)}
+                      </HiddenValue>
+                      )
                     </span>
                   ))
                 : debt.members[0].name}

@@ -9,3 +9,7 @@ export { useCreateDebtForm } from '@/features/credit-card/hooks/use-create-debt-
 export { useDeleteDebt } from '@/features/credit-card/hooks/use-delete-debt'
 export { useMonthTotalAmountCard } from '@/features/credit-card/hooks/use-month-total-amount-card'
 export { useTotalAmountUsedCard } from '@/features/credit-card/hooks/use-total-amount-used-card'
+export { useUpdateCard } from '@/features/credit-card/hooks/use-update-card'
+export { useUpdateCardForm } from '@/features/credit-card/hooks/use-update-card-form'
+export { useUpdateDebt } from '@/features/credit-card/hooks/use-update-debt'
+export { useUpdateDebtForm } from '@/features/credit-card/hooks/use-update-debt-form'
