@@ -23,6 +23,7 @@ import {
 
 import { useUpdateCardForm } from '@/features/credit-card/hooks'
 import { creditCards } from '@/helpers/credit-cards'
+import { applyBRLMask } from '@/lib/utils'
 
 type Card = {
   id: string
@@ -35,18 +36,6 @@ type Card = {
 interface UpdateCardFormProps {
   card: Card
   children: ReactNode
-}
-
-function applyBRLMask(raw: string): string {
-  const digits = raw.replace(/\D/g, '')
-
-  if (!digits) return ''
-
-  const cents = parseInt(digits, 10)
-  return (cents / 100).toLocaleString('pt-BR', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  })
 }
 
 export function UpdateCardForm({ card, children }: UpdateCardFormProps) {

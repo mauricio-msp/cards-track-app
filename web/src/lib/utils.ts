@@ -38,3 +38,12 @@ export function formatValueToCents(value: string): number | null {
 
   return Math.round(parsed * 100)
 }
+
+export function applyBRLMask(raw: string): string {
+  const digits = raw.replace(/\D/g, '')
+  if (!digits) return ''
+  return (parseInt(digits, 10) / 100).toLocaleString('pt-BR', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })
+}
