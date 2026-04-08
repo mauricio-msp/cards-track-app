@@ -31,6 +31,7 @@ import {
 
 import { useCreateCardForm } from '@/features/credit-card/hooks'
 import { creditCards } from '@/helpers/credit-cards'
+import { applyBRLMask } from '@/lib/utils'
 
 export function CreateCardForm({ children }: { children: ReactNode }) {
   const { form, isPending, onSubmit } = useCreateCardForm()
@@ -39,6 +40,8 @@ export function CreateCardForm({ children }: { children: ReactNode }) {
     register,
     formState: { errors },
   } = form
+
+  const { onChange: onLimitChange, ...limitRegister } = register('limit')
 
   return (
     <Dialog>
@@ -92,8 +95,13 @@ export function CreateCardForm({ children }: { children: ReactNode }) {
                   id="limit"
                   disabled={isPending}
                   aria-invalid={!!errors.limit}
-                  placeholder="0.00"
-                  {...register('limit')}
+                  placeholder="0,00"
+                  inputMode="numeric"
+                  onChange={e => {
+                    e.target.value = applyBRLMask(e.target.value)
+                    onLimitChange(e)
+                  }}
+                  {...limitRegister}
                 />
                 <InputGroupAddon align="inline-end">
                   <InputGroupText>BRL</InputGroupText>
