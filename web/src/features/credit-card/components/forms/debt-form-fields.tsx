@@ -156,7 +156,9 @@ export function DebtFormFields({
 
             <Separator />
 
-            {fields.map((member, index) => (
+            {fields.map((member, index) => {
+              const { onChange: onAmountChange, ...amountRegister } = register(`members.${index}.amount`)
+              return (
               <Field
                 key={member._rhf_id}
                 data-invalid={!!errors.members?.[index]?.amount}
@@ -177,23 +179,18 @@ export function DebtFormFields({
                           <InputGroupAddon>
                             <InputGroupText>R$</InputGroupText>
                           </InputGroupAddon>
-                          {(() => {
-                            const { onChange: onAmountChange, ...amountRegister } = register(`members.${index}.amount`)
-                            return (
-                              <InputGroupInput
-                                id={`amount-${index}`}
-                                disabled={isPending}
-                                aria-invalid={!!errors.members?.[index]?.amount}
-                                placeholder="0,00"
-                                inputMode="numeric"
-                                onChange={e => {
-                                  e.target.value = applyBRLMask(e.target.value)
-                                  onAmountChange(e)
-                                }}
-                                {...amountRegister}
-                              />
-                            )
-                          })()}
+                          <InputGroupInput
+                            id={`amount-${index}`}
+                            disabled={isPending}
+                            aria-invalid={!!errors.members?.[index]?.amount}
+                            placeholder="0,00"
+                            inputMode="numeric"
+                            onChange={e => {
+                              e.target.value = applyBRLMask(e.target.value)
+                              onAmountChange(e)
+                            }}
+                            {...amountRegister}
+                          />
                           <InputGroupAddon align="inline-end">
                             <InputGroupText>BRL</InputGroupText>
                           </InputGroupAddon>
@@ -248,7 +245,8 @@ export function DebtFormFields({
                   </AccordionItem>
                 </Accordion>
               </Field>
-            ))}
+              )
+            })}
           </div>
         )}
 
