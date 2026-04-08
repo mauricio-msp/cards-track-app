@@ -51,7 +51,7 @@ import { CATEGORIES } from '@/features/credit-card/categories'
 import type { CreateDebtFormValues } from '@/features/credit-card/hooks'
 import type { Member } from '@/features/member/api/get-members'
 import { RELATIONSHIPS } from '@/helpers/relationships'
-import { formatPrice } from '@/lib/utils'
+import { applyBRLMask, formatPrice } from '@/lib/utils'
 
 export type DebtFormFieldsProps = {
   control: Control<CreateDebtFormValues>
@@ -177,13 +177,23 @@ export function DebtFormFields({
                           <InputGroupAddon>
                             <InputGroupText>R$</InputGroupText>
                           </InputGroupAddon>
-                          <InputGroupInput
-                            id={`amount-${index}`}
-                            disabled={isPending}
-                            aria-invalid={!!errors.members?.[index]?.amount}
-                            placeholder="0.00"
-                            {...register(`members.${index}.amount`)}
-                          />
+                          {(() => {
+                            const { onChange: onAmountChange, ...amountRegister } = register(`members.${index}.amount`)
+                            return (
+                              <InputGroupInput
+                                id={`amount-${index}`}
+                                disabled={isPending}
+                                aria-invalid={!!errors.members?.[index]?.amount}
+                                placeholder="0,00"
+                                inputMode="numeric"
+                                onChange={e => {
+                                  e.target.value = applyBRLMask(e.target.value)
+                                  onAmountChange(e)
+                                }}
+                                {...amountRegister}
+                              />
+                            )
+                          })()}
                           <InputGroupAddon align="inline-end">
                             <InputGroupText>BRL</InputGroupText>
                           </InputGroupAddon>
