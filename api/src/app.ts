@@ -9,14 +9,29 @@ import {
   validatorCompiler,
   type ZodTypeProvider,
 } from 'fastify-type-provider-zod'
-
+import { env } from '@/env'
 import { auth } from '@/lib/auth'
 import { cardRoutes } from '@/routes/credit-card'
 import { debtsRoutes } from '@/routes/debts'
 import { installmentRoutes } from '@/routes/installment'
 import { memberRoutes } from '@/routes/members'
 
-export const app = fastify({ logger: true }).withTypeProvider<ZodTypeProvider>()
+export const app = fastify({
+  logger: {
+    level: env.NODE_ENV === 'development' ? 'debug' : 'info',
+    transport:
+      env.NODE_ENV === 'development'
+        ? {
+            target: 'pino-pretty',
+            options: {
+              translateTime: 'HH:MM:ss Z',
+              ignore: 'pid,hostname', // Remove o que você não precisa ver toda hora
+              colorize: true,
+            },
+          }
+        : undefined, // Em produção, mantém o JSON puro por performance
+  },
+}).withTypeProvider<ZodTypeProvider>()
 
 app.setValidatorCompiler(validatorCompiler)
 app.setSerializerCompiler(serializerCompiler)
