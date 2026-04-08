@@ -57,7 +57,7 @@ type Debt = z.infer<typeof GetCardDebtsItem>
 
 export function useUpdateDebtForm(debt: Debt) {
   const { id: cardId } = useParams({ from: '/_app/credit-card/$id' })
-  const { mutateAsync: updateDebtFn, isPending } = useUpdateDebt()
+  const { mutateAsync: updateDebtFn, isPending } = useUpdateDebt(cardId)
   const membersStore = useMembersStore(state => state.members)
 
   const [calendarOpen, setCalendarOpen] = React.useState(false)

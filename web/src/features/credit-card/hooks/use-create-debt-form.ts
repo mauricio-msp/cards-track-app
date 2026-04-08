@@ -61,7 +61,7 @@ const defaultValues: Partial<CreateDebtFormValues> = {
 
 export function useCreateDebtForm() {
   const { id: cardId } = useParams({ from: '/_app/credit-card/$id' })
-  const { mutateAsync: createDebtFn, isPending } = useCreateDebt()
+  const { mutateAsync: createDebtFn, isPending } = useCreateDebt(cardId)
   const membersStore = useMembersStore(state => state.members)
 
   const [calendarOpen, setCalendarOpen] = React.useState(false)
