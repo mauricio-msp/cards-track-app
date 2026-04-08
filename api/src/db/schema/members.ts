@@ -18,6 +18,7 @@ export const members = pgTable(
     relationship: text('relationship').notNull(),
 
     createdAt: timestamp('created_at').notNull().defaultNow(),
+    deletedAt: timestamp('deleted_at'),
   },
   table => ({
     uniqueMemberPerUser: uniqueIndex('members_user_name_unique').on(table.userId, table.name),
