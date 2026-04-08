@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm'
+import { and, eq, isNull } from 'drizzle-orm'
 import { createSelectSchema } from 'drizzle-zod'
 import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod'
 import { z } from 'zod'
@@ -45,7 +45,7 @@ export const getMembers: FastifyPluginAsyncZod = async app => {
           createdAt: members.createdAt,
         })
         .from(members)
-        .where(eq(members.userId, userId))
+        .where(and(eq(members.userId, userId), isNull(members.deletedAt)))
 
       return reply.status(200).send({ members: rows })
     },
