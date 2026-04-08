@@ -48,7 +48,7 @@ import { Separator } from '@/components/ui/separator'
 import { Switch } from '@/components/ui/switch'
 
 import { CATEGORIES } from '@/features/credit-card/categories'
-import type { CreateDebtFormValues } from '@/features/credit-card/hooks/use-create-debt-form'
+import type { CreateDebtFormValues } from '@/features/credit-card/hooks'
 import type { Member } from '@/features/member/api/get-members'
 import { RELATIONSHIPS } from '@/helpers/relationships'
 import { formatPrice } from '@/lib/utils'
