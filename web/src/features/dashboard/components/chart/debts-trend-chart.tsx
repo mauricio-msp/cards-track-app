@@ -21,10 +21,12 @@ import {
 import { useDebtsTrend } from '@/features/dashboard/hooks/use-debts-trend'
 import { useDebtsYears } from '@/features/dashboard/hooks/use-debts-years'
 import { creditCards } from '@/helpers/credit-cards'
+import { useIsMobile } from '@/hooks/use-mobile'
 import { formatPrice } from '@/lib/utils'
 
 export function DebtsTrendChart() {
   const [year, setYear] = React.useState<number | undefined>(undefined)
+  const isMobile = useIsMobile()
 
   const {
     data: { years: yearsToFilter },
@@ -54,14 +56,14 @@ export function DebtsTrendChart() {
 
   return (
     <Card className="flex-1">
-      <CardHeader className="flex items-center justify-between">
+      <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="space-y-2">
           <CardTitle>Gráfico de Dívidas</CardTitle>
           <CardDescription>Visualização das dívidas ao longo do tempo</CardDescription>
         </div>
 
         <Select onValueChange={value => setYear(Number(value))}>
-          <SelectTrigger className="w-auto">
+          <SelectTrigger className="w-full sm:w-auto">
             <SelectValue placeholder="Selecione um ano" />
           </SelectTrigger>
           <SelectContent>
@@ -79,8 +81,15 @@ export function DebtsTrendChart() {
         </Select>
       </CardHeader>
       <CardContent className="h-full">
-        <ChartContainer config={chartConfig} className="aspect-auto size-full">
-          <AreaChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+        <ChartContainer config={chartConfig} className="h-75 aspect-auto sm:size-full">
+          <AreaChart
+            data={chartData}
+            margin={
+              isMobile
+                ? { top: 10, right: 10, left: 0, bottom: 5 }
+                : { top: 20, right: 30, left: 20, bottom: 5 }
+            }
+          >
             <defs>
               {Object.entries(chartConfig).map(([key, item]) => (
                 <linearGradient key={key} id={`gradient-${key}`} x1="0" y1="0" x2="0" y2="1">
@@ -102,10 +111,12 @@ export function DebtsTrendChart() {
 
             <XAxis
               dataKey="date"
-              padding={{ left: 20, right: 20 }}
+              padding={{ left: isMobile ? 8 : 20, right: isMobile ? 8 : 20 }}
               tickLine={false}
               axisLine={false}
               tickMargin={8}
+              interval={isMobile ? 2 : 0}
+              tick={{ fontSize: isMobile ? 10 : 12 }}
               tickFormatter={value => {
                 const date = new Date(`${value}-02`) // Adicionado -02 para evitar erro de fuso
                 return date.toLocaleDateString('pt-BR', { month: 'short', year: '2-digit' })

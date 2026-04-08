@@ -1,19 +1,21 @@
 import { Pencil, Plus, Trash2, Users } from 'lucide-react'
-import React from 'react'
+import React, { useState } from 'react'
+import { DeleteAlertDialog } from '@/components/delete-alert-dialog'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { CreateMemberForm } from '@/features/member/components/create-member-form'
 import { useMembers } from '@/features/member/hooks'
-// import { useDeleteMember } from '@/features/member/hooks/use-delete-member'
+import { useDeleteMember } from '@/features/member/hooks/use-delete-member'
 import { getInitialLetters } from '@/lib/utils'
 
 export function MembersCard() {
   const {
     data: { members },
   } = useMembers()
-  // const { mutateAsync: deleteMemberFn } = useDeleteMember()
+  const { mutateAsync: deleteMemberFn } = useDeleteMember()
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null)
 
   return (
     <Card>
@@ -49,21 +51,15 @@ export function MembersCard() {
                   <Pencil className="size-3.5" />
                   Editar
                 </Button>
-                <Button disabled variant="destructive" size="sm" className="min-w-20">
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  className="min-w-20"
+                  onClick={() => setDeleteTarget({ id: member.id, name: member.name })}
+                >
                   <Trash2 className="size-3.5" />
                   Excluir
                 </Button>
-                {/* <ContextMenuDeleteItem
-                  title="Remover membro"
-                  description={`Tem certeza que deseja remover ${member.name}? Esta ação não pode ser desfeita.`}
-                  onConfirm={() => deleteMemberFn(member.id)}
-                  trigger={
-                    <Button variant="outline" size="sm" className="min-w-20 text-destructive hover:text-destructive">
-                      <Trash2 className="size-3.5" />
-                      Remover
-                    </Button>
-                  }
-                /> */}
               </div>
             </div>
           </React.Fragment>
@@ -75,6 +71,24 @@ export function MembersCard() {
           </p>
         )}
       </CardContent>
+
+      <DeleteAlertDialog
+        open={deleteTarget !== null}
+        onOpenChange={open => !open && setDeleteTarget(null)}
+        title="Excluir membro"
+        description={
+          <>
+            Tem certeza que deseja excluir <strong>{deleteTarget?.name}</strong>? Esta ação não pode
+            ser desfeita.
+          </>
+        }
+        onConfirm={async () => {
+          if (deleteTarget) {
+            await deleteMemberFn(deleteTarget.id)
+            setDeleteTarget(null)
+          }
+        }}
+      />
     </Card>
   )
 }
