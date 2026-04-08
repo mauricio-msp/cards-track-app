@@ -1,11 +1,11 @@
-import { and, eq } from 'drizzle-orm'
+import { and, eq, inArray, isNull, sql } from 'drizzle-orm'
 import { createSelectSchema } from 'drizzle-zod'
 import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod'
 import { uuidv7 } from 'uuidv7'
 import { z } from 'zod'
 
 import { db } from '@/db'
-import { cards, debts, installments, invoices } from '@/db/schema'
+import { cards, debts, installments, invoices, members } from '@/db/schema'
 import { authMiddleware } from '@/middleware/auth'
 import { calculateInvoiceCompetence } from '@/utils/calculate-invoice-competence'
 
@@ -64,7 +64,7 @@ export const createDebt: FastifyPluginAsyncZod = async app => {
       },
     },
     async (request, reply) => {
-      const { cardId, members, description, category, installmentsCount, purchaseDate } =
+      const { cardId, members: members_input, description, category, installmentsCount, purchaseDate } =
         request.body
 
       try {
@@ -74,6 +74,7 @@ export const createDebt: FastifyPluginAsyncZod = async app => {
         const [card] = await db
           .select({
             id: cards.id,
+            limit: cards.limit,
             closingOffsetDays: cards.closingOffsetDays,
             dueDay: cards.dueDay,
           })
@@ -83,6 +84,38 @@ export const createDebt: FastifyPluginAsyncZod = async app => {
         if (!card) {
           return reply.status(400).send({
             message: 'Cartão não encontrado ou não pertence ao usuário',
+          })
+        }
+
+        // Verificar se algum membro está excluído
+        const memberIds = members_input.map(m => m.id)
+        const activeMembersCheck = await db
+          .select({ id: members.id })
+          .from(members)
+          .where(and(inArray(members.id, memberIds), isNull(members.deletedAt)))
+
+        if (activeMembersCheck.length !== memberIds.length) {
+          return reply.status(400).send({
+            message: 'Um ou mais membros foram excluídos e não podem ter novas despesas',
+          })
+        }
+
+        // Verificar limite do cartão
+        const newPurchaseTotal = members_input.reduce((sum, m) => sum + m.amount, 0)
+
+        const [limitCheck] = await db
+          .select({
+            totalUnpaid: sql<number>`COALESCE(SUM(${installments.amount}), 0)`.mapWith(Number),
+          })
+          .from(installments)
+          .innerJoin(invoices, eq(installments.invoiceId, invoices.id))
+          .where(and(eq(invoices.cardId, cardId), isNull(installments.paidAt)))
+
+        const totalUnpaid = limitCheck?.totalUnpaid ?? 0
+        if (totalUnpaid + newPurchaseTotal > card.limit) {
+          const available = card.limit - totalUnpaid
+          return reply.status(400).send({
+            message: `Limite insuficiente. Disponível: R$${(available / 100).toFixed(2)}, necessário: R$${(newPurchaseTotal / 100).toFixed(2)}`,
           })
         }
 
@@ -123,7 +156,7 @@ export const createDebt: FastifyPluginAsyncZod = async app => {
             firstInvoice = newInv
           }
 
-          const debtsToInsert = members.map(member => {
+          const debtsToInsert = members_input.map(member => {
             const start = member.startInstallment ?? 1
             const end = member.endInstallment ?? installmentsCount
             const memberActiveInstallments = end - start + 1
