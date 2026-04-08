@@ -18,7 +18,7 @@ export const getCards: FastifyPluginAsyncZod = async app => {
         tags: ['Cards'],
         response: {
           200: z.object({
-            cards: z.array(createSelectSchema(cards).pick({ id: true, name: true, limit: true })),
+            cards: z.array(createSelectSchema(cards).omit({ createdAt: true, ownerUserId: true })),
           }),
         },
       },
@@ -27,7 +27,13 @@ export const getCards: FastifyPluginAsyncZod = async app => {
       const { id: userId } = request.user
 
       const rows = await db
-        .select({ id: cards.id, name: cards.name, limit: cards.limit })
+        .select({
+          id: cards.id,
+          name: cards.name,
+          limit: cards.limit,
+          closingOffsetDays: cards.closingOffsetDays,
+          dueDay: cards.dueDay,
+        })
         .from(cards)
         .where(eq(cards.ownerUserId, userId))
 
