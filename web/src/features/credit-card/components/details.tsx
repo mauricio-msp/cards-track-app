@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import { HiddenValue } from '@/components/ui/hidden-value'
 import { Progress } from '@/components/ui/progress'
+import { UpdateCardForm } from '@/features/credit-card/components/forms'
 import { useCard, useTotalAmountUsedCard } from '@/features/credit-card/hooks'
 import { creditCards } from '@/helpers/credit-cards'
 import { MONTHS } from '@/helpers/months'
@@ -47,9 +48,11 @@ export function Details({ cardId }: { cardId: string }) {
         <div className="flex flex-col gap-0.5">
           <p className="text-lg font-semibold">
             {currentCreditCard?.name}
-            <Button size="icon-xs" variant="outline" className="ml-2">
-              <Pencil />
-            </Button>
+            <UpdateCardForm card={{ id: cardId, ...card }}>
+              <Button size="icon-xs" variant="outline" className="ml-2 cursor-pointer">
+                <Pencil />
+              </Button>
+            </UpdateCardForm>
           </p>
           <span className="text-sm text-muted-foreground">
             Competência: {MONTHS[competenceMonth]}/{competenceYear}

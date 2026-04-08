@@ -1,6 +1,6 @@
 import { Loader, Save } from 'lucide-react'
 import type { ReactNode } from 'react'
-import { Controller } from 'react-hook-form'
+import { useState } from 'react'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -20,20 +20,10 @@ import {
   InputGroupInput,
   InputGroupText,
 } from '@/components/ui/input-group'
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 
 import { useUpdateCardForm } from '@/features/credit-card/hooks'
 import { creditCards } from '@/helpers/credit-cards'
 
-// O card completo (com closingOffsetDays e dueDay) precisa vir do endpoint GET /api/cards/:id.
-// A listagem GET /api/cards retorna apenas { id, name, limit } — use useCard(id) no componente pai.
 type Card = {
   id: string
   name: string
@@ -47,19 +37,42 @@ interface UpdateCardFormProps {
   children: ReactNode
 }
 
+function applyBRLMask(raw: string): string {
+  const digits = raw.replace(/\D/g, '')
+
+  if (!digits) return ''
+
+  const cents = parseInt(digits, 10)
+  return (cents / 100).toLocaleString('pt-BR', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })
+}
+
 export function UpdateCardForm({ card, children }: UpdateCardFormProps) {
-  const { form, isPending, onSubmit } = useUpdateCardForm(card)
+  const [open, setOpen] = useState(false)
+  const { form, isPending, onSubmit, resetToCard } = useUpdateCardForm(card, () => setOpen(false))
   const {
-    control,
     register,
     formState: { errors },
   } = form
 
+  const currentCreditCard = creditCards.find(
+    cc => cc.name.toLowerCase() === card.name.toLowerCase(),
+  )
+
+  const { onChange: onLimitChange, ...limitRegister } = register('limit')
+
+  function handleOpenChange(isOpen: boolean) {
+    if (isOpen) resetToCard()
+    setOpen(isOpen)
+  }
+
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>{children}</DialogTrigger>
 
-      <DialogContent className="sm:max-w-md" onCloseAutoFocus={() => form.reset()}>
+      <DialogContent className="sm:max-w-md">
         <form onSubmit={onSubmit} className="flex flex-col justify-end flex-1 gap-4">
           <DialogHeader>
             <DialogTitle>Editar cartão de crédito</DialogTitle>
@@ -69,46 +82,37 @@ export function UpdateCardForm({ card, children }: UpdateCardFormProps) {
           </DialogHeader>
 
           <FieldGroup>
-            <Field data-invalid={!!errors.name}>
-              <FieldLabel>Credit card</FieldLabel>
-              <Controller
-                name="name"
-                control={control}
-                render={({ field }) => (
-                  <Select disabled={isPending} value={field.value} onValueChange={field.onChange}>
-                    <SelectTrigger aria-invalid={!!errors.name}>
-                      <SelectValue placeholder="Select a credit card" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectGroup>
-                        {creditCards
-                          .sort((a, b) => a.name.localeCompare(b.name))
-                          .map(c => (
-                            <SelectItem key={c.name} value={c.name.toLowerCase()}>
-                              {c.icon({})}
-                              {c.name}
-                            </SelectItem>
-                          ))}
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
-                )}
-              />
-              {errors.name && <FieldError>{errors.name.message}</FieldError>}
-            </Field>
+            <div className="flex items-center gap-2 opacity-50 pointer-events-none select-none px-1">
+              {currentCreditCard?.icon({}) ?? null}
+              <span className="text-sm font-medium capitalize text-muted-foreground">
+                {card.name}
+              </span>
+              <span className="text-xs text-muted-foreground ml-auto">(não editável)</span>
+            </div>
 
             <Field data-invalid={!!errors.limit}>
-              <FieldLabel htmlFor="limit">Credit limit</FieldLabel>
-              <InputGroup>
+              <FieldLabel
+                htmlFor="limit"
+                className="text-primary/70 text-xs uppercase tracking-wider"
+              >
+                Limite do cartão
+              </FieldLabel>
+              <InputGroup className="border-primary/50 bg-primary/5 h-auto">
                 <InputGroupAddon>
-                  <InputGroupText>R$</InputGroupText>
+                  <InputGroupText className="text-primary font-semibold">R$</InputGroupText>
                 </InputGroupAddon>
                 <InputGroupInput
                   id="limit"
                   disabled={isPending}
                   aria-invalid={!!errors.limit}
-                  placeholder="0.00"
-                  {...register('limit')}
+                  placeholder="0,00"
+                  inputMode="numeric"
+                  className="text-2xl font-bold py-3"
+                  onChange={e => {
+                    e.target.value = applyBRLMask(e.target.value)
+                    onLimitChange(e)
+                  }}
+                  {...limitRegister}
                 />
                 <InputGroupAddon align="inline-end">
                   <InputGroupText>BRL</InputGroupText>

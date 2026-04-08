@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
 import { createCard } from '@/features/credit-card/api'
 
 export function useCreateCard() {
@@ -8,9 +9,11 @@ export function useCreateCard() {
     mutationFn: createCard,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['credit-cards'] })
+      toast.success('Cartão criado com sucesso!')
     },
     onError: error => {
       console.error('Failed to create card:', error)
+      toast.error('Falhou ao criar o cartão. Por favor, tente novamente.')
     },
   })
 }

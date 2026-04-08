@@ -1,18 +1,19 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
 import { updateCard } from '@/features/credit-card/api'
 
 export function useUpdateCard() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    // TODO: o updateCard já está estruturado — apenas o fetch interno está comentado.
-    // Quando o BE estiver pronto, descomentar o fetch em api/update-card.ts.
     mutationFn: updateCard,
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['credit-cards'] })
+      queryClient.invalidateQueries({ queryKey: ['cards', variables.id] })
     },
     onError: (error: Error) => {
       console.error('Failed to update card:', error)
+      toast.error('Erro ao atualizar cartão. Por favor, tente novamente.')
     },
   })
 }

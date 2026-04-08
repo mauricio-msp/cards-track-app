@@ -9,13 +9,13 @@ export function useUpdateDebt() {
   const { month, year } = useDebtsFilter()
 
   return useMutation({
-    // TODO: o updateDebt já está estruturado — apenas o fetch interno está comentado.
-    // Quando o BE estiver pronto, descomentar o fetch em api/update-debt.ts.
     mutationFn: updateDebt,
     onSuccess: async () => {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['cards', id, 'debts', month, year] }),
-        queryClient.invalidateQueries({ queryKey: ['cards', id, 'month-total-amount', month, year] }),
+        queryClient.invalidateQueries({
+          queryKey: ['cards', id, 'month-total-amount', month, year],
+        }),
         queryClient.invalidateQueries({ queryKey: ['cards', id, 'total-amount-used'] }),
       ])
     },

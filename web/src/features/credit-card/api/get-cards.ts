@@ -9,7 +9,7 @@ export const CreditCardSchema = z.object({
 })
 
 export const CreditCardListResponse = z.object({
-  cards: z.array(CreditCardSchema.omit({ closingOffsetDays: true, dueDay: true })),
+  cards: z.array(CreditCardSchema),
 })
 
 export async function getCards() {

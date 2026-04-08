@@ -1,17 +1,7 @@
 import { CreditCard, Dot, Pencil, Trash2, UndoDot, Zap } from 'lucide-react'
 import React from 'react'
 import type { z } from 'zod'
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogMedia,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
+import { DeleteAlertDialog } from '@/components/delete-alert-dialog'
 import { Badge } from '@/components/ui/badge'
 import {
   ContextMenu,
@@ -188,26 +178,24 @@ export function DebtsItem({ debt, onAnticipate, onDelete }: DebtsItemProps) {
         </ContextMenuContent>
       </ContextMenu>
 
-      <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
-        <AlertDialogContent size="sm">
-          <AlertDialogHeader>
-            <AlertDialogMedia className="bg-destructive/10 text-destructive dark:bg-destructive/20 dark:text-destructive">
-              <Trash2 />
-            </AlertDialogMedia>
-            <AlertDialogTitle>Excluir despesa?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Esta ação removerá <strong>{debt.description}</strong> e todas as parcelas associadas
-              permanentemente. Ela não pode ser desfeita.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel variant="outline">Cancelar</AlertDialogCancel>
-            <AlertDialogAction variant="destructive" onClick={() => onDelete(debt.debtId)}>
-              Excluir
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <DeleteAlertDialog
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
+        title="Excluir despesa?"
+        description={
+          <div className="space-y-2">
+            <p>Esta ação removerá</p>
+            <div className="rounded-md border bg-muted/50 px-3 py-2 text-sm text-foreground">
+              <p className="font-medium">{debt.description}</p>
+              <p className="text-xs text-muted-foreground">
+                {debt.members.map(m => m.name).join(', ')} · {formatPrice(fullDebtTotal)}
+              </p>
+            </div>
+            <p>e todas as parcelas associadas permanentemente. Ela não pode ser desfeita.</p>
+          </div>
+        }
+        onConfirm={() => onDelete(debt.debtId)}
+      />
     </>
   )
 }

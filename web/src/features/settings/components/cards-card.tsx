@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { HiddenValue } from '@/components/ui/hidden-value'
 import { Separator } from '@/components/ui/separator'
-import { CreateCardForm } from '@/features/credit-card/components/forms'
+import { CreateCardForm, UpdateCardForm } from '@/features/credit-card/components/forms'
 import { useCards } from '@/features/credit-card/hooks/use-cards'
 // import { useDeleteCard } from '@/features/credit-card/hooks/use-delete-card'
 import { creditCards } from '@/helpers/credit-cards'
@@ -46,14 +46,17 @@ export function CardsCard() {
               <div className="flex flex-col flex-1 min-w-0">
                 <span className="text-sm font-medium capitalize truncate">{card.name}</span>
                 <span className="text-xs text-muted-foreground">
-                  Limite: <HiddenValue placeholder="****">{formatPrice(card.limit / 100)}</HiddenValue>
+                  Limite:{' '}
+                  <HiddenValue placeholder="****">{formatPrice(card.limit / 100)}</HiddenValue>
                 </span>
               </div>
               <div className="flex items-center gap-2 shrink-0">
-                <Button variant="outline" size="sm" className="min-w-20">
-                  <Pencil className="size-3.5" />
-                  Editar
-                </Button>
+                <UpdateCardForm card={card}>
+                  <Button variant="outline" size="sm" className="min-w-20">
+                    <Pencil className="size-3.5" />
+                    Editar
+                  </Button>
+                </UpdateCardForm>
                 <Button disabled variant="destructive" size="sm" className="min-w-20">
                   <Trash2 className="size-3.5" />
                   Excluir

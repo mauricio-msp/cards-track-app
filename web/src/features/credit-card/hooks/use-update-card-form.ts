@@ -5,7 +5,6 @@ import { useUpdateCard } from '@/features/credit-card/hooks'
 import { formatValueToCents } from '@/lib/utils'
 
 const UpdateCardFormSchema = z.object({
-  name: z.string().min(1, 'Selecione um cartão de crédito'),
   limit: z.string({ error: 'Limite é obrigatório' }).refine(value => {
     const cents = formatValueToCents(value)
     return cents !== null && cents > 0
@@ -21,9 +20,6 @@ const UpdateCardFormSchema = z.object({
 
 export type UpdateCardFormValues = z.infer<typeof UpdateCardFormSchema>
 
-// O card completo (com closingOffsetDays e dueDay) precisa vir do endpoint GET /api/cards/:id.
-// A listagem GET /api/cards retorna apenas { id, name, limit }.
-// Ao montar o UpdateCardForm no settings, use useCard(cardId) para obter os dados completos.
 type CardDefaults = {
   id: string
   name: string
@@ -32,36 +28,50 @@ type CardDefaults = {
   dueDay: number
 }
 
-export function useUpdateCardForm(card: CardDefaults) {
+function limitToDisplay(cents: number): string {
+  return (cents / 100).toLocaleString('pt-BR', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })
+}
+
+export function useUpdateCardForm(card: CardDefaults, onSuccess?: () => void) {
   const { mutateAsync: updateCardFn, isPending } = useUpdateCard()
 
   const form = useForm<UpdateCardFormValues>({
     resolver: zodResolver(UpdateCardFormSchema),
     defaultValues: {
-      name: card.name,
-      limit: (card.limit / 100).toFixed(2),
+      limit: limitToDisplay(card.limit),
       closingOffsetDays: card.closingOffsetDays,
       dueDay: card.dueDay,
     },
   })
 
-  async function onSubmit({ name, limit, closingOffsetDays, dueDay }: UpdateCardFormValues) {
+  function resetToCard() {
+    form.reset({
+      limit: limitToDisplay(card.limit),
+      closingOffsetDays: card.closingOffsetDays,
+      dueDay: card.dueDay,
+    })
+  }
+
+  async function onSubmit({ limit, closingOffsetDays, dueDay }: UpdateCardFormValues) {
     const limitInCents = formatValueToCents(limit) ?? 0
 
     await updateCardFn({
       id: card.id,
-      name,
       limit: limitInCents,
       closingOffsetDays,
       dueDay,
     })
 
-    // TODO: fechar o dialog após sucesso (passar onSuccess callback ou usar estado externo)
+    onSuccess?.()
   }
 
   return {
     form,
     isPending,
     onSubmit: form.handleSubmit(onSubmit),
+    resetToCard,
   }
 }
