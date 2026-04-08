@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
-import { useCreateCard } from '@/features/credit-card/hooks'
+import { useCreateCard } from '@/features/credit-card/hooks/use-create-card'
 import { formatValueToCents } from '@/lib/utils'
 
 const CreateCardFormSchema = z.object({

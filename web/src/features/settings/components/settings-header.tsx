@@ -1,6 +1,6 @@
 import { Settings2 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
-import { useCards } from '@/features/credit-card/hooks/use-cards'
+import { useCards } from '@/features/credit-card/hooks'
 import { useMembers } from '@/features/member/hooks'
 
 export function SettingsHeader() {

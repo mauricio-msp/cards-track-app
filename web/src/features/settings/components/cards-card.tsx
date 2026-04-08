@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { HiddenValue } from '@/components/ui/hidden-value'
 import { Separator } from '@/components/ui/separator'
 import { CreateCardForm, UpdateCardForm } from '@/features/credit-card/components/forms'
-import { useCards } from '@/features/credit-card/hooks/use-cards'
+import { useCards } from '@/features/credit-card/hooks'
 // import { useDeleteCard } from '@/features/credit-card/hooks/use-delete-card'
 import { creditCards } from '@/helpers/credit-cards'
 import { formatPrice } from '@/lib/utils'
