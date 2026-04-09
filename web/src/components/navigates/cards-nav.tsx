@@ -10,6 +10,7 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from '@/components/ui/empty'
+import { HiddenValue } from '@/components/ui/hidden-value'
 import {
   SidebarGroup,
   SidebarGroupLabel,
@@ -17,7 +18,6 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui/sidebar'
-import { HiddenValue } from '@/components/ui/hidden-value'
 import { CreateCardForm } from '@/features/credit-card/components/forms'
 import { useCards } from '@/features/credit-card/hooks'
 import { creditCards } from '@/helpers/credit-cards'
@@ -28,11 +28,13 @@ export function CardsNav() {
     data: { cards },
   } = useCards()
 
+  const sortedCards = [...cards].sort((a, b) => a.name.localeCompare(b.name))
+
   return (
     <SidebarGroup className="group-data-[collapsible=icon]:hidden">
       <SidebarGroupLabel>
         <CreditCard className="mr-2" />
-        Meus cartões ({cards.length})
+        Meus cartões ({sortedCards.length})
         <CreateCardForm>
           <Button size="icon-sm" variant="ghost" className="ml-auto cursor-pointer">
             <CirclePlus />
@@ -40,7 +42,7 @@ export function CardsNav() {
         </CreateCardForm>
       </SidebarGroupLabel>
       <SidebarMenu className="gap-2">
-        {cards.map(card => (
+        {sortedCards.map(card => (
           <SidebarMenuItem key={card.id}>
             <SidebarMenuButton asChild>
               <Link to="/credit-card/$id" params={{ id: card.id }} className="h-auto">

@@ -33,11 +33,17 @@ export function MembersNav() {
     setMembers(members)
   }, [setMembers, members])
 
+  const titularMember = members.find(member => member.relationship === 'Titular')
+  const otherMembers = members
+    .filter(member => member.relationship !== 'Titular')
+    .sort((a, b) => a.name.localeCompare(b.name))
+  const sortedMembers = titularMember ? [titularMember, ...otherMembers] : otherMembers
+
   return (
     <SidebarGroup className="group-data-[collapsible=icon]:hidden">
       <SidebarGroupLabel>
         <Users className="mr-2" />
-        Membros ({members.length})
+        Membros ({sortedMembers.length})
         <CreateMemberForm>
           <Button size="icon-sm" variant="ghost" className="ml-auto cursor-pointer">
             <CirclePlus />
@@ -45,7 +51,7 @@ export function MembersNav() {
         </CreateMemberForm>
       </SidebarGroupLabel>
       <SidebarMenu>
-        {members.map(member => (
+        {sortedMembers.map(member => (
           <SidebarMenuItem key={member.id}>
             <SidebarMenuButton asChild>
               <Link to="/members/$id" params={{ id: member.id }} className="h-auto">
