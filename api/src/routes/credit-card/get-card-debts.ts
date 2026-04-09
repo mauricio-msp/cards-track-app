@@ -1,10 +1,12 @@
 import { and, eq } from 'drizzle-orm'
 import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod'
+import { uuidv7 } from 'uuidv7'
 import { z } from 'zod'
 
 import { db } from '@/db'
-import { cards, debts, installments, invoices, members } from '@/db/schema'
+import { cards, debts, installments, invoices, members, subscriptions } from '@/db/schema'
 import { authMiddleware } from '@/middleware/auth'
+import { calculateInvoiceCompetence } from '@/utils/calculate-invoice-competence'
 import { resolveTargetPeriod } from '@/utils/resolve-target-period'
 
 type GroupedDebts = {
@@ -20,6 +22,7 @@ type GroupedDebts = {
   anticipatedAt: string | null
   anticipatedInstallmentsCount: number | null
   anticipateFromInstallment: number | null
+  subscriptionId: string | null
   members: Array<{
     id: string
     name: string
@@ -61,6 +64,7 @@ export const getCardDebts: FastifyPluginAsyncZod = async app => {
                 anticipatedAt: z.string().nullable(),
                 anticipatedInstallmentsCount: z.number().nullable(),
                 anticipateFromInstallment: z.number().nullable(),
+                subscriptionId: z.string().nullable(),
                 members: z.array(
                   z.object({
                     id: z.string(),
@@ -91,6 +95,97 @@ export const getCardDebts: FastifyPluginAsyncZod = async app => {
       if (!card) return reply.status(404).send({ message: 'Cartão não encontrado' })
 
       const { targetMonth, targetYear } = resolveTargetPeriod(card.dueDay, month, year)
+
+      // Auto-generate subscription debts for the queried period
+      const activeSubscriptions = await db
+        .select()
+        .from(subscriptions)
+        .where(and(eq(subscriptions.cardId, cardId), eq(subscriptions.active, true)))
+
+      for (const sub of activeSubscriptions) {
+        // Clamp billingDay to valid day in targetMonth (0-indexed → 1-indexed for Date)
+        const actualMonth = targetMonth + 1
+        const lastDayOfMonth = new Date(targetYear, actualMonth, 0).getDate()
+        const day = Math.min(sub.billingDay, lastDayOfMonth)
+
+        const purchaseDateStr = `${targetYear}-${String(actualMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+        const purchaseDate = new Date(`${purchaseDateStr}T00:00:00`)
+
+        const { invoiceMonth, invoiceYear } = calculateInvoiceCompetence(
+          purchaseDate,
+          card.dueDay,
+          card.closingOffsetDays,
+        )
+
+        // Only generate if this subscription maps to the queried period
+        if (invoiceMonth !== targetMonth || invoiceYear !== targetYear) continue
+
+        // Check if already generated for this period
+        const [existing] = await db
+          .select({ id: debts.id })
+          .from(debts)
+          .where(
+            and(
+              eq(debts.subscriptionId, sub.id),
+              eq(debts.invoiceMonth, invoiceMonth),
+              eq(debts.invoiceYear, invoiceYear),
+            ),
+          )
+
+        if (existing) continue
+
+        // Get or create invoice for this period
+        let [invoice] = await db
+          .select()
+          .from(invoices)
+          .where(
+            and(
+              eq(invoices.cardId, cardId),
+              eq(invoices.month, invoiceMonth),
+              eq(invoices.year, invoiceYear),
+            ),
+          )
+
+        if (!invoice) {
+          const dueDate = new Date(invoiceYear, invoiceMonth, card.dueDay)
+          const [newInv] = await db
+            .insert(invoices)
+            .values({ cardId, month: invoiceMonth, year: invoiceYear, dueDate })
+            .returning()
+          invoice = newInv
+        }
+
+        const groupId = uuidv7()
+
+        const [newDebt] = await db
+          .insert(debts)
+          .values({
+            groupId,
+            cardId,
+            memberId: sub.memberId,
+            invoiceId: invoice.id,
+            description: sub.name,
+            category: 'Assinatura',
+            amount: sub.amount,
+            installmentsCount: 1,
+            installmentsAmount: sub.amount,
+            purchaseDate: purchaseDateStr,
+            invoiceMonth,
+            invoiceYear,
+            startInstallment: 1,
+            endInstallment: 1,
+            subscriptionId: sub.id,
+          })
+          .returning()
+
+        await db.insert(installments).values({
+          debtId: newDebt.id,
+          memberId: sub.memberId,
+          invoiceId: invoice.id,
+          number: 1,
+          amount: sub.amount,
+        })
+      }
 
       const rows = await db
         .select({
@@ -145,7 +240,8 @@ export const getCardDebts: FastifyPluginAsyncZod = async app => {
             anticipatedInstallmentsCount: debt.anticipatedAt
               ? debt.installmentsCount - currentInstallment + 1
               : null,
-            anticipateFromInstallment: debt.anticipatedAt ? currentInstallment : null, // ✅
+            anticipateFromInstallment: debt.anticipatedAt ? currentInstallment : null,
+            subscriptionId: debt.subscriptionId ?? null,
             members: [],
           }
           grouped.set(debt.groupId, group)
