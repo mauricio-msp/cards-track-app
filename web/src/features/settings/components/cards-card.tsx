@@ -16,6 +16,8 @@ export function CardsCard() {
   } = useCards()
   // const { mutateAsync: deleteCardFn } = useDeleteCard()
 
+  const sortedCards = [...cards].sort((a, b) => a.name.localeCompare(b.name))
+
   return (
     <Card>
       <CardHeader className="justify-items-start">
@@ -34,7 +36,7 @@ export function CardsCard() {
         </CreateCardForm>
       </CardHeader>
       <CardContent className="flex flex-col gap-0">
-        {cards.map((card, index) => (
+        {sortedCards.map((card, index) => (
           <React.Fragment key={card.id}>
             {index > 0 && <Separator />}
             <div className="flex items-center gap-3 py-3">
@@ -61,17 +63,6 @@ export function CardsCard() {
                   <Trash2 className="size-3.5" />
                   Excluir
                 </Button>
-                {/* <ContextMenuDeleteItem
-                  title="Remover cartão"
-                  description={`Tem certeza que deseja remover o cartão ${card.name}? Todas as despesas e faturas associadas serão excluídas permanentemente.`}
-                  onConfirm={() => deleteCardFn(card.id)}
-                  trigger={
-                    <Button variant="outline" size="sm" className="min-w-20 text-destructive hover:text-destructive">
-                      <Trash2 className="size-3.5" />
-                      Remover
-                    </Button>
-                  }
-                /> */}
               </div>
             </div>
           </React.Fragment>
