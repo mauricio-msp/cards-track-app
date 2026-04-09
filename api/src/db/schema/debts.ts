@@ -1,6 +1,7 @@
 import { date, integer, pgTable, text, timestamp } from 'drizzle-orm/pg-core'
 import { uuidv7 } from 'uuidv7'
 import { cards, invoices, members } from '@/db/schema'
+import { subscriptions } from '@/db/schema/subscriptions'
 
 export const debts = pgTable('debts', {
   id: text('id')
@@ -37,5 +38,6 @@ export const debts = pgTable('debts', {
   invoiceMonth: integer('invoice_month').notNull(), // 0–11
 
   anticipatedAt: timestamp('anticipated_at'),
+  subscriptionId: text('subscription_id').references(() => subscriptions.id, { onDelete: 'set null' }),
   createdAt: timestamp('created_at').notNull().defaultNow(),
 })
