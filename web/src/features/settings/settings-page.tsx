@@ -9,6 +9,7 @@ import {
   MembersCardSkeleton,
   SettingsHeaderSkeleton,
 } from '@/features/settings/components/skeleton'
+import { SubscriptionsCard } from '@/features/settings/components/subscriptions-card'
 
 export function SettingsPage() {
   return (
@@ -22,6 +23,9 @@ export function SettingsPage() {
       </Suspense>
       <Suspense fallback={<MembersCardSkeleton />}>
         <MembersCard />
+      </Suspense>
+      <Suspense fallback={<div className="h-32 rounded-lg border bg-muted/30 animate-pulse" />}>
+        <SubscriptionsCard />
       </Suspense>
       <PreferencesCard />
     </div>
