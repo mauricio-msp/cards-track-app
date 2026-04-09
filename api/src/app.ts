@@ -15,6 +15,7 @@ import { cardRoutes } from '@/routes/credit-card'
 import { debtsRoutes } from '@/routes/debts'
 import { installmentRoutes } from '@/routes/installment'
 import { memberRoutes } from '@/routes/members'
+import { subscriptionRoutes } from '@/routes/subscriptions'
 
 export const app = fastify({
   logger: {
@@ -73,6 +74,9 @@ app.register(memberRoutes)
 
 // Debts/Overview
 app.register(debtsRoutes)
+
+// Subscriptions
+app.register(subscriptionRoutes)
 
 // Proxy authentication requests to Better Auth
 app.route({
