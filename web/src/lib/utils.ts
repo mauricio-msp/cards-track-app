@@ -39,6 +39,24 @@ export function formatValueToCents(value: string): number | null {
   return Math.round(parsed * 100)
 }
 
+export function applyPhoneMask(raw: string): string {
+  const digits = raw.replace(/\D/g, '').slice(0, 11)
+  if (!digits) return ''
+  if (digits.length <= 2) return `(${digits}`
+  if (digits.length <= 6) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`
+  if (digits.length <= 10) return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`
+  return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`
+}
+
+export function formatPhone(e164: string): string {
+  const digits = e164.replace(/\D/g, '')
+  if (digits.length < 12) return e164
+  const ddd = digits.slice(2, 4)
+  const number = digits.slice(4)
+  if (number.length === 9) return `+55 (${ddd}) ${number.slice(0, 5)}-${number.slice(5)}`
+  return `+55 (${ddd}) ${number.slice(0, 4)}-${number.slice(4)}`
+}
+
 export function applyBRLMask(raw: string): string {
   const digits = raw.replace(/\D/g, '')
   if (!digits) return ''

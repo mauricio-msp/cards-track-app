@@ -6,6 +6,16 @@ import { useCreateMember } from '@/features/member/hooks'
 const CreateMemberFormSchema = z.object({
   name: z.string().min(1, 'Nome é obrigatório').min(3, 'Nome deve ter no mínimo 3 caracteres'),
   relationship: z.string().min(1, 'Relacionamento é obrigatório'),
+  phone: z
+    .string()
+    .optional()
+    .refine(
+      val => {
+        if (!val) return true
+        return val.replace(/\D/g, '').length >= 10
+      },
+      { message: 'Telefone inválido' },
+    ),
 })
 
 type CreateMemberForm = z.infer<typeof CreateMemberFormSchema>
@@ -13,6 +23,7 @@ type CreateMemberForm = z.infer<typeof CreateMemberFormSchema>
 const defaultValues: CreateMemberForm = {
   name: '',
   relationship: '',
+  phone: '',
 }
 
 export function useCreateMemberForm() {
@@ -23,8 +34,9 @@ export function useCreateMemberForm() {
     defaultValues,
   })
 
-  async function onSubmit({ name, relationship }: CreateMemberForm) {
-    await createMemberFn({ name, relationship })
+  async function onSubmit({ name, relationship, phone }: CreateMemberForm) {
+    const phoneE164 = phone ? `+55${phone.replace(/\D/g, '')}` : undefined
+    await createMemberFn({ name, relationship, phone: phoneE164 })
     form.reset(defaultValues)
   }
 
