@@ -47,6 +47,7 @@ const CreateDebtFormSchema = z.object({
   installmentsCount: z
     .number({ error: 'Informe o número de parcelas' })
     .positive('Deve ser maior que zero'),
+  billingDay: z.number().int().min(1, 'Mínimo 1').max(31, 'Máximo 31').optional(),
 })
 
 export type CreateDebtFormValues = z.infer<typeof CreateDebtFormSchema>
@@ -66,6 +67,7 @@ export function useCreateDebtForm() {
 
   const [calendarOpen, setCalendarOpen] = React.useState(false)
   const [installmentsEnabled, setInstallmentsEnabled] = React.useState(false)
+  const [isRecurring, setIsRecurring] = React.useState(false)
 
   const form = useForm<CreateDebtFormValues>({
     resolver: zodResolver(CreateDebtFormSchema),
@@ -82,6 +84,14 @@ export function useCreateDebtForm() {
 
   const watchedMembers = form.watch('members')
   const installmentsCount = form.watch('installmentsCount') || 1
+
+  const purchaseDate = form.watch('purchaseDate')
+
+  React.useEffect(() => {
+    if (purchaseDate) {
+      form.setValue('billingDay', purchaseDate.getDate())
+    }
+  }, [purchaseDate, form])
 
   // Membros selecionados no Combobox sincronizados com o FieldArray
   const currentMembersIds = fields.map(f => f.id)
@@ -113,12 +123,21 @@ export function useCreateDebtForm() {
     )
   }
 
+  function handleSetIsRecurring(value: boolean) {
+    setIsRecurring(value)
+    if (value) {
+      setInstallmentsEnabled(false)
+      form.setValue('installmentsCount', 1)
+    }
+  }
+
   async function onSubmit({
     category,
     description,
     members,
     purchaseDate,
     installmentsCount,
+    billingDay,
   }: CreateDebtFormValues) {
     await createDebtFn({
       cardId,
@@ -132,11 +151,14 @@ export function useCreateDebtForm() {
       description,
       purchaseDate: new Date(purchaseDate),
       installmentsCount,
+      isRecurring,
+      billingDay: isRecurring ? billingDay : undefined,
     })
 
     form.reset(defaultValues)
     form.clearErrors(['category', 'members'])
     setInstallmentsEnabled(false)
+    setIsRecurring(false)
   }
 
   return {
@@ -152,6 +174,8 @@ export function useCreateDebtForm() {
     membersStore,
     selectedMembersForCombobox,
     handleMembersChange,
+    isRecurring,
+    setIsRecurring: handleSetIsRecurring,
     onSubmit: form.handleSubmit(onSubmit),
   }
 }

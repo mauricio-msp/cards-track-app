@@ -1,4 +1,4 @@
-import { CreditCard, Dot, Pencil, Trash2, UndoDot, Zap } from 'lucide-react'
+import { CreditCard, Dot, Pencil, RefreshCw, Trash2, UndoDot, Zap } from 'lucide-react'
 import React from 'react'
 import type { z } from 'zod'
 import { DeleteAlertDialog } from '@/components/delete-alert-dialog'
@@ -67,6 +67,15 @@ export function DebtsItem({ debt, onAnticipate, onDelete }: DebtsItemProps) {
                 >
                   <Zap className="size-3" />
                   {hasRemainingAfterAnticipation ? 'Parcial' : 'Antecipado'}
+                </Badge>
+              )}
+              {debt.subscriptionId && (
+                <Badge
+                  variant="secondary"
+                  className="gap-1 text-blue-600 bg-blue-100 dark:bg-blue-950 dark:text-blue-400"
+                >
+                  <RefreshCw className="size-3" />
+                  Recorrente
                 </Badge>
               )}
             </div>

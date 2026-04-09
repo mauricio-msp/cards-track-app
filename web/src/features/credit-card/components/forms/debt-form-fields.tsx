@@ -67,6 +67,8 @@ export type DebtFormFieldsProps = {
   membersStore: Member[]
   selectedMembersForCombobox: Member[]
   handleMembersChange: (selected: Member[]) => void
+  isRecurring: boolean
+  setIsRecurring: (value: boolean) => void
 }
 
 export function DebtFormFields({
@@ -83,6 +85,8 @@ export function DebtFormFields({
   membersStore,
   selectedMembersForCombobox,
   handleMembersChange,
+  isRecurring,
+  setIsRecurring,
 }: DebtFormFieldsProps) {
   const anchor = useComboboxAnchor()
 
@@ -322,68 +326,117 @@ export function DebtFormFields({
           </Field>
         </div>
 
-        <FieldLabel htmlFor="switch-purchase">
+        {!isRecurring && (
+          <>
+            <FieldLabel htmlFor="switch-purchase">
+              <Field orientation="horizontal">
+                <FieldContent>
+                  <FieldTitle>Compra parcelada</FieldTitle>
+                  <FieldDescription>Ative esta opção se a compra foi feita em parcelas.</FieldDescription>
+                </FieldContent>
+                <Switch
+                  id="switch-purchase"
+                  checked={installmentsEnabled}
+                  onCheckedChange={setInstallmentsEnabled}
+                />
+              </Field>
+            </FieldLabel>
+
+            {installmentsEnabled && (
+              <div className="flex gap-4">
+                <Field data-invalid={!!errors.installmentsCount}>
+                  <FieldLabel htmlFor="installmentsCount">Número de parcelas</FieldLabel>
+                  <InputGroup>
+                    <InputGroupAddon>
+                      <InputGroupText>Em</InputGroupText>
+                    </InputGroupAddon>
+                    <InputGroupInput
+                      id="installmentsCount"
+                      disabled={isPending}
+                      aria-invalid={!!errors.installmentsCount}
+                      placeholder="0"
+                      {...register('installmentsCount', { valueAsNumber: true })}
+                    />
+                    <InputGroupAddon align="inline-end">
+                      <InputGroupText>x</InputGroupText>
+                    </InputGroupAddon>
+                  </InputGroup>
+                  {errors.installmentsCount && (
+                    <FieldError>{errors.installmentsCount.message}</FieldError>
+                  )}
+                </Field>
+
+                <Field>
+                  <FieldLabel htmlFor="installmentsAmount" className="text-muted-foreground">
+                    Valor total
+                  </FieldLabel>
+                  <InputGroup>
+                    <InputGroupAddon>
+                      <InputGroupText>R$</InputGroupText>
+                    </InputGroupAddon>
+                    <InputGroupInput
+                      id="installmentsAmount"
+                      disabled
+                      placeholder="0.00"
+                      value={formatPrice(
+                        Number.isNaN(totalAmountInCents)
+                          ? 0
+                          : Number((totalAmountInCents / 100).toFixed(2)),
+                      ).replace('R$', '')}
+                    />
+                    <InputGroupAddon align="inline-end">
+                      <InputGroupText>BRL</InputGroupText>
+                    </InputGroupAddon>
+                  </InputGroup>
+                </Field>
+              </div>
+            )}
+          </>
+        )}
+
+        <FieldLabel htmlFor="switch-recurring">
           <Field orientation="horizontal">
             <FieldContent>
-              <FieldTitle>Compra parcelada</FieldTitle>
-              <FieldDescription>Ative esta opção se a compra foi feita em parcelas.</FieldDescription>
+              <FieldTitle>Cobrança recorrente</FieldTitle>
+              <FieldDescription>
+                Gera automaticamente esta despesa todo mês como assinatura.
+              </FieldDescription>
             </FieldContent>
             <Switch
-              id="switch-purchase"
-              checked={installmentsEnabled}
-              onCheckedChange={setInstallmentsEnabled}
+              id="switch-recurring"
+              checked={isRecurring}
+              onCheckedChange={setIsRecurring}
             />
           </Field>
         </FieldLabel>
 
-        {installmentsEnabled && (
-          <div className="flex gap-4">
-            <Field data-invalid={!!errors.installmentsCount}>
-              <FieldLabel htmlFor="installmentsCount">Número de parcelas</FieldLabel>
-              <InputGroup>
-                <InputGroupAddon>
-                  <InputGroupText>Em</InputGroupText>
-                </InputGroupAddon>
-                <InputGroupInput
-                  id="installmentsCount"
-                  disabled={isPending}
-                  aria-invalid={!!errors.installmentsCount}
-                  placeholder="0"
-                  {...register('installmentsCount', { valueAsNumber: true })}
-                />
-                <InputGroupAddon align="inline-end">
-                  <InputGroupText>x</InputGroupText>
-                </InputGroupAddon>
-              </InputGroup>
-              {errors.installmentsCount && (
-                <FieldError>{errors.installmentsCount.message}</FieldError>
-              )}
-            </Field>
-
-            <Field>
-              <FieldLabel htmlFor="installmentsAmount" className="text-muted-foreground">
-                Valor total
-              </FieldLabel>
-              <InputGroup>
-                <InputGroupAddon>
-                  <InputGroupText>R$</InputGroupText>
-                </InputGroupAddon>
-                <InputGroupInput
-                  id="installmentsAmount"
-                  disabled
-                  placeholder="0.00"
-                  value={formatPrice(
-                    Number.isNaN(totalAmountInCents)
-                      ? 0
-                      : Number((totalAmountInCents / 100).toFixed(2)),
-                  ).replace('R$', '')}
-                />
-                <InputGroupAddon align="inline-end">
-                  <InputGroupText>BRL</InputGroupText>
-                </InputGroupAddon>
-              </InputGroup>
-            </Field>
-          </div>
+        {isRecurring && (
+          <Field data-invalid={!!errors.billingDay} className="gap-1">
+            <FieldLabel htmlFor="billingDay">Dia de cobrança</FieldLabel>
+            <InputGroup>
+              <InputGroupInput
+                id="billingDay"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                disabled={isPending}
+                aria-invalid={!!errors.billingDay}
+                placeholder="ex: 10"
+                {...register('billingDay', {
+                  valueAsNumber: true,
+                  onChange: e => {
+                    const raw = e.target.value.replace(/\D/g, '').slice(0, 2)
+                    const num = parseInt(raw, 10)
+                    if (!raw) { e.target.value = ''; return }
+                    e.target.value = num > 31 ? '31' : raw
+                  },
+                })}
+              />
+              <InputGroupAddon align="inline-end">
+                <InputGroupText>/ mês</InputGroupText>
+              </InputGroupAddon>
+            </InputGroup>
+            {errors.billingDay && <FieldError>{errors.billingDay.message}</FieldError>}
+          </Field>
         )}
       </FieldGroup>
     </div>

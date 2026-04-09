@@ -1,6 +1,8 @@
 export async function deleteDebt(debtId: string) {
-  await fetch(`http://localhost:3333/api/debts/${debtId}`, {
+  const response = await fetch(`http://localhost:3333/api/debts/${debtId}`, {
     method: 'DELETE',
     credentials: 'include',
   })
+
+  if (!response.ok) throw new Error('Falha ao deletar dívida')
 }

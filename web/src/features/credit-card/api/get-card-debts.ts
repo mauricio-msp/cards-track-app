@@ -22,6 +22,7 @@ export const GetCardDebtsItem = z.object({
   anticipatedAt: z.string().nullish(),
   anticipatedInstallmentsCount: z.number().nullish(),
   anticipateFromInstallment: z.number().nullish(),
+  subscriptionId: z.string().nullish(),
   members: z.array(
     z.object({
       id: z.string(),

@@ -5,9 +5,10 @@ import { uuidv7 } from 'uuidv7'
 import { z } from 'zod'
 
 import { db } from '@/db'
-import { cards, debts, installments, invoices, members } from '@/db/schema'
+import { cards, debts, installments, invoices, members, subscriptions } from '@/db/schema'
 import { authMiddleware } from '@/middleware/auth'
 import { calculateInvoiceCompetence } from '@/utils/calculate-invoice-competence'
+import { resolveTargetPeriod } from '@/utils/resolve-target-period'
 
 export const createDebt: FastifyPluginAsyncZod = async app => {
   app.post(
@@ -51,6 +52,8 @@ export const createDebt: FastifyPluginAsyncZod = async app => {
             .min(1)
             .describe('Quantidade total de parcelas da compra'),
           purchaseDate: z.string().describe('Data da compra (ISO string)'),
+          isRecurring: z.boolean().optional().default(false),
+          billingDay: z.coerce.number().int().min(1).max(31).optional(),
         }),
         response: {
           201: z.object({
@@ -64,8 +67,16 @@ export const createDebt: FastifyPluginAsyncZod = async app => {
       },
     },
     async (request, reply) => {
-      const { cardId, members: members_input, description, category, installmentsCount, purchaseDate } =
-        request.body
+      const {
+        cardId,
+        members: members_input,
+        description,
+        category,
+        installmentsCount,
+        purchaseDate,
+        isRecurring,
+        billingDay,
+      } = request.body
 
       try {
         const userId = request.user.id
@@ -103,13 +114,20 @@ export const createDebt: FastifyPluginAsyncZod = async app => {
         // Verificar limite do cartão
         const newPurchaseTotal = members_input.reduce((sum, m) => sum + m.amount, 0)
 
+        const { targetMonth, targetYear } = resolveTargetPeriod(card.dueDay)
+
         const [limitCheck] = await db
           .select({
             totalUnpaid: sql<number>`COALESCE(SUM(${installments.amount}), 0)`.mapWith(Number),
           })
           .from(installments)
           .innerJoin(invoices, eq(installments.invoiceId, invoices.id))
-          .where(and(eq(invoices.cardId, cardId), isNull(installments.paidAt)))
+          .where(
+            and(
+              eq(invoices.cardId, cardId),
+              sql`(${invoices.year} > ${targetYear} OR (${invoices.year} = ${targetYear} AND ${invoices.month} >= ${targetMonth}))`,
+            ),
+          )
 
         const totalUnpaid = limitCheck?.totalUnpaid ?? 0
         if (totalUnpaid + newPurchaseTotal > card.limit) {
@@ -156,6 +174,26 @@ export const createDebt: FastifyPluginAsyncZod = async app => {
             firstInvoice = newInv
           }
 
+          const memberSubscriptionMap: Record<string, string> = {}
+
+          if (isRecurring && billingDay) {
+            for (const member of members_input) {
+              const memberAmount = Math.round(member.amount / installmentsCount)
+              const [sub] = await tx
+                .insert(subscriptions)
+                .values({
+                  userId,
+                  cardId,
+                  memberId: member.id,
+                  name: description,
+                  amount: memberAmount,
+                  billingDay,
+                })
+                .returning({ id: subscriptions.id })
+              memberSubscriptionMap[member.id] = sub.id
+            }
+          }
+
           const debtsToInsert = members_input.map(member => {
             const start = member.startInstallment ?? 1
             const end = member.endInstallment ?? installmentsCount
@@ -183,6 +221,7 @@ export const createDebt: FastifyPluginAsyncZod = async app => {
               invoiceYear,
               startInstallment: start,
               endInstallment: end,
+              subscriptionId: memberSubscriptionMap[member.id] ?? null,
             }
           })
 

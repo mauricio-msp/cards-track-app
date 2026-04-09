@@ -30,6 +30,8 @@ export function CreateDebtForm({ children }: { children: ReactNode }) {
     membersStore,
     handleMembersChange,
     onSubmit,
+    isRecurring,
+    setIsRecurring,
   } = useCreateDebtForm()
 
   const {
@@ -65,6 +67,8 @@ export function CreateDebtForm({ children }: { children: ReactNode }) {
             membersStore={membersStore}
             selectedMembersForCombobox={selectedMembersForCombobox}
             handleMembersChange={handleMembersChange}
+            isRecurring={isRecurring}
+            setIsRecurring={setIsRecurring}
           />
 
           <DialogFooter>

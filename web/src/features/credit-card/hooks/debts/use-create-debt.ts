@@ -16,6 +16,7 @@ export function useCreateDebt(cardId: string) {
           queryKey: ['cards', cardId, 'month-total-amount', month, year],
         }),
         queryClient.invalidateQueries({ queryKey: ['cards', cardId, 'total-amount-used'] }),
+        queryClient.invalidateQueries({ queryKey: ['subscriptions'] }),
       ])
     },
     onError: error => {

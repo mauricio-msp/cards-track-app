@@ -11,6 +11,8 @@ type CreateDebtRequest = {
   description: string
   installmentsCount: number
   purchaseDate: Date
+  isRecurring?: boolean
+  billingDay?: number
 }
 
 export async function createDebt({
@@ -20,6 +22,8 @@ export async function createDebt({
   description,
   purchaseDate,
   installmentsCount,
+  isRecurring,
+  billingDay,
 }: CreateDebtRequest) {
   await fetch('http://localhost:3333/api/debts', {
     method: 'POST',
@@ -34,6 +38,8 @@ export async function createDebt({
       description,
       purchaseDate,
       installmentsCount,
+      isRecurring,
+      billingDay,
     }),
   })
 }
