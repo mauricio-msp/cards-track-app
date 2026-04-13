@@ -9,13 +9,15 @@ import {
   validatorCompiler,
   type ZodTypeProvider,
 } from 'fastify-type-provider-zod'
+
 import { env } from '@/env'
 import { auth } from '@/lib/auth'
-import { cardRoutes } from '@/routes/credit-card'
-import { debtsRoutes } from '@/routes/debts'
-import { installmentRoutes } from '@/routes/installment'
-import { memberRoutes } from '@/routes/members'
-import { subscriptionRoutes } from '@/routes/subscriptions'
+
+import { cardsModule } from '@/modules/cards'
+import { debtsModule } from '@/modules/debts'
+import { installmentsModule } from '@/modules/installments'
+import { membersModule } from '@/modules/members'
+import { subscriptionsModule } from '@/modules/subscriptions'
 
 export const app = fastify({
   logger: {
@@ -63,20 +65,20 @@ app.register(ScalarApiReference, {
   routePrefix: '/docs',
 })
 
-// Card
-app.register(cardRoutes)
+// Cards
+app.register(cardsModule)
 
 // Installments
-app.register(installmentRoutes)
+app.register(installmentsModule)
 
 // Members
-app.register(memberRoutes)
+app.register(membersModule)
 
 // Debts/Overview
-app.register(debtsRoutes)
+app.register(debtsModule)
 
 // Subscriptions
-app.register(subscriptionRoutes)
+app.register(subscriptionsModule)
 
 // Proxy authentication requests to Better Auth
 app.route({
