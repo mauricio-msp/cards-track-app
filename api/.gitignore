@@ -16,6 +16,7 @@ yarn.lock
 dist/
 build/
 *.tsbuildinfo
+docs/
 
 # IDE and editor files
 .vscode/
