@@ -4,7 +4,7 @@ export const MemberSchema = z.object({
   id: z.string(),
   name: z.string(),
   relationship: z.string(),
-  phone: z.string().optional(),
+  phone: z.string().nullish(),
 })
 
 export type Member = z.infer<typeof MemberSchema>

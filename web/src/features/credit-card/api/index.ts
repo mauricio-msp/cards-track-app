@@ -1,7 +1,7 @@
 export { anticipateDebt } from '@/features/credit-card/api/anticipate-debt'
 export { createCard } from '@/features/credit-card/api/create-card'
 export { createDebt } from '@/features/credit-card/api/create-debt'
-// export { deleteCard } from '@/features/credit-card/api/delete-card'
+export { deleteCard } from '@/features/credit-card/api/delete-card'
 export { deleteDebt } from '@/features/credit-card/api/delete-debt'
 export { getCard } from '@/features/credit-card/api/get-card'
 export { getCardDebts } from '@/features/credit-card/api/get-card-debts'

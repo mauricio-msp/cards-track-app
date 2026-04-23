@@ -41,7 +41,7 @@ export function DebtsTrendChart() {
 
   const chartConfig = activeCardKeys.reduce(
     (acc, key) => {
-      const cardInfo = creditCards.find(c => c.name.toLowerCase().replace(/\s/g, '') === key)
+      const cardInfo = creditCards.find(c => c.name.toLowerCase() === key)
 
       acc[key] = {
         label: cardInfo?.name || key,

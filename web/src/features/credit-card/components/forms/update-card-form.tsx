@@ -3,6 +3,7 @@ import type { ReactNode } from 'react'
 import { useState } from 'react'
 
 import { Button } from '@/components/ui/button'
+import { CurrencyInput } from '@/components/ui/currency-input'
 import {
   Dialog,
   DialogClose,
@@ -14,16 +15,10 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { Field, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupInput,
-  InputGroupText,
-} from '@/components/ui/input-group'
-
+import { InputGroup, InputGroupInput } from '@/components/ui/input-group'
+import { ClosingOffsetDaysInput } from '@/features/credit-card/components/closing-offset-days-input'
 import { useUpdateCardForm } from '@/features/credit-card/hooks'
 import { creditCards } from '@/helpers/credit-cards'
-import { applyBRLMask } from '@/lib/utils'
 
 type Card = {
   id: string
@@ -86,46 +81,22 @@ export function UpdateCardForm({ card, children }: UpdateCardFormProps) {
               >
                 Limite do cartão
               </FieldLabel>
-              <InputGroup className="border-primary/50 bg-primary/5 h-auto">
-                <InputGroupAddon>
-                  <InputGroupText className="text-primary font-semibold">R$</InputGroupText>
-                </InputGroupAddon>
-                <InputGroupInput
-                  id="limit"
-                  disabled={isPending}
-                  aria-invalid={!!errors.limit}
-                  placeholder="0,00"
-                  inputMode="numeric"
-                  className="text-2xl font-bold py-3"
-                  onChange={e => {
-                    e.target.value = applyBRLMask(e.target.value)
-                    onLimitChange(e)
-                  }}
-                  {...limitRegister}
-                />
-                <InputGroupAddon align="inline-end">
-                  <InputGroupText>BRL</InputGroupText>
-                </InputGroupAddon>
-              </InputGroup>
+              <CurrencyInput
+                id="limit"
+                disabled={isPending}
+                aria-invalid={!!errors.limit}
+                onChange={onLimitChange}
+                {...limitRegister}
+              />
               {errors.limit && <FieldError>{errors.limit.message}</FieldError>}
             </Field>
 
             <div className="flex gap-4">
-              <Field data-invalid={!!errors.closingOffsetDays} className="flex-1">
-                <FieldLabel htmlFor="closingOffsetDays">Offset de fechamento (dias)</FieldLabel>
-                <InputGroup>
-                  <InputGroupInput
-                    id="closingOffsetDays"
-                    disabled={isPending}
-                    placeholder="7"
-                    aria-invalid={!!errors.closingOffsetDays}
-                    {...register('closingOffsetDays', { valueAsNumber: true })}
-                  />
-                </InputGroup>
-                {errors.closingOffsetDays && (
-                  <FieldError>{errors.closingOffsetDays.message}</FieldError>
-                )}
-              </Field>
+              <ClosingOffsetDaysInput
+                disabled={isPending}
+                error={errors.closingOffsetDays?.message}
+                {...register('closingOffsetDays', { valueAsNumber: true })}
+              />
 
               <Field data-invalid={!!errors.dueDay} className="flex-1">
                 <FieldLabel htmlFor="dueDay">Dia de vencimento</FieldLabel>

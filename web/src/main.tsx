@@ -41,7 +41,7 @@ if (!rootElement.innerHTML) {
     <StrictMode>
       <ThemeProvider defaultTheme="system" storageKey="@cards.track:theme">
         <RouterProvider router={router} />
-        <Toaster position="bottom-right" duration={4000} />
+        <Toaster position="bottom-right" duration={4000} richColors />
       </ThemeProvider>
     </StrictMode>,
   )

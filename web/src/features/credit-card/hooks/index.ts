@@ -20,5 +20,6 @@ export {
 export { useCard } from '@/features/credit-card/hooks/use-card'
 export { useCards } from '@/features/credit-card/hooks/use-cards'
 export { useCreateCard } from '@/features/credit-card/hooks/use-create-card'
+export { useDeleteCard } from '@/features/credit-card/hooks/use-delete-card'
 export { useTotalAmountUsedCard } from '@/features/credit-card/hooks/use-total-amount-used-card'
 export { useUpdateCard } from '@/features/credit-card/hooks/use-update-card'

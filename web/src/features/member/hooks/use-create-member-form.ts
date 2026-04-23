@@ -18,9 +18,9 @@ const CreateMemberFormSchema = z.object({
     ),
 })
 
-type CreateMemberForm = z.infer<typeof CreateMemberFormSchema>
+export type CreateMemberFormValues = z.infer<typeof CreateMemberFormSchema>
 
-const defaultValues: CreateMemberForm = {
+const defaultValues: CreateMemberFormValues = {
   name: '',
   relationship: '',
   phone: '',
@@ -29,12 +29,12 @@ const defaultValues: CreateMemberForm = {
 export function useCreateMemberForm() {
   const { mutateAsync: createMemberFn, isPending } = useCreateMember()
 
-  const form = useForm<CreateMemberForm>({
+  const form = useForm<CreateMemberFormValues>({
     resolver: zodResolver(CreateMemberFormSchema),
     defaultValues,
   })
 
-  async function onSubmit({ name, relationship, phone }: CreateMemberForm) {
+  async function onSubmit({ name, relationship, phone }: CreateMemberFormValues) {
     const phoneE164 = phone ? `+55${phone.replace(/\D/g, '')}` : undefined
     await createMemberFn({ name, relationship, phone: phoneE164 })
     form.reset(defaultValues)

@@ -6,7 +6,7 @@ import { HiddenValue } from '@/components/ui/hidden-value'
 import { Separator } from '@/components/ui/separator'
 import { CreateCardForm, UpdateCardForm } from '@/features/credit-card/components/forms'
 import { useCards } from '@/features/credit-card/hooks'
-// import { useDeleteCard } from '@/features/credit-card/hooks/use-delete-card'
+import { useDeleteCard } from '@/features/credit-card/hooks/use-delete-card'
 import { creditCards } from '@/helpers/credit-cards'
 import { formatPrice } from '@/lib/utils'
 
@@ -14,7 +14,7 @@ export function CardsCard() {
   const {
     data: { cards },
   } = useCards()
-  // const { mutateAsync: deleteCardFn } = useDeleteCard()
+  const { mutateAsync: deleteCardFn, isPending: isDeleting, variables: deletingCardId } = useDeleteCard()
 
   const sortedCards = [...cards].sort((a, b) => a.name.localeCompare(b.name))
 
@@ -54,13 +54,23 @@ export function CardsCard() {
               </div>
               <div className="flex items-center gap-2 shrink-0">
                 <UpdateCardForm card={card}>
-                  <Button variant="outline" size="sm" className="min-w-20">
+                  <Button variant="outline" size="sm" className="min-w-20" disabled={isDeleting}>
                     <Pencil className="size-3.5" />
                     Editar
                   </Button>
                 </UpdateCardForm>
-                <Button disabled variant="destructive" size="sm" className="min-w-20">
-                  <Trash2 className="size-3.5" />
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  className="min-w-20"
+                  disabled={isDeleting}
+                  onClick={() => deleteCardFn(card.id)}
+                >
+                  {deletingCardId === card.id ? (
+                    <span className="size-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                  ) : (
+                    <Trash2 className="size-3.5" />
+                  )}
                   Excluir
                 </Button>
               </div>
