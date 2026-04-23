@@ -1,10 +1,10 @@
 import { db } from '@/db'
-import { InstallmentsRepository } from '@/modules/installments/installments.repository'
-import { installmentsRoutes } from '@/modules/installments/installments.routes'
-import { PayInstallmentController } from '@/modules/installments/use-cases/pay-installment/pay-installment.controller'
-import { PayInstallmentUseCase } from '@/modules/installments/use-cases/pay-installment/pay-installment.use-case'
-import { UnpayInstallmentController } from '@/modules/installments/use-cases/unpay-installment/unpay-installment.controller'
-import { UnpayInstallmentUseCase } from '@/modules/installments/use-cases/unpay-installment/unpay-installment.use-case'
+import { PayInstallmentUseCase } from '@/modules/installments/application/use-cases/pay-installment/pay-installment.use-case'
+import { UnpayInstallmentUseCase } from '@/modules/installments/application/use-cases/unpay-installment/unpay-installment.use-case'
+import { PayInstallmentController } from '@/modules/installments/http/controllers/pay-installment.controller'
+import { UnpayInstallmentController } from '@/modules/installments/http/controllers/unpay-installment.controller'
+import { installmentsRoutes } from '@/modules/installments/http/routes'
+import { InstallmentsRepository } from '@/modules/installments/infra/installments.repository'
 
 const repository = new InstallmentsRepository(db)
 
