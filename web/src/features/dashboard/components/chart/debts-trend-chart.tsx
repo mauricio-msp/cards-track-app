@@ -66,7 +66,7 @@ export function DebtsTrendChart() {
           <SelectTrigger className="w-full sm:w-auto">
             <SelectValue placeholder="Selecione um ano" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent position="popper">
             <SelectGroup>
               <SelectLabel>Anos</SelectLabel>
               {yearsToFilter.map(year => {

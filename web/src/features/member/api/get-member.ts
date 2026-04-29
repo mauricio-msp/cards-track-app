@@ -8,6 +8,7 @@ const GetMemberResponse = z.object({
   member: z.object({
     name: z.string(),
     relationship: z.string(),
+    phone: z.string().nullish(),
   }),
 })
 

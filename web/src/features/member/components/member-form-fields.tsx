@@ -43,7 +43,7 @@ export function MemberFormFields({ control, errors, isPending }: MemberFormField
                   {field.value || undefined}
                 </SelectValue>
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent position="popper">
                 <SelectGroup>
                   {RELATIONSHIPS.map(relation => (
                     <SelectItem key={relation} value={relation}>

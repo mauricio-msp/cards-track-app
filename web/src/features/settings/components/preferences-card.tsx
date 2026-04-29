@@ -1,4 +1,4 @@
-import { Eye, EyeOff, Settings2 } from 'lucide-react'
+import { Eye, EyeClosed, Settings2 } from 'lucide-react'
 import { ModeToggle } from '@/components/mode-toggle'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import {
@@ -30,7 +30,7 @@ export function PreferencesCard() {
             <Field orientation="horizontal">
               <FieldContent>
                 <FieldTitle className="flex items-center gap-2">
-                  {hideValues ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                  {hideValues ? <EyeClosed className="size-4" /> : <Eye className="size-4" />}
                   Ocultar valores
                 </FieldTitle>
                 <FieldDescription>
