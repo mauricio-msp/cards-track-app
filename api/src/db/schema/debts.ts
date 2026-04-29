@@ -38,6 +38,7 @@ export const debts = pgTable('debts', {
   invoiceMonth: integer('invoice_month').notNull(), // 0–11
 
   anticipatedAt: timestamp('anticipated_at'),
+  anticipateFromInstallment: integer('anticipate_from_installment'),
   subscriptionId: text('subscription_id').references(() => subscriptions.id, { onDelete: 'set null' }),
   createdAt: timestamp('created_at').notNull().defaultNow(),
 })
