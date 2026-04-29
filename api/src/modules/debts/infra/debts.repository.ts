@@ -10,7 +10,7 @@ import type {
   IDebtsRepository,
 } from '@/modules/debts/domain/repositories/debts.repository.interface'
 import type { CreateDebtInput } from '@/modules/debts/http/dto/debts.dto'
-import { resolveTargetPeriod } from '@/utils/resolve-target-period'
+import { calculateInvoiceCompetence } from '@/utils/calculate-invoice-competence'
 
 export class DebtsRepository implements IDebtsRepository {
   constructor(private readonly db: typeof Db) {}
@@ -237,7 +237,7 @@ export class DebtsRepository implements IDebtsRepository {
         installmentsCount: debts.installmentsCount,
         installmentsAmount: debts.installmentsAmount,
         anticipatedAt: debts.anticipatedAt,
-        card: { dueDay: cards.dueDay },
+        card: { dueDay: cards.dueDay, closingOffsetDays: cards.closingOffsetDays },
       })
       .from(debts)
       .innerJoin(cards, and(eq(debts.cardId, cards.id), eq(cards.ownerUserId, userId)))
@@ -256,10 +256,17 @@ export class DebtsRepository implements IDebtsRepository {
     return count
   }
 
-  async findUnpaidInstallmentNumbers(debtId: string): Promise<{ number: number }[]> {
+  async findUnpaidInstallmentNumbers(
+    debtId: string,
+  ): Promise<{ number: number; invoiceMonth: number; invoiceYear: number }[]> {
     return this.db
-      .select({ number: installments.number })
+      .select({
+        number: installments.number,
+        invoiceMonth: invoices.month,
+        invoiceYear: invoices.year,
+      })
       .from(installments)
+      .innerJoin(invoices, eq(installments.invoiceId, invoices.id))
       .where(and(eq(installments.debtId, debtId), isNull(installments.paidAt)))
       .orderBy(installments.number)
   }
@@ -269,10 +276,11 @@ export class DebtsRepository implements IDebtsRepository {
     memberId: string
     cardId: string
     dueDay: number
+    closingOffsetDays: number
     anticipateFromInstallment: number
     anticipatedAmount: number
   }): Promise<void> {
-    const { debtId, memberId, cardId, dueDay, anticipateFromInstallment, anticipatedAmount } =
+    const { debtId, memberId, cardId, dueDay, closingOffsetDays, anticipateFromInstallment, anticipatedAmount } =
       params
 
     await this.db.transaction(async tx => {
@@ -285,7 +293,7 @@ export class DebtsRepository implements IDebtsRepository {
           ),
         )
 
-      const { targetMonth: invoiceMonth, targetYear: invoiceYear } = resolveTargetPeriod(dueDay)
+      const { invoiceMonth, invoiceYear } = calculateInvoiceCompetence(new Date(), dueDay, closingOffsetDays)
 
       let [currentInvoice] = await tx
         .select()
@@ -315,7 +323,10 @@ export class DebtsRepository implements IDebtsRepository {
         amount: anticipatedAmount,
       })
 
-      await tx.update(debts).set({ anticipatedAt: new Date() }).where(eq(debts.id, debtId))
+      await tx
+        .update(debts)
+        .set({ anticipatedAt: new Date(), anticipateFromInstallment })
+        .where(eq(debts.id, debtId))
     })
   }
 

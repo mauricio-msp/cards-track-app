@@ -8,6 +8,7 @@ import {
 } from '@/modules/debts/domain/errors/debts.errors'
 import type { IDebtsRepository } from '@/modules/debts/domain/repositories/debts.repository.interface'
 import type { AnticipateDebtInput } from '@/modules/debts/http/dto/debts.dto'
+import { calculateInvoiceCompetence } from '@/utils/calculate-invoice-competence'
 
 export class AnticipateDebtUseCase {
   constructor(private readonly repo: IDebtsRepository) {}
@@ -40,11 +41,24 @@ export class AnticipateDebtUseCase {
     const unpaidInstallments = await this.repo.findUnpaidInstallmentNumbers(debtId)
     if (unpaidInstallments.length === 0) throw new NoUnpaidInstallmentsError()
 
-    const firstUnpaidNumber = unpaidInstallments[0].number
+    const { invoiceMonth: targetMonth, invoiceYear: targetYear } = calculateInvoiceCompetence(
+      new Date(),
+      raw.card.dueDay,
+      raw.card.closingOffsetDays,
+    )
 
-    if (anticipateFromInstallment < firstUnpaidNumber) {
+    // First unpaid installment in an invoice strictly after the target (where the consolidation will land)
+    const firstAnticipatable = unpaidInstallments.find(
+      inst =>
+        inst.invoiceYear > targetYear ||
+        (inst.invoiceYear === targetYear && inst.invoiceMonth > targetMonth),
+    )
+
+    if (!firstAnticipatable) throw new NoUnpaidInstallmentsError()
+
+    if (anticipateFromInstallment < firstAnticipatable.number) {
       throw new InvalidAnticipateInstallmentError(
-        `You can only anticipate from an unpaid installment. First allowed is ${firstUnpaidNumber}`,
+        `First anticipatable installment is ${firstAnticipatable.number}`,
       )
     }
 
@@ -62,6 +76,7 @@ export class AnticipateDebtUseCase {
       memberId: debt.memberId,
       cardId: debt.cardId,
       dueDay: raw.card.dueDay,
+      closingOffsetDays: raw.card.closingOffsetDays,
       anticipateFromInstallment,
       anticipatedAmount,
     })

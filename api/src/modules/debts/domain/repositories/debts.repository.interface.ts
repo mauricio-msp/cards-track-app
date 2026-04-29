@@ -16,7 +16,7 @@ export type DebtWithCard = {
   installmentsCount: number
   installmentsAmount: number
   anticipatedAt: Date | null
-  card: { dueDay: number }
+  card: { dueDay: number; closingOffsetDays: number }
 }
 
 export type ChartDataRow = {
@@ -59,12 +59,15 @@ export interface IDebtsRepository {
   // anticipate
   findDebtWithCardByOwner(debtId: string, userId: string): Promise<DebtWithCard | null>
   countDebtsByGroupId(groupId: string): Promise<number>
-  findUnpaidInstallmentNumbers(debtId: string): Promise<{ number: number }[]>
+  findUnpaidInstallmentNumbers(
+    debtId: string,
+  ): Promise<{ number: number; invoiceMonth: number; invoiceYear: number }[]>
   anticipateInstallments(params: {
     debtId: string
     memberId: string
     cardId: string
     dueDay: number
+    closingOffsetDays: number
     anticipateFromInstallment: number
     anticipatedAmount: number
   }): Promise<void>
