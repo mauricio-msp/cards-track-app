@@ -50,7 +50,7 @@ export function DebtsFilter() {
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Selecione um mês" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent position="popper">
               <SelectGroup>
                 <SelectLabel>Meses</SelectLabel>
                 {MONTHS.map((month, index) => (
@@ -69,7 +69,7 @@ export function DebtsFilter() {
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Selecione um ano" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent position="popper">
               <SelectGroup>
                 <SelectLabel>Anos</SelectLabel>
                 {yearsToFilter.map(year => {
