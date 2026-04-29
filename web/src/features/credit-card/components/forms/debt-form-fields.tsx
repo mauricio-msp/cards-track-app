@@ -161,94 +161,96 @@ export function DebtFormFields({
             <Separator />
 
             {fields.map((member, index) => {
-              const { onChange: onAmountChange, ...amountRegister } = register(`members.${index}.amount`)
+              const { onChange: onAmountChange, ...amountRegister } = register(
+                `members.${index}.amount`,
+              )
               return (
-              <Field
-                key={member._rhf_id}
-                data-invalid={!!errors.members?.[index]?.amount}
-                className="gap-1"
-              >
-                <Accordion type="single" collapsible className="w-full">
-                  <AccordionItem value={`item-${index}`} className="border-none">
-                    <div className="flex items-start justify-between p-4 gap-4">
-                      <div className="flex flex-col items-start min-w-30">
-                        <FieldLabel className="text-white font-bold">{member.name}:</FieldLabel>
-                        <AccordionTrigger className="flex items-center border px-0.5 py-0 text-[10px] text-zinc-500 hover:text-zinc-300 hover:no-underline uppercase tracking-wider">
-                          Detalhar parcelas
-                        </AccordionTrigger>
-                      </div>
-
-                      <div className="flex flex-col gap-1">
-                        <InputGroup>
-                          <InputGroupAddon>
-                            <InputGroupText>R$</InputGroupText>
-                          </InputGroupAddon>
-                          <InputGroupInput
-                            id={`amount-${index}`}
-                            disabled={isPending}
-                            aria-invalid={!!errors.members?.[index]?.amount}
-                            placeholder="0,00"
-                            inputMode="numeric"
-                            onChange={e => {
-                              e.target.value = applyBRLMask(e.target.value)
-                              onAmountChange(e)
-                            }}
-                            {...amountRegister}
-                          />
-                          <InputGroupAddon align="inline-end">
-                            <InputGroupText>BRL</InputGroupText>
-                          </InputGroupAddon>
-                        </InputGroup>
-                        {errors.members?.[index]?.amount && (
-                          <FieldError>{errors.members?.[index]?.amount.message}</FieldError>
-                        )}
-                      </div>
-                    </div>
-
-                    <AccordionContent className="px-4 pb-4 pt-2 border-t border-zinc-800/50 bg-zinc-900/20">
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-1.5">
-                          <FieldLabel className="text-[10px] uppercase text-zinc-500 font-bold">
-                            Parcela inicial
-                          </FieldLabel>
-                          <InputGroupInput
-                            placeholder="1"
-                            {...register(`members.${index}.startInstallment`, {
-                              valueAsNumber: true,
-                            })}
-                            className="h-8 border rounded-md"
-                          />
-                          {errors.members?.[index]?.startInstallment && (
-                            <FieldError className="text-[12px] font-medium">
-                              {errors.members[index].startInstallment.message}
-                            </FieldError>
-                          )}
+                <Field
+                  key={member._rhf_id}
+                  data-invalid={!!errors.members?.[index]?.amount}
+                  className="gap-1"
+                >
+                  <Accordion type="single" collapsible className="w-full">
+                    <AccordionItem value={`item-${index}`} className="border-none">
+                      <div className="flex items-start justify-between p-4 gap-4">
+                        <div className="flex flex-col items-start min-w-30">
+                          <FieldLabel className="text-white font-bold">{member.name}:</FieldLabel>
+                          <AccordionTrigger className="flex items-center border px-0.5 py-0 text-[10px] text-zinc-500 hover:text-zinc-300 hover:no-underline uppercase tracking-wider">
+                            Detalhar parcelas
+                          </AccordionTrigger>
                         </div>
-                        <div className="space-y-1.5">
-                          <FieldLabel className="text-[10px] uppercase text-zinc-500 font-bold">
-                            Parcela final
-                          </FieldLabel>
-                          <InputGroupInput
-                            placeholder="10"
-                            {...register(`members.${index}.endInstallment`, {
-                              setValueAs: v => (v === '' ? undefined : parseInt(v, 10)),
-                            })}
-                            className="h-8 border rounded-md"
-                          />
-                          {errors.members?.[index]?.endInstallment && (
-                            <FieldError className="text-[12px] font-medium">
-                              {errors.members[index].endInstallment.message}
-                            </FieldError>
+
+                        <div className="flex flex-col gap-1">
+                          <InputGroup>
+                            <InputGroupAddon>
+                              <InputGroupText>R$</InputGroupText>
+                            </InputGroupAddon>
+                            <InputGroupInput
+                              id={`amount-${index}`}
+                              disabled={isPending}
+                              aria-invalid={!!errors.members?.[index]?.amount}
+                              placeholder="0,00"
+                              inputMode="numeric"
+                              onChange={e => {
+                                e.target.value = applyBRLMask(e.target.value)
+                                onAmountChange(e)
+                              }}
+                              {...amountRegister}
+                            />
+                            <InputGroupAddon align="inline-end">
+                              <InputGroupText>BRL</InputGroupText>
+                            </InputGroupAddon>
+                          </InputGroup>
+                          {errors.members?.[index]?.amount && (
+                            <FieldError>{errors.members?.[index]?.amount.message}</FieldError>
                           )}
                         </div>
                       </div>
-                      <p className="mt-2 text-[10px] text-zinc-600 italic">
-                        Define o intervalo de parcelas sob responsabilidade deste membro.
-                      </p>
-                    </AccordionContent>
-                  </AccordionItem>
-                </Accordion>
-              </Field>
+
+                      <AccordionContent className="px-4 pb-4 pt-2 border-t border-zinc-800/50 bg-zinc-900/20">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-1.5">
+                            <FieldLabel className="text-[10px] uppercase text-zinc-500 font-bold">
+                              Parcela inicial
+                            </FieldLabel>
+                            <InputGroupInput
+                              placeholder="1"
+                              {...register(`members.${index}.startInstallment`, {
+                                valueAsNumber: true,
+                              })}
+                              className="h-8 border rounded-md"
+                            />
+                            {errors.members?.[index]?.startInstallment && (
+                              <FieldError className="text-[12px] font-medium">
+                                {errors.members[index].startInstallment.message}
+                              </FieldError>
+                            )}
+                          </div>
+                          <div className="space-y-1.5">
+                            <FieldLabel className="text-[10px] uppercase text-zinc-500 font-bold">
+                              Parcela final
+                            </FieldLabel>
+                            <InputGroupInput
+                              placeholder="10"
+                              {...register(`members.${index}.endInstallment`, {
+                                setValueAs: v => (v === '' ? undefined : parseInt(v, 10)),
+                              })}
+                              className="h-8 border rounded-md"
+                            />
+                            {errors.members?.[index]?.endInstallment && (
+                              <FieldError className="text-[12px] font-medium">
+                                {errors.members[index].endInstallment.message}
+                              </FieldError>
+                            )}
+                          </div>
+                        </div>
+                        <p className="mt-2 text-[10px] text-zinc-600 italic">
+                          Define o intervalo de parcelas sob responsabilidade deste membro.
+                        </p>
+                      </AccordionContent>
+                    </AccordionItem>
+                  </Accordion>
+                </Field>
               )
             })}
           </div>
@@ -332,7 +334,9 @@ export function DebtFormFields({
               <Field orientation="horizontal">
                 <FieldContent>
                   <FieldTitle>Compra parcelada</FieldTitle>
-                  <FieldDescription>Ative esta opção se a compra foi feita em parcelas.</FieldDescription>
+                  <FieldDescription>
+                    Ative esta opção se a compra foi feita em parcelas.
+                  </FieldDescription>
                 </FieldContent>
                 <Switch
                   id="switch-purchase"
@@ -402,11 +406,7 @@ export function DebtFormFields({
                 Gera automaticamente esta despesa todo mês como assinatura.
               </FieldDescription>
             </FieldContent>
-            <Switch
-              id="switch-recurring"
-              checked={isRecurring}
-              onCheckedChange={setIsRecurring}
-            />
+            <Switch id="switch-recurring" checked={isRecurring} onCheckedChange={setIsRecurring} />
           </Field>
         </FieldLabel>
 
@@ -426,7 +426,10 @@ export function DebtFormFields({
                   onChange: e => {
                     const raw = e.target.value.replace(/\D/g, '').slice(0, 2)
                     const num = parseInt(raw, 10)
-                    if (!raw) { e.target.value = ''; return }
+                    if (!raw) {
+                      e.target.value = ''
+                      return
+                    }
                     e.target.value = num > 31 ? '31' : raw
                   },
                 })}

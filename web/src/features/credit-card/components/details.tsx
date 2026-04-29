@@ -1,4 +1,4 @@
-import { Calendar, CreditCard, Eye, EyeOff, Landmark, Pencil } from 'lucide-react'
+import { Calendar, CreditCard, Dot, Eye, EyeClosed, Landmark, Pencil } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import { HiddenValue } from '@/components/ui/hidden-value'
@@ -8,10 +8,19 @@ import { useCard, useTotalAmountUsedCard } from '@/features/credit-card/hooks'
 import { creditCards } from '@/helpers/credit-cards'
 import { MONTHS } from '@/helpers/months'
 import { useHideValuesStore } from '@/hooks/store/use-hide-values-store'
+import { useIsMobile } from '@/hooks/use-mobile'
 import { formatPrice } from '@/lib/utils'
+
+function formatCompact(cents: number) {
+  const value = cents / 100
+  if (value >= 1000) return `R$ ${(value / 1000).toFixed(1)}k`
+  return formatPrice(value)
+}
 
 export function Details({ cardId }: { cardId: string }) {
   const { hideValues, toggleHideValues } = useHideValuesStore()
+  const isMobile = useIsMobile()
+  const isDesktop = !isMobile
 
   const {
     data: { card },
@@ -24,12 +33,14 @@ export function Details({ cardId }: { cardId: string }) {
   const currentCreditCard = creditCards.find(cc => cc.name.toLowerCase() === card.name)
 
   const today = new Date()
+
   const competenceMonth =
     today.getDate() > card.dueDay
       ? today.getMonth() + 1 > 11
         ? 0
         : today.getMonth() + 1
       : today.getMonth()
+
   const competenceYear =
     today.getDate() > card.dueDay
       ? today.getMonth() === 11
@@ -55,39 +66,45 @@ export function Details({ cardId }: { cardId: string }) {
             </UpdateCardForm>
           </p>
           <span className="text-sm text-muted-foreground">
-            Competência: {MONTHS[competenceMonth]}/{competenceYear}
+            {isDesktop && 'Competência: '}
+            {MONTHS[competenceMonth]}/{competenceYear}
           </span>
         </div>
 
         <div className="ml-auto flex gap-1 self-start">
           <Button size="icon" variant="ghost" onClick={toggleHideValues}>
-            {hideValues ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+            {hideValues ? <EyeClosed className="size-4" /> : <Eye className="size-4" />}
           </Button>
         </div>
       </CardHeader>
       <CardContent className="flex-1 mt-6 space-y-2">
-        <div className="flex items-center justify-between">
-          <span className="text-sm text-muted-foreground">Limite utilizado</span>
+        <div className="flex flex-col flex-start lg:flex-row lg:items-center justify-between">
+          <span className="text-xs tracking-wide text-muted-foreground uppercase lg:normal-case lg:text-sm">
+            Limite utilizado
+          </span>
           <HiddenValue className="w-48 h-5">
             <span className="text-sm text-primary font-semibold">
-              {formatPrice(totalAmountCard / 100)} de {formatPrice(card.limit / 100)}
+              {isMobile
+                ? `${formatCompact(totalAmountCard)} / ${formatCompact(card.limit)}`
+                : `${formatPrice(totalAmountCard / 100)} / ${formatPrice(card.limit / 100)}`}
             </span>
           </HiddenValue>
         </div>
         <Progress value={((totalAmountCard / 100) * 100) / (card.limit / 100)} />
       </CardContent>
-      <CardFooter className="justify-between">
+      <CardFooter className="gap-1 justify-start md:justify-between">
         <div className="flex items-center gap-1 text-muted-foreground">
-          <Calendar className="size-4" />
-          <span className="text-sm">Fecha:</span>
+          {isDesktop && <Calendar className="size-4" />}
+          <span className="text-sm">Fecha</span>
           <span className="text-sm text-primary font-semibold">
             {card.closingOffsetDays} dias antes
           </span>
         </div>
+        {isMobile && <Dot className="size-6 text-muted-foreground" />}
         <div className="flex items-center gap-1 text-muted-foreground">
-          <CreditCard className="size-4" />
-          <span className="text-sm">Vence:</span>
-          <span className="text-sm text-primary font-semibold">Dia {card.dueDay}</span>
+          {isDesktop && <CreditCard className="size-4" />}
+          <span className="text-sm">Vence</span>
+          <span className="text-sm text-primary font-semibold">dia {card.dueDay}</span>
         </div>
         <div />
       </CardFooter>

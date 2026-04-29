@@ -62,7 +62,7 @@ export function CreateCardForm({ children }: { children: ReactNode }) {
                     <SelectTrigger aria-invalid={!!errors.name}>
                       <SelectValue placeholder="Selecione um cartão de crédito" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent position="popper">
                       <SelectGroup>
                         {creditCards
                           .sort((a, b) => a.name.localeCompare(b.name))
