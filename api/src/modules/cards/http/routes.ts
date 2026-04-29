@@ -157,6 +157,7 @@ export const cardsRoutes =
                   anticipatedAt: z.string().nullable(),
                   anticipatedInstallmentsCount: z.number().nullable(),
                   anticipateFromInstallment: z.number().nullable(),
+                  anticipatableInstallments: z.number(),
                   subscriptionId: z.string().nullable(),
                   members: z.array(
                     z.object({
@@ -164,6 +165,7 @@ export const cardsRoutes =
                       name: z.string(),
                       relationship: z.string(),
                       installmentAmount: z.number(),
+                      perInstallmentAmount: z.number(),
                     }),
                   ),
                 }),

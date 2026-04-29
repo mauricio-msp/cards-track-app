@@ -186,6 +186,7 @@ export class CardsRepository implements ICardsRepository {
       )
 
     const grouped = new Map<string, CardDebt>()
+    const targetBill = calculateInvoiceCompetence(new Date(), card.dueDay, card.closingOffsetDays)
 
     for (const { installment, debt, member } of rows) {
       const currentInstallment = installment.number
@@ -194,15 +195,46 @@ export class CardsRepository implements ICardsRepository {
 
       if (currentInstallment < start || currentInstallment > end) continue
 
+      const amount = Number(installment.amount)
+
+      // Identify if this installment is the consolidated/anticipated one.
+      // For new records: use stored anticipateFromInstallment.
+      // For legacy records (column is null): fall back to amount comparison.
+      const isConsolidation =
+        !!debt.anticipatedAt &&
+        (debt.anticipateFromInstallment !== null
+          ? installment.number === debt.anticipateFromInstallment
+          : amount > debt.installmentsAmount)
+
       let group = grouped.get(debt.groupId)
 
       if (!group) {
-        const anticipatedCount = debt.anticipatedAt
-          ? debt.installmentsCount - currentInstallment + 1
-          : 0
+        // Compute anticipatable installments mathematically (installments strictly after target invoice)
+        let anticipatableInstallments = 0
+        if (!debt.anticipatedAt) {
+          let firstAnticipatable: number | null = null
+          for (let k = currentInstallment + 1; k <= debt.installmentsCount; k++) {
+            let m = debt.invoiceMonth + (k - 1)
+            let y = debt.invoiceYear
+            while (m > 11) {
+              m -= 12
+              y++
+            }
+            if (
+              y > targetBill.invoiceYear ||
+              (y === targetBill.invoiceYear && m > targetBill.invoiceMonth)
+            ) {
+              firstAnticipatable = k
+              break
+            }
+          }
+          anticipatableInstallments =
+            firstAnticipatable !== null ? debt.installmentsCount - firstAnticipatable + 1 : 0
+        }
 
-        const remainingInstallments = debt.anticipatedAt
-          ? Math.max(debt.installmentsCount - (currentInstallment + anticipatedCount - 1), 0)
+        const anticipatedCount = isConsolidation ? debt.installmentsCount - currentInstallment + 1 : 0
+        const remainingInstallments = isConsolidation
+          ? 0
           : Math.max(debt.installmentsCount - currentInstallment, 0)
 
         group = {
@@ -215,25 +247,41 @@ export class CardsRepository implements ICardsRepository {
           installmentsCount: debt.installmentsCount,
           elapsedInstallments: currentInstallment,
           remainingInstallments,
-          anticipatedAt: debt.anticipatedAt?.toISOString() ?? null,
-          anticipatedInstallmentsCount: debt.anticipatedAt
-            ? debt.installmentsCount - currentInstallment + 1
-            : null,
-          anticipateFromInstallment: debt.anticipatedAt ? currentInstallment : null,
+          anticipatedAt: isConsolidation ? (debt.anticipatedAt?.toISOString() ?? null) : null,
+          anticipatedInstallmentsCount: isConsolidation ? anticipatedCount : null,
+          anticipateFromInstallment: isConsolidation ? currentInstallment : null,
+          anticipatableInstallments,
           subscriptionId: debt.subscriptionId ?? null,
           members: [],
         }
         grouped.set(debt.groupId, group)
+      } else if (isConsolidation && !group.anticipatedAt) {
+        // Same debt has a regular installment AND the consolidation in the same month.
+        // Update the group to reflect the anticipation now that we found the consolidated installment.
+        group.anticipatedAt = debt.anticipatedAt?.toISOString() ?? null
+        group.anticipatedInstallmentsCount = debt.installmentsCount - currentInstallment + 1
+        group.anticipateFromInstallment = currentInstallment
+        group.elapsedInstallments = currentInstallment
+        group.remainingInstallments = 0
       }
 
-      const amount = Number(installment.amount)
       group.totalAmount += amount
-      group.members.push({
-        id: member.id,
-        name: member.name,
-        relationship: member.relationship,
-        installmentAmount: amount,
-      })
+
+      // Deduplicate members when the same member appears across multiple installments in the same month
+      const existingMember = group.members.find(m => m.id === member.id)
+      if (existingMember) {
+        existingMember.installmentAmount += amount
+      } else {
+        group.members.push({
+          id: member.id,
+          name: member.name,
+          relationship: member.relationship,
+          installmentAmount: amount,
+          perInstallmentAmount:
+            Number(debt.installmentsAmount) ||
+            Math.round(Number(debt.amount) / debt.installmentsCount),
+        })
+      }
     }
 
     return Array.from(grouped.values()).filter(g => g.members.length > 0)

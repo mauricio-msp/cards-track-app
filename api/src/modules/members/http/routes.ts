@@ -82,7 +82,7 @@ export const membersRoutes =
           params: z.object({ memberId: z.string() }),
           response: {
             200: z.object({
-              member: memberSchema.pick({ name: true, relationship: true }),
+              member: memberSchema.pick({ name: true, relationship: true, phone: true }),
             }),
             404: z.object({ message: z.string() }),
             500: z.object({ message: z.string() }),

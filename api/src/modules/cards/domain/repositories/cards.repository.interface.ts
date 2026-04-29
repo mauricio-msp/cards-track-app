@@ -13,12 +13,14 @@ export type CardDebt = {
   anticipatedAt: string | null
   anticipatedInstallmentsCount: number | null
   anticipateFromInstallment: number | null
+  anticipatableInstallments: number
   subscriptionId: string | null
   members: Array<{
     id: string
     name: string
     relationship: string
     installmentAmount: number
+    perInstallmentAmount: number
   }>
 }
 

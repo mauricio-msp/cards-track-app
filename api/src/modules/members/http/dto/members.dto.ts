@@ -4,12 +4,12 @@ import { members } from '@/db/schema'
 
 export const createMemberDto = z.object({
   name: z.string().min(3),
-  phone: z.string().nullable().optional(),
+  phone: z.string().nullish(),
   relationship: z.string(),
 })
 
 export const updateMemberDto = z.object({
-  phone: z.string().nullable().optional(),
+  phone: z.string().nullish(),
   relationship: z.string().optional(),
 })
 
