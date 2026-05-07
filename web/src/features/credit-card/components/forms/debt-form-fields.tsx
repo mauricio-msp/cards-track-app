@@ -1,8 +1,8 @@
+import { CircleQuestionMark, Layers, Repeat } from 'lucide-react'
 import React from 'react'
 import { ptBR } from 'react-day-picker/locale'
 import type { Control, FieldArrayWithId, FieldErrors, UseFormRegister } from 'react-hook-form'
 import { Controller } from 'react-hook-form'
-
 import {
   Accordion,
   AccordionContent,
@@ -28,15 +28,7 @@ import {
   ComboboxValue,
   useComboboxAnchor,
 } from '@/components/ui/combobox'
-import {
-  Field,
-  FieldContent,
-  FieldDescription,
-  FieldError,
-  FieldGroup,
-  FieldLabel,
-  FieldTitle,
-} from '@/components/ui/field'
+import { Field, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
 import {
   InputGroup,
   InputGroupAddon,
@@ -46,12 +38,11 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Separator } from '@/components/ui/separator'
 import { Switch } from '@/components/ui/switch'
-
 import { CATEGORIES } from '@/features/credit-card/categories'
 import type { CreateDebtFormValues } from '@/features/credit-card/hooks'
 import type { Member } from '@/features/member/api/get-members'
 import { RELATIONSHIPS } from '@/helpers/relationships'
-import { applyBRLMask, formatPrice } from '@/lib/utils'
+import { applyBRLMask, cn, formatPrice } from '@/lib/utils'
 
 export type DebtFormFieldsProps = {
   control: Control<CreateDebtFormValues>
@@ -63,6 +54,7 @@ export type DebtFormFieldsProps = {
   setCalendarOpen: (open: boolean) => void
   installmentsEnabled: boolean
   setInstallmentsEnabled: (enabled: boolean) => void
+  installmentsCount: number
   totalAmountInCents: number
   membersStore: Member[]
   selectedMembersForCombobox: Member[]
@@ -81,6 +73,7 @@ export function DebtFormFields({
   setCalendarOpen,
   installmentsEnabled,
   setInstallmentsEnabled,
+  installmentsCount,
   totalAmountInCents,
   membersStore,
   selectedMembersForCombobox,
@@ -91,7 +84,7 @@ export function DebtFormFields({
   const anchor = useComboboxAnchor()
 
   return (
-    <div className="-mx-4 max-h-[70vh] overflow-y-auto px-4 py-3">
+    <div className="-mx-4 max-h-[80vh] overflow-y-auto px-4 py-3">
       <FieldGroup>
         <Field data-invalid={!!errors.description} className="gap-1">
           <FieldLabel>Descrição da compra</FieldLabel>
@@ -106,6 +99,202 @@ export function DebtFormFields({
           </InputGroup>
           {errors.description && <FieldError>{errors.description.message}</FieldError>}
         </Field>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <Field data-invalid={!!errors.purchaseDate} className="gap-1">
+            <FieldLabel>Data da compra</FieldLabel>
+            <Controller
+              name="purchaseDate"
+              control={control}
+              render={({ field }) => (
+                <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
+                  <PopoverTrigger asChild>
+                    <Button id="date" variant="outline" className="justify-start font-normal">
+                      {field.value ? field.value.toLocaleDateString('pt-BR') : 'Selecione a data'}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto overflow-hidden p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      locale={ptBR}
+                      selected={field.value}
+                      defaultMonth={field.value}
+                      captionLayout="dropdown"
+                      onSelect={date => {
+                        field.onChange(date)
+                        setCalendarOpen(false)
+                      }}
+                    />
+                  </PopoverContent>
+                </Popover>
+              )}
+            />
+            {errors.purchaseDate && <FieldError>{errors.purchaseDate.message}</FieldError>}
+          </Field>
+
+          <Field data-invalid={!!errors.category} className="gap-1">
+            <FieldLabel>Categoria</FieldLabel>
+            <Controller
+              name="category"
+              control={control}
+              render={({ field }) => (
+                <Combobox
+                  items={CATEGORIES}
+                  value={field.value || ''}
+                  onValueChange={field.onChange}
+                >
+                  <ComboboxInput placeholder="Selecione uma categoria" />
+                  <ComboboxContent
+                    className="pointer-events-auto"
+                    onWheel={event => event.stopPropagation()}
+                  >
+                    <ComboboxEmpty>Nenhuma categoria encontrada.</ComboboxEmpty>
+                    <ComboboxList>
+                      {(group, index) => (
+                        <ComboboxGroup key={group.value} items={group.items}>
+                          <ComboboxLabel>{group.value}</ComboboxLabel>
+                          <ComboboxCollection>
+                            {item => (
+                              <ComboboxItem key={item} value={item}>
+                                {item}
+                              </ComboboxItem>
+                            )}
+                          </ComboboxCollection>
+                          {index < RELATIONSHIPS.length - 1 && <ComboboxSeparator />}
+                        </ComboboxGroup>
+                      )}
+                    </ComboboxList>
+                  </ComboboxContent>
+                </Combobox>
+              )}
+            />
+            {errors.category && <FieldError>{errors.category.message}</FieldError>}
+          </Field>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <div
+            className={cn(
+              'border rounded-lg p-3 flex flex-col gap-3 transition-colors',
+              installmentsEnabled && 'border-primary/50 bg-primary/5',
+              isRecurring && 'pointer-events-none opacity-50',
+            )}
+          >
+            <div className="flex items-start justify-between gap-2">
+              <div>
+                <p className="text-sm font-medium leading-tight flex items-center gap-1">
+                  <Layers className="size-4" />
+                  Compra parcelada
+                </p>
+                <span className="text-xs text-muted-foreground mt-0.5">
+                  Ative se a compra foi feita em parcelas.
+                </span>
+              </div>
+
+              <Switch
+                id="switch-purchase"
+                checked={installmentsEnabled}
+                disabled={isRecurring}
+                onCheckedChange={v => {
+                  setInstallmentsEnabled(v)
+                  if (v) setIsRecurring(false)
+                }}
+              />
+            </div>
+
+            {installmentsEnabled && (
+              <>
+                <Separator />
+                <Field data-invalid={!!errors.installmentsCount} className="gap-1 w-40">
+                  <FieldLabel htmlFor="installmentsCount">Número de parcelas</FieldLabel>
+                  <InputGroup className="dark:bg-background">
+                    <InputGroupAddon>
+                      <InputGroupText>Em</InputGroupText>
+                    </InputGroupAddon>
+                    <InputGroupInput
+                      id="installmentsCount"
+                      disabled={isPending}
+                      placeholder="0"
+                      aria-invalid={!!errors.installmentsCount}
+                      {...register('installmentsCount', { valueAsNumber: true })}
+                    />
+                    <InputGroupAddon align="inline-end">
+                      <InputGroupText>x</InputGroupText>
+                    </InputGroupAddon>
+                  </InputGroup>
+                  {errors.installmentsCount && (
+                    <FieldError>{errors.installmentsCount.message}</FieldError>
+                  )}
+                </Field>
+              </>
+            )}
+          </div>
+
+          <div
+            className={cn(
+              'border rounded-lg p-3 flex flex-col gap-3 transition-colors',
+              isRecurring && 'border-primary/50 bg-primary/5',
+              installmentsEnabled && 'pointer-events-none opacity-50',
+            )}
+          >
+            <div className="flex items-start justify-between gap-2">
+              <div>
+                <p className="text-sm font-medium leading-tight flex items-center gap-1">
+                  <Repeat className="size-4" />
+                  Cobrança recorrente
+                </p>
+                <span className="text-xs text-muted-foreground mt-0.5">Repetida todo mês.</span>
+              </div>
+
+              <Switch
+                id="switch-recurring"
+                checked={isRecurring}
+                disabled={installmentsEnabled}
+                onCheckedChange={setIsRecurring}
+              />
+            </div>
+
+            {isRecurring && (
+              <>
+                <Separator />
+                <Field data-invalid={!!errors.billingDay} className="gap-1 w-28">
+                  <FieldLabel htmlFor="billingDay">Dia do mês</FieldLabel>
+                  <InputGroup className="dark:bg-background">
+                    <InputGroupInput
+                      id="billingDay"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      disabled={isPending}
+                      aria-invalid={!!errors.billingDay}
+                      placeholder="ex: 10"
+                      className="text-right"
+                      {...register('billingDay', {
+                        setValueAs: v => {
+                          if (v === '' || v === null || v === undefined) return undefined
+                          const num = parseInt(String(v), 10)
+                          return Number.isNaN(num) ? undefined : Math.min(num, 31)
+                        },
+                        onChange: e => {
+                          const raw = e.target.value.replace(/\D/g, '').slice(0, 2)
+                          const num = parseInt(raw, 10)
+                          if (!raw) {
+                            e.target.value = ''
+                            return
+                          }
+                          e.target.value = num > 31 ? '31' : raw
+                        },
+                      })}
+                    />
+                    <InputGroupAddon align="inline-end">
+                      <InputGroupText>/ mês</InputGroupText>
+                    </InputGroupAddon>
+                  </InputGroup>
+                  {errors.billingDay && <FieldError>{errors.billingDay.message}</FieldError>}
+                </Field>
+              </>
+            )}
+          </div>
+        </div>
 
         <Field data-invalid={!!errors.members?.message} className="gap-1">
           <FieldLabel>Selecionar membros</FieldLabel>
@@ -147,16 +336,13 @@ export function DebtFormFields({
 
         {fields.length > 0 && (
           <div className="flex flex-col bg-background border rounded-lg p-4 gap-4">
-            <span className="text-muted-foreground text-sm">
-              Defina quanto cada membro é responsável nesta compra.
-              {installmentsEnabled && (
-                <>
-                  {' '}
-                  O valor informado representa o valor de <strong>uma única parcela</strong>. O{' '}
-                  <strong>valor total</strong> será calculado automaticamente.
-                </>
-              )}
-            </span>
+            <p className="text-muted-foreground text-xs flex gap-1">
+              <CircleQuestionMark className="size-4" />
+              <span>
+                Defina quanto cada membro paga por <strong>parcela</strong>. Total calculado
+                automaticamente.
+              </span>
+            </p>
 
             <Separator />
 
@@ -164,6 +350,7 @@ export function DebtFormFields({
               const { onChange: onAmountChange, ...amountRegister } = register(
                 `members.${index}.amount`,
               )
+
               return (
                 <Field
                   key={member._rhf_id}
@@ -255,193 +442,30 @@ export function DebtFormFields({
             })}
           </div>
         )}
+      </FieldGroup>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Field data-invalid={!!errors.purchaseDate} className="gap-1">
-            <FieldLabel>Data da compra</FieldLabel>
-            <Controller
-              name="purchaseDate"
-              control={control}
-              render={({ field }) => (
-                <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
-                  <PopoverTrigger asChild>
-                    <Button id="date" variant="outline" className="justify-start font-normal">
-                      {field.value ? field.value.toLocaleDateString('pt-BR') : 'Selecione a data'}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto overflow-hidden p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      locale={ptBR}
-                      selected={field.value}
-                      defaultMonth={field.value}
-                      captionLayout="dropdown"
-                      onSelect={date => {
-                        field.onChange(date)
-                        setCalendarOpen(false)
-                      }}
-                    />
-                  </PopoverContent>
-                </Popover>
-              )}
-            />
-            {errors.purchaseDate && <FieldError>{errors.purchaseDate.message}</FieldError>}
-          </Field>
+      <Separator className="my-4" />
 
-          <Field data-invalid={!!errors.category} className="gap-1">
-            <FieldLabel>Categoria</FieldLabel>
-            <Controller
-              name="category"
-              control={control}
-              render={({ field }) => (
-                <Combobox
-                  items={CATEGORIES}
-                  value={field.value || ''}
-                  onValueChange={field.onChange}
-                >
-                  <ComboboxInput placeholder="Selecione uma categoria" />
-                  <ComboboxContent
-                    className="pointer-events-auto"
-                    onWheel={event => event.stopPropagation()}
-                  >
-                    <ComboboxEmpty>Nenhuma categoria encontrada.</ComboboxEmpty>
-                    <ComboboxList>
-                      {(group, index) => (
-                        <ComboboxGroup key={group.value} items={group.items}>
-                          <ComboboxLabel>{group.value}</ComboboxLabel>
-                          <ComboboxCollection>
-                            {item => (
-                              <ComboboxItem key={item} value={item}>
-                                {item}
-                              </ComboboxItem>
-                            )}
-                          </ComboboxCollection>
-                          {index < RELATIONSHIPS.length - 1 && <ComboboxSeparator />}
-                        </ComboboxGroup>
-                      )}
-                    </ComboboxList>
-                  </ComboboxContent>
-                </Combobox>
-              )}
-            />
-            {errors.category && <FieldError>{errors.category.message}</FieldError>}
-          </Field>
+      <div className="rounded-lg border bg-muted/40 p-3 flex flex-col gap-2">
+        <div className="flex items-center justify-between text-sm">
+          <span className="text-muted-foreground">Total da compra</span>
+          <span className="font-semibold tabular-nums">
+            {formatPrice(totalAmountInCents / 100)}
+          </span>
         </div>
 
-        {!isRecurring && (
-          <>
-            <FieldLabel htmlFor="switch-purchase">
-              <Field orientation="horizontal">
-                <FieldContent>
-                  <FieldTitle>Compra parcelada</FieldTitle>
-                  <FieldDescription>
-                    Ative esta opção se a compra foi feita em parcelas.
-                  </FieldDescription>
-                </FieldContent>
-                <Switch
-                  id="switch-purchase"
-                  checked={installmentsEnabled}
-                  onCheckedChange={setInstallmentsEnabled}
-                />
-              </Field>
-            </FieldLabel>
-
-            {installmentsEnabled && (
-              <div className="flex gap-4">
-                <Field data-invalid={!!errors.installmentsCount}>
-                  <FieldLabel htmlFor="installmentsCount">Número de parcelas</FieldLabel>
-                  <InputGroup>
-                    <InputGroupAddon>
-                      <InputGroupText>Em</InputGroupText>
-                    </InputGroupAddon>
-                    <InputGroupInput
-                      id="installmentsCount"
-                      disabled={isPending}
-                      aria-invalid={!!errors.installmentsCount}
-                      placeholder="0"
-                      {...register('installmentsCount', { valueAsNumber: true })}
-                    />
-                    <InputGroupAddon align="inline-end">
-                      <InputGroupText>x</InputGroupText>
-                    </InputGroupAddon>
-                  </InputGroup>
-                  {errors.installmentsCount && (
-                    <FieldError>{errors.installmentsCount.message}</FieldError>
-                  )}
-                </Field>
-
-                <Field>
-                  <FieldLabel htmlFor="installmentsAmount" className="text-muted-foreground">
-                    Valor total
-                  </FieldLabel>
-                  <InputGroup>
-                    <InputGroupAddon>
-                      <InputGroupText>R$</InputGroupText>
-                    </InputGroupAddon>
-                    <InputGroupInput
-                      id="installmentsAmount"
-                      disabled
-                      placeholder="0.00"
-                      value={formatPrice(
-                        Number.isNaN(totalAmountInCents)
-                          ? 0
-                          : Number((totalAmountInCents / 100).toFixed(2)),
-                      ).replace('R$', '')}
-                    />
-                    <InputGroupAddon align="inline-end">
-                      <InputGroupText>BRL</InputGroupText>
-                    </InputGroupAddon>
-                  </InputGroup>
-                </Field>
-              </div>
-            )}
-          </>
+        {installmentsEnabled && installmentsCount > 1 && (
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-muted-foreground">Valor por parcela</span>
+            <span className="font-semibold tabular-nums">
+              {formatPrice(Math.round(totalAmountInCents / installmentsCount) / 100)}
+              <span className="text-muted-foreground font-normal ml-1 text-xs">
+                x{installmentsCount}
+              </span>
+            </span>
+          </div>
         )}
-
-        <FieldLabel htmlFor="switch-recurring">
-          <Field orientation="horizontal">
-            <FieldContent>
-              <FieldTitle>Cobrança recorrente</FieldTitle>
-              <FieldDescription>
-                Gera automaticamente esta despesa todo mês como assinatura.
-              </FieldDescription>
-            </FieldContent>
-            <Switch id="switch-recurring" checked={isRecurring} onCheckedChange={setIsRecurring} />
-          </Field>
-        </FieldLabel>
-
-        {isRecurring && (
-          <Field data-invalid={!!errors.billingDay} className="gap-1">
-            <FieldLabel htmlFor="billingDay">Dia de cobrança</FieldLabel>
-            <InputGroup>
-              <InputGroupInput
-                id="billingDay"
-                inputMode="numeric"
-                pattern="[0-9]*"
-                disabled={isPending}
-                aria-invalid={!!errors.billingDay}
-                placeholder="ex: 10"
-                {...register('billingDay', {
-                  valueAsNumber: true,
-                  onChange: e => {
-                    const raw = e.target.value.replace(/\D/g, '').slice(0, 2)
-                    const num = parseInt(raw, 10)
-                    if (!raw) {
-                      e.target.value = ''
-                      return
-                    }
-                    e.target.value = num > 31 ? '31' : raw
-                  },
-                })}
-              />
-              <InputGroupAddon align="inline-end">
-                <InputGroupText>/ mês</InputGroupText>
-              </InputGroupAddon>
-            </InputGroup>
-            {errors.billingDay && <FieldError>{errors.billingDay.message}</FieldError>}
-          </Field>
-        )}
-      </FieldGroup>
+      </div>
     </div>
   )
 }

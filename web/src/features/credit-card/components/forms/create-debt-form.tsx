@@ -25,6 +25,7 @@ export function CreateDebtForm({ children }: { children: ReactNode }) {
     setCalendarOpen,
     installmentsEnabled,
     setInstallmentsEnabled,
+    installmentsCount,
     totalAmountInCents,
     selectedMembersForCombobox,
     membersStore,
@@ -44,7 +45,7 @@ export function CreateDebtForm({ children }: { children: ReactNode }) {
     <Dialog>
       <DialogTrigger asChild>{children}</DialogTrigger>
 
-      <DialogContent className="sm:max-w-xl" onCloseAutoFocus={() => form.reset()}>
+      <DialogContent className="sm:max-w-2xl" onCloseAutoFocus={() => form.reset()}>
         <form onSubmit={onSubmit} className="flex flex-col justify-end flex-1 gap-4">
           <DialogHeader>
             <DialogTitle>Adicionar despesa</DialogTitle>
@@ -63,6 +64,7 @@ export function CreateDebtForm({ children }: { children: ReactNode }) {
             setCalendarOpen={setCalendarOpen}
             installmentsEnabled={installmentsEnabled}
             setInstallmentsEnabled={setInstallmentsEnabled}
+            installmentsCount={installmentsCount}
             totalAmountInCents={totalAmountInCents}
             membersStore={membersStore}
             selectedMembersForCombobox={selectedMembersForCombobox}
