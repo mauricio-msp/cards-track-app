@@ -21,11 +21,15 @@ import {
 import { useDebtsYears } from '@/features/dashboard/hooks'
 import { MONTHS } from '@/helpers/months'
 import { useDebtsFilter } from '@/hooks/store/use-debts-filter-store'
+import { useIsMobile } from '@/hooks/use-mobile'
 
 export function DebtsFilter() {
   const {
     data: { years: yearsToFilter },
   } = useDebtsYears()
+  const isMobile = useIsMobile()
+  const isDesktop = !isMobile
+
   const { month, year, setFilters, clearFilters } = useDebtsFilter()
 
   return (
@@ -33,7 +37,7 @@ export function DebtsFilter() {
       <PopoverTrigger asChild>
         <Button variant="outline">
           <ListFilter />
-          Filtros
+          {isDesktop && 'Filtros'}
         </Button>
       </PopoverTrigger>
       <PopoverContent align="end" className="max-w-60">

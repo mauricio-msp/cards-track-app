@@ -2,11 +2,11 @@ import { createFileRoute } from '@tanstack/react-router'
 import { Overview } from '@/features/credit-card/components/overview'
 
 export const Route = createFileRoute('/_app/credit-card/$id')({
-  loader: () => ({ crumbs: ['Credit Card', 'Overview'] }),
+  loader: () => ({ crumbs: ['Cartão de Crédito', 'Overview'] }),
   head: () => ({
     meta: [
       {
-        title: 'Credit Card',
+        title: 'Cartão de Crédito',
       },
     ],
   }),

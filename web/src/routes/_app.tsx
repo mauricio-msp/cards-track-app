@@ -55,10 +55,18 @@ function RouteComponent() {
     }),
   )
 
+  const isFixedLayout = matches.some(m => m.routeId === '/_app/members/$id')
+
   return (
-    <SidebarProvider>
+    <SidebarProvider
+      data-layout={isFixedLayout ? 'fixed' : 'fluid'}
+      className="data-[layout=fixed]:h-svh data-[layout=fixed]:overflow-hidden"
+    >
       <AppSidebar />
-      <SidebarInset className="min-w-0">
+      <SidebarInset
+        data-layout={isFixedLayout ? 'fixed' : 'fluid'}
+        className="min-w-0 data-[layout=fixed]:overflow-hidden"
+      >
         <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
           <div className="flex items-center gap-2 px-4">
             <SidebarTrigger className="-ml-1" />
@@ -70,7 +78,7 @@ function RouteComponent() {
 
                   return (
                     <React.Fragment key={crumb.key}>
-                      <BreadcrumbItem className="hidden md:block">
+                      <BreadcrumbItem>
                         {isLast ? (
                           <BreadcrumbPage>{crumb.label}</BreadcrumbPage>
                         ) : (
@@ -80,7 +88,7 @@ function RouteComponent() {
                         )}
                       </BreadcrumbItem>
 
-                      {!isLast && <BreadcrumbSeparator className="hidden md:block" />}
+                      {!isLast && <BreadcrumbSeparator />}
                     </React.Fragment>
                   )
                 })}

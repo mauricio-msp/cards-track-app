@@ -3,7 +3,7 @@ import { Plus, User, UserX } from 'lucide-react'
 
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   Empty,
   EmptyContent,
@@ -59,13 +59,17 @@ export function DebtsMembersList({ cardId }: { cardId: string }) {
   )
 
   return (
-    <Card className="h-max col-span-1 lg:col-span-2 xl:col-span-1 sticky top-4">
+    <Card className="col-span-1 lg:col-span-2 xl:col-span-1 self-start sticky top-4 min-h-109">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <User />
           Total por Pessoa
         </CardTitle>
+        <CardDescription className="hidden text-muted-foreground text-sm sm:flex">
+          Distribuição do total da fatura entre os membros para o período selecionado.
+        </CardDescription>
       </CardHeader>
+
       <CardContent className="flex-1 flex flex-col gap-4">
         {Object.values(memberByDebts)
           .sort((a, b) => b.installmentAmount - a.installmentAmount)
@@ -120,7 +124,7 @@ export function DebtsMembersList({ cardId }: { cardId: string }) {
             </div>
           </>
         ) : (
-          <Empty className="px-2 py-4 border border-dashed md:p-4">
+          <Empty className="px-2 py-8 border border-dashed">
             <EmptyHeader>
               <EmptyMedia variant="icon">
                 <UserX />
