@@ -12,8 +12,7 @@ export function useDeleteCard() {
       toast.success('Cartão excluído com sucesso.')
     },
     onError: (error: Error) => {
-      console.error('Failed to delete card:', error)
-      toast.error('Erro ao deletar cartão. Por favor, tente novamente.')
+      toast.error(error.message)
     },
   })
 }

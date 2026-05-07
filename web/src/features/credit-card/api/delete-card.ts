@@ -4,5 +4,8 @@ export async function deleteCard(cardId: string) {
     credentials: 'include',
   })
 
-  if (!response.ok) throw new Error('Falha ao deletar cartão')
+  if (!response.ok) {
+    const body = await response.json().catch(() => ({}))
+    throw new Error(body?.message ?? 'Falha ao deletar cartão')
+  }
 }

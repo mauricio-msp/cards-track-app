@@ -3,12 +3,12 @@ type AnticipateDebtParams = {
 }
 
 type AnticipateDebtRequest = {
-  anticipateFromInstallment: number
+  anticipateCount: number
 }
 
 export async function anticipateDebt({
   debtId,
-  anticipateFromInstallment,
+  anticipateCount,
 }: AnticipateDebtParams & AnticipateDebtRequest) {
   const response = await fetch(`http://localhost:3333/api/debts/${debtId}/anticipate`, {
     method: 'PATCH',
@@ -16,7 +16,7 @@ export async function anticipateDebt({
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ anticipateFromInstallment }),
+    body: JSON.stringify({ anticipateCount }),
   })
 
   if (!response.ok) throw new Error('Erro ao antecipar dívida')
