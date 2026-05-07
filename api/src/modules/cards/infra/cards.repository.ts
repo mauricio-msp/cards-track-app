@@ -232,9 +232,15 @@ export class CardsRepository implements ICardsRepository {
             firstAnticipatable !== null ? debt.installmentsCount - firstAnticipatable + 1 : 0
         }
 
-        const anticipatedCount = isConsolidation ? debt.installmentsCount - currentInstallment + 1 : 0
+        const rawConsolidatedCount = isConsolidation && debt.installmentsAmount > 0
+          ? Math.round(Number(installment.amount) / debt.installmentsAmount)
+          : 0
+        const consolidatedCount = Number.isFinite(rawConsolidatedCount) && rawConsolidatedCount > 0
+          ? rawConsolidatedCount
+          : isConsolidation ? debt.installmentsCount - currentInstallment + 1 : 0
+        const anticipatedCount = consolidatedCount
         const remainingInstallments = isConsolidation
-          ? 0
+          ? Math.max(debt.installmentsCount - (currentInstallment + consolidatedCount - 1), 0)
           : Math.max(debt.installmentsCount - currentInstallment, 0)
 
         group = {
@@ -258,11 +264,18 @@ export class CardsRepository implements ICardsRepository {
       } else if (isConsolidation && !group.anticipatedAt) {
         // Same debt has a regular installment AND the consolidation in the same month.
         // Update the group to reflect the anticipation now that we found the consolidated installment.
+        const rawCount = debt.installmentsAmount > 0 ? Math.round(amount / debt.installmentsAmount) : 0
+        const consolidatedCount = Number.isFinite(rawCount) && rawCount > 0
+          ? rawCount
+          : debt.installmentsCount - currentInstallment + 1
         group.anticipatedAt = debt.anticipatedAt?.toISOString() ?? null
-        group.anticipatedInstallmentsCount = debt.installmentsCount - currentInstallment + 1
+        group.anticipatedInstallmentsCount = consolidatedCount
         group.anticipateFromInstallment = currentInstallment
         group.elapsedInstallments = currentInstallment
-        group.remainingInstallments = 0
+        group.remainingInstallments = Math.max(
+          debt.installmentsCount - (currentInstallment + consolidatedCount - 1),
+          0,
+        )
       }
 
       group.totalAmount += amount
