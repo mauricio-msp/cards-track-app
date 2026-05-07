@@ -15,6 +15,7 @@ import {
   MonthTotalDebtsAmountCard,
   TotalDebtsAmountCard,
 } from '@/features/dashboard'
+import { DebtsTrendChartError } from '@/features/dashboard/components/chart/error'
 
 export const Route = createFileRoute('/_app/dashboard')({
   loader: () => ({ crumbs: ['Dashboard', 'Overview'] }),
@@ -73,9 +74,18 @@ function RouteComponent() {
         />
       </div>
 
-      <Suspense fallback={<DebtsTrendChartSkeleton />}>
-        <DebtsTrendChart />
-      </Suspense>
+      <QueryErrorResetBoundary>
+        {({ reset }) => (
+          <ErrorBoundary
+            onReset={reset}
+            fallbackRender={props => <DebtsTrendChartError {...props} />}
+          >
+            <Suspense fallback={<DebtsTrendChartSkeleton />}>
+              <DebtsTrendChart />
+            </Suspense>
+          </ErrorBoundary>
+        )}
+      </QueryErrorResetBoundary>
     </div>
   )
 }
