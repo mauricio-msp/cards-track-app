@@ -9,7 +9,12 @@ export class GetMemberController {
     try {
       const member = await this.useCase.execute(request.params.memberId, request.user.id)
       return reply.send({
-        member: { name: member.name, relationship: member.relationship, phone: member.phone },
+        member: {
+          id: member.id,
+          name: member.name,
+          relationship: member.relationship,
+          phone: member.phone,
+        },
       })
     } catch (err) {
       if (err instanceof MemberNotFoundError) {
