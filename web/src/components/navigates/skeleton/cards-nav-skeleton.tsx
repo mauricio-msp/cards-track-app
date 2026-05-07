@@ -14,7 +14,7 @@ export function CardsNavSkeleton() {
     <SidebarGroup className="group-data-[collapsible=icon]:hidden">
       <SidebarGroupLabel className="opacity-40">
         <CreditCard className="mr-2" />
-        My Credit Cards (0)
+        Meus cartões (0)
         <Button disabled size="icon-sm" variant="ghost" className="ml-auto cursor-pointer">
           <CirclePlus />
         </Button>

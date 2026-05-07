@@ -61,7 +61,7 @@ export function AppSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
           {({ reset }) => (
             <ErrorBoundary
               onReset={reset}
-              fallbackRender={props => <CardsNavError title="My Credit Cards" {...props} />}
+              fallbackRender={props => <CardsNavError title="Meus cartões" {...props} />}
             >
               <Suspense fallback={<CardsNavSkeleton />}>
                 <CardsNav />
