@@ -6,11 +6,10 @@ import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty'
 import { HiddenValue } from '@/components/ui/hidden-value'
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
-import { Separator } from '@/components/ui/separator'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { Competence } from '@/features/credit-card/components/competence'
 import { useMemberDebts } from '@/features/member/hooks/use-member-debts'
-import { formatPrice } from '@/lib/utils'
+import { cn, formatPrice } from '@/lib/utils'
 
 type DebtItemProps = {
   id: string
@@ -153,17 +152,20 @@ export function DebtsByCard({ memberId }: { memberId: string }) {
   }
 
   return (
-    <ScrollArea className="w-full">
-      <ScrollBar
-        orientation="horizontal"
-        className="top-0! bottom-auto! border-t-0 border-b border-b-transparent"
-      />
-      <div className="flex gap-4 py-3">
+    <ScrollArea
+      type="auto"
+      className="flex-1 min-h-0 -mx-4 sm:mx-0"
+      viewportClassName={cn(
+        '[&>div]:h-full [&>div]:![display:unset]',
+        'px-4 scroll-px-4 lg:px-0 lg:scroll-px-0 snap-x snap-mandatory lg:snap-none',
+      )}
+    >
+      <div className="flex gap-4 py-3 h-full after:content-[''] after:block after:w-4 after:shrink-0 lg:after:hidden">
         {cardsWithDebts
           .sort((a, b) => a.card.dueDay - b.card.dueDay)
           .map((cwd, index) => (
-            <Card key={index} className="w-md shrink-0 flex flex-col">
-              <CardHeader className="flex items-center gap-2">
+            <Card key={index} className="w-md shrink-0 flex flex-col h-full gap-0">
+              <CardHeader className="flex items-center gap-2 shrink-0 border-b">
                 <Competence
                   cardName={cwd.card.name}
                   targetMonth={cwd.card.targetMonth}
@@ -171,19 +173,25 @@ export function DebtsByCard({ memberId }: { memberId: string }) {
                 />
               </CardHeader>
 
-              <CardContent className="flex-1">
-                <Separator className="mb-4" />
-                {cwd.debts
-                  .sort(
-                    (a, b) =>
-                      new Date(b.purchaseDate).getTime() - new Date(a.purchaseDate).getTime(),
-                  )
-                  .map(debt => (
-                    <DebtItem key={debt.id} debt={debt} />
-                  ))}
+              <CardContent className="flex-1 min-h-0 p-0">
+                <ScrollArea
+                  className="size-full"
+                  viewportClassName="[&>div]:![display:unset]"
+                >
+                  <div className="px-4 py-4 w-full">
+                    {cwd.debts
+                      .sort(
+                        (a, b) =>
+                          new Date(b.purchaseDate).getTime() - new Date(a.purchaseDate).getTime(),
+                      )
+                      .map(debt => (
+                        <DebtItem key={debt.id} debt={debt} />
+                      ))}
+                  </div>
+                </ScrollArea>
               </CardContent>
 
-              <CardFooter className="border-t gap-4 justify-between">
+              <CardFooter className="border-t gap-4 justify-between shrink-0">
                 <div className="flex flex-col">
                   <span className="text-sm">Total da dívida</span>
                   <span className="text-xs text-muted-foreground">{cwd.card.name}</span>
@@ -199,6 +207,7 @@ export function DebtsByCard({ memberId }: { memberId: string }) {
             </Card>
           ))}
       </div>
+
       <ScrollBar orientation="horizontal" />
     </ScrollArea>
   )

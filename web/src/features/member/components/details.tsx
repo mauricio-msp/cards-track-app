@@ -1,6 +1,8 @@
-import { Dot, Phone, User, UserStar } from 'lucide-react'
+import { Dot, Pencil, Phone, User, UserStar } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { HiddenValue } from '@/components/ui/hidden-value'
+import { UpdateMemberForm } from '@/features/member/components/update-member-form'
 import { useMember, useMemberDebts } from '@/features/member/hooks'
 import { formatPhone, formatPrice } from '@/lib/utils'
 
@@ -23,7 +25,14 @@ export function Details({ memberId }: { memberId: string }) {
         {['titular', 'Titular'].includes(member.relationship) ? <UserStar /> : <User />}
       </div>
       <div className="flex flex-col">
-        <span className="text-2xl">{member.name}</span>
+        <div className="flex items-center gap-1">
+          <span className="text-2xl">{member.name}</span>
+          <UpdateMemberForm member={member}>
+            <Button size="icon-xs" variant="outline" className="ml-2 cursor-pointer">
+              <Pencil />
+            </Button>
+          </UpdateMemberForm>
+        </div>
         <div className="flex items-center gap-0.5">
           <Badge variant="outline">{member.relationship.toLowerCase()}</Badge>
           {member.phone && (

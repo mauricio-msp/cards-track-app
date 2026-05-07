@@ -6,6 +6,7 @@ type GetMemberParams = {
 
 const GetMemberResponse = z.object({
   member: z.object({
+    id: z.string(),
     name: z.string(),
     relationship: z.string(),
     phone: z.string().nullish(),
