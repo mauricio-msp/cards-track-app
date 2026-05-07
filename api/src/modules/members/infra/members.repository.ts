@@ -124,9 +124,11 @@ export class MembersRepository implements IMembersRepository {
           purchaseDate: debts.purchaseDate,
           amount: debts.amount,
           installmentsCount: debts.installmentsCount,
+          installmentsAmount: debts.installmentsAmount,
           startInstallment: debts.startInstallment,
           endInstallment: debts.endInstallment,
           anticipatedAt: debts.anticipatedAt,
+          anticipateFromInstallment: debts.anticipateFromInstallment,
         },
         installment: { number: installments.number, amount: installments.amount },
         targetMonth: targetMonthExpr,
@@ -149,6 +151,7 @@ export class MembersRepository implements IMembersRepository {
       .where(eq(cards.ownerUserId, userId))
 
     const cardMap = new Map<string, MemberDebtsByCard>()
+    const debtsByCard = new Map<string, Map<string, MemberDebtsByCard['debts'][number]>>()
 
     for (const row of rows) {
       const currentInstallment = row.installment.number
@@ -168,20 +171,42 @@ export class MembersRepository implements IMembersRepository {
           },
           debts: [],
         })
+        debtsByCard.set(row.card.id, new Map())
       }
 
       const cardEntry = cardMap.get(row.card.id)
-      if (!cardEntry) continue
+      const debtMap = debtsByCard.get(row.card.id)
+      if (!cardEntry || !debtMap) continue
 
-      const isAnticipated = !!row.debt.anticipatedAt
-      const anticipatedCount = isAnticipated
-        ? row.debt.installmentsCount - currentInstallment + 1
+      const isConsolidation =
+        !!row.debt.anticipatedAt && currentInstallment === row.debt.anticipateFromInstallment
+      const rawConsolidatedCount = isConsolidation && row.debt.installmentsAmount > 0
+        ? Math.round(Number(row.installment.amount) / row.debt.installmentsAmount)
         : 0
-      const remainingInstallments = isAnticipated
+      const anticipatedCount = Number.isFinite(rawConsolidatedCount) && rawConsolidatedCount > 0
+        ? rawConsolidatedCount
+        : isConsolidation ? row.debt.installmentsCount - currentInstallment + 1 : 0
+      const remainingInstallments = isConsolidation
         ? Math.max(row.debt.installmentsCount - (currentInstallment + anticipatedCount - 1), 0)
         : Math.max(row.debt.installmentsCount - currentInstallment, 0)
 
-      cardEntry.debts.push({
+      const existing = debtMap.get(row.debt.id)
+
+      if (existing) {
+        // Same debt has multiple installments in the target invoice (regular + consolidated).
+        // The consolidation installment should take precedence for display; amounts accumulate.
+        if (isConsolidation && !existing.anticipatedAt) {
+          existing.anticipatedAt = row.debt.anticipatedAt?.toISOString() ?? null
+          existing.anticipatedInstallmentsCount = anticipatedCount
+          existing.anticipateFromInstallment = row.debt.anticipateFromInstallment
+          existing.elapsedInstallments = currentInstallment
+          existing.remainingInstallments = remainingInstallments
+        }
+        existing.installmentsAmount += Number(row.installment.amount)
+        continue
+      }
+
+      const debtEntry: MemberDebtsByCard['debts'][number] = {
         id: row.debt.id,
         description: row.debt.description,
         purchaseDate: row.debt.purchaseDate,
@@ -190,10 +215,13 @@ export class MembersRepository implements IMembersRepository {
         installmentsAmount: Number(row.installment.amount),
         elapsedInstallments: currentInstallment,
         remainingInstallments,
-        anticipatedAt: row.debt.anticipatedAt?.toISOString() ?? null,
-        anticipatedInstallmentsCount: isAnticipated ? anticipatedCount : null,
-        anticipateFromInstallment: isAnticipated ? currentInstallment : null,
-      })
+        anticipatedAt: isConsolidation ? (row.debt.anticipatedAt?.toISOString() ?? null) : null,
+        anticipatedInstallmentsCount: isConsolidation ? anticipatedCount : null,
+        anticipateFromInstallment: isConsolidation ? row.debt.anticipateFromInstallment : null,
+      }
+
+      debtMap.set(row.debt.id, debtEntry)
+      cardEntry.debts.push(debtEntry)
     }
 
     return Array.from(cardMap.values())
