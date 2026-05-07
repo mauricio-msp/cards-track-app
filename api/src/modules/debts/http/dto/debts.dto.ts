@@ -37,11 +37,11 @@ export const createDebtDto = z.object({
 })
 
 export const anticipateDebtDto = z.object({
-  anticipateFromInstallment: z.coerce
+  anticipateCount: z.coerce
     .number()
     .int()
     .min(1)
-    .describe('Número da parcela a partir da qual antecipar (inclusive)'),
+    .describe('Quantidade de parcelas futuras a antecipar (a partir da primeira antecipável)'),
 })
 
 export const debtSchema = createSelectSchema(debts)

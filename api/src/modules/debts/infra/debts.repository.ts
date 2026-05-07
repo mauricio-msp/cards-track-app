@@ -1,4 +1,4 @@
-import { and, eq, gt, inArray, isNull, sql } from 'drizzle-orm'
+import { and, eq, gt, inArray, isNull, lte, sql } from 'drizzle-orm'
 import { uuidv7 } from 'uuidv7'
 import type { db as Db } from '@/db'
 import { cards, debts, installments, invoices, members, subscriptions } from '@/db/schema'
@@ -278,10 +278,13 @@ export class DebtsRepository implements IDebtsRepository {
     dueDay: number
     closingOffsetDays: number
     anticipateFromInstallment: number
+    anticipateCount: number
     anticipatedAmount: number
   }): Promise<void> {
-    const { debtId, memberId, cardId, dueDay, closingOffsetDays, anticipateFromInstallment, anticipatedAmount } =
+    const { debtId, memberId, cardId, dueDay, closingOffsetDays, anticipateFromInstallment, anticipateCount, anticipatedAmount } =
       params
+
+    const anticipateToInstallment = anticipateFromInstallment + anticipateCount - 1
 
     await this.db.transaction(async tx => {
       await tx
@@ -290,6 +293,7 @@ export class DebtsRepository implements IDebtsRepository {
           and(
             eq(installments.debtId, debtId),
             sql`${installments.number} >= ${anticipateFromInstallment}`,
+            lte(installments.number, anticipateToInstallment),
           ),
         )
 

@@ -18,7 +18,7 @@ export class AnticipateDebtUseCase {
     userId: string,
     data: AnticipateDebtInput,
   ): Promise<{ anticipatedAmount: number; installmentsAnticipated: number }> {
-    const { anticipateFromInstallment } = data
+    const { anticipateCount } = data
 
     const raw = await this.repo.findDebtWithCardByOwner(debtId, userId)
     if (!raw) throw new DebtNotFoundError()
@@ -56,20 +56,15 @@ export class AnticipateDebtUseCase {
 
     if (!firstAnticipatable) throw new NoUnpaidInstallmentsError()
 
-    if (anticipateFromInstallment < firstAnticipatable.number) {
+    const lastAnticipated = firstAnticipatable.number + anticipateCount - 1
+
+    if (lastAnticipated > debt.installmentsCount) {
       throw new InvalidAnticipateInstallmentError(
-        `First anticipatable installment is ${firstAnticipatable.number}`,
+        `Cannot anticipate ${anticipateCount} installments. Only ${debt.installmentsCount - firstAnticipatable.number + 1} available.`,
       )
     }
 
-    if (anticipateFromInstallment > debt.installmentsCount) {
-      throw new InvalidAnticipateInstallmentError(
-        `Invalid installment number. Last installment is ${debt.installmentsCount}`,
-      )
-    }
-
-    const installmentsToAnticipate = debt.installmentsCount - anticipateFromInstallment + 1
-    const anticipatedAmount = installmentsToAnticipate * debt.installmentsAmount
+    const anticipatedAmount = anticipateCount * debt.installmentsAmount
 
     await this.repo.anticipateInstallments({
       debtId,
@@ -77,10 +72,11 @@ export class AnticipateDebtUseCase {
       cardId: debt.cardId,
       dueDay: raw.card.dueDay,
       closingOffsetDays: raw.card.closingOffsetDays,
-      anticipateFromInstallment,
+      anticipateFromInstallment: firstAnticipatable.number,
+      anticipateCount,
       anticipatedAmount,
     })
 
-    return { anticipatedAmount, installmentsAnticipated: installmentsToAnticipate }
+    return { anticipatedAmount, installmentsAnticipated: anticipateCount }
   }
 }

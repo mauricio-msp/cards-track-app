@@ -69,6 +69,7 @@ export interface IDebtsRepository {
     dueDay: number
     closingOffsetDays: number
     anticipateFromInstallment: number
+    anticipateCount: number
     anticipatedAmount: number
   }): Promise<void>
 
