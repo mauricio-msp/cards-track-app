@@ -1,6 +1,6 @@
 import { Pencil, RefreshCw, Trash2 } from 'lucide-react'
 import React, { useState } from 'react'
-import { DeleteAlertDialog } from '@/components/delete-alert-dialog'
+// import { DeleteAlertDialog } from '@/components/delete-alert-dialog'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -120,7 +120,7 @@ export function SubscriptionsCard() {
         )}
       </CardContent>
 
-      <DeleteAlertDialog
+      {/* <DeleteAlertDialog
         open={deleteTarget !== null}
         onOpenChange={open => !open && setDeleteTarget(null)}
         title="Desativar assinatura"
@@ -136,7 +136,7 @@ export function SubscriptionsCard() {
             setDeleteTarget(null)
           }
         }}
-      />
+      /> */}
 
       <Dialog open={editTarget !== null} onOpenChange={open => !open && setEditTarget(null)}>
         <DialogContent className="sm:max-w-sm">
@@ -179,9 +179,7 @@ export function SubscriptionsCard() {
                     max={31}
                     value={editTarget.billingDay}
                     onChange={e =>
-                      setEditTarget(prev =>
-                        prev ? { ...prev, billingDay: e.target.value } : prev,
-                      )
+                      setEditTarget(prev => (prev ? { ...prev, billingDay: e.target.value } : prev))
                     }
                   />
                 </div>

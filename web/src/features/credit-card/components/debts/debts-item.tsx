@@ -12,8 +12,7 @@ import {
 } from 'lucide-react'
 import React from 'react'
 import type { z } from 'zod'
-import { AnticipateAlertDialog } from '@/components/anticipate-alert-dialog'
-import { DeleteAlertDialog } from '@/components/delete-alert-dialog'
+import { ActionAlertDialog } from '@/components/action-alert-dialog'
 import { Badge } from '@/components/ui/badge'
 import {
   ContextMenu,
@@ -37,7 +36,7 @@ type Debt = z.infer<typeof GetCardDebtsItem>
 interface DebtsItemProps {
   debt: Debt
   onAnticipate: (installments: number) => Promise<unknown>
-  onDelete: (debtId: string) => void
+  onDelete: (debtId: string) => Promise<unknown>
 }
 
 type StatusBadge = {
@@ -49,9 +48,20 @@ type StatusBadge = {
 
 export function DebtsItem({ debt, onAnticipate, onDelete }: DebtsItemProps) {
   const [deleteOpen, setDeleteOpen] = React.useState(false)
+  const [isDeleting, setIsDeleting] = React.useState(false)
   const [anticipateOpen, setAnticipateOpen] = React.useState(false)
   const [anticipatingCount, setAnticipaingCount] = React.useState(0)
   const [isAnticipating, setIsAnticipating] = React.useState(false)
+
+  async function handleConfirmDelete() {
+    setIsDeleting(true)
+    try {
+      await onDelete(debt.debtId)
+      setDeleteOpen(false)
+    } finally {
+      setIsDeleting(false)
+    }
+  }
 
   async function handleConfirmAnticipate() {
     setIsAnticipating(true)
@@ -269,11 +279,13 @@ export function DebtsItem({ debt, onAnticipate, onDelete }: DebtsItemProps) {
         </ContextMenuContent>
       </ContextMenu>
 
-      <DeleteAlertDialog
+      <ActionAlertDialog
         open={deleteOpen}
-        onOpenChange={setDeleteOpen}
+        icon={<Trash2 />}
         title="Excluir despesa?"
-        description={
+        intent="destructive"
+        isLoading={isDeleting}
+        content={
           <div className="space-y-2">
             <p>Esta ação removerá</p>
             <div className="rounded-md border bg-muted/50 px-3 py-2 text-sm text-foreground">
@@ -285,26 +297,34 @@ export function DebtsItem({ debt, onAnticipate, onDelete }: DebtsItemProps) {
             <p>e todas as parcelas associadas permanentemente. Ela não pode ser desfeita.</p>
           </div>
         }
-        onConfirm={() => onDelete(debt.debtId)}
+        actionLabel="Excluir"
+        onConfirm={handleConfirmDelete}
+        onOpenChange={setDeleteOpen}
       />
 
-      <AnticipateAlertDialog
+      <ActionAlertDialog
         open={anticipateOpen}
-        onOpenChange={setAnticipateOpen}
-        isLoading={isAnticipating}
+        icon={<Zap />}
         title="Antecipar parcelas?"
-        description={
+        intent="warning"
+        isLoading={isAnticipating}
+        content={
           <div className="space-y-2">
             <div className="rounded-md border bg-muted/50 px-3 py-2 text-sm text-foreground">
               <p className="font-medium">{debt.description}</p>
               <p className="text-xs text-muted-foreground">
-                {anticipatingCount}x parcela(s) · {formatPrice(perInstallmentTotal * anticipatingCount)}
+                {anticipatingCount}x parcela(s) ·{' '}
+                {formatPrice(perInstallmentTotal * anticipatingCount)}
               </p>
             </div>
-            <p>As parcelas serão consolidadas em um único valor. Esta ação não pode ser desfeita.</p>
+            <p>
+              As parcelas serão consolidadas em um único valor. Esta ação não pode ser desfeita.
+            </p>
           </div>
         }
-        onConfirm={handleConfirmAnticipate}
+        actionLabel="Antecipar"
+        onConfirm={() => handleConfirmAnticipate()}
+        onOpenChange={setAnticipateOpen}
       />
     </>
   )

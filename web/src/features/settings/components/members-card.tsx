@@ -1,6 +1,6 @@
 import { Dot, Pencil, Plus, Star, Trash2, Users } from 'lucide-react'
 import React, { useState } from 'react'
-import { DeleteAlertDialog } from '@/components/delete-alert-dialog'
+import { ActionAlertDialog } from '@/components/action-alert-dialog'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -95,22 +95,26 @@ export function MembersCard() {
         )}
       </CardContent>
 
-      <DeleteAlertDialog
+      <ActionAlertDialog
         open={deleteTarget !== null}
-        onOpenChange={open => !open && setDeleteTarget(null)}
+        icon={<Trash2 />}
         title="Excluir membro"
-        description={
+        intent="destructive"
+        content={
           <>
             Tem certeza que deseja excluir <strong>{deleteTarget?.name}</strong>? Esta ação não pode
             ser desfeita.
           </>
         }
+        isLoading={false}
+        actionLabel="Excluir"
         onConfirm={async () => {
           if (deleteTarget) {
             await deleteMemberFn(deleteTarget.id)
             setDeleteTarget(null)
           }
         }}
+        onOpenChange={open => !open && setDeleteTarget(null)}
       />
     </Card>
   )
