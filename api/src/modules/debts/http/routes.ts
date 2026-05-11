@@ -54,7 +54,7 @@ export const debtsRoutes =
           summary: 'Excluir compra inteira',
           description: 'Remove todos os débitos do mesmo groupId (todos os membros) e suas parcelas em cascata.',
           tags: ['Debts'],
-          params: z.object({ debtId: z.string() }),
+          params: z.object({ debtId: z.uuid() }),
           response: {
             200: z.object({ message: z.string() }),
             404: z.object({ message: z.string() }),
@@ -73,7 +73,7 @@ export const debtsRoutes =
           summary: 'Excluir membro de uma compra compartilhada',
           description: 'Remove apenas o débito de um membro específico e suas parcelas em cascata.',
           tags: ['Debts'],
-          params: z.object({ debtId: z.string(), memberId: z.string() }),
+          params: z.object({ debtId: z.uuid(), memberId: z.uuid() }),
           response: {
             200: z.object({ message: z.string() }),
             404: z.object({ message: z.string() }),
@@ -93,7 +93,7 @@ export const debtsRoutes =
           description:
             'Consolida as parcelas futuras a partir de um número escolhido em um único installment na fatura atual em aberto.',
           tags: ['Debts'],
-          params: z.object({ debtId: z.string() }),
+          params: z.object({ debtId: z.uuid() }),
           body: anticipateDebtDto,
           response: {
             200: z.object({

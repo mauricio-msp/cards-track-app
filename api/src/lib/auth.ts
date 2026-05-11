@@ -57,7 +57,7 @@ export const auth = betterAuth({
 
       await resend.emails.send({
         to: user.email,
-        from: '',
+        from: env.RESEND_EMAIL_FROM,
         subject: 'Reset your password',
         html,
       })

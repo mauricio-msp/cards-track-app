@@ -74,7 +74,7 @@ export const cardsRoutes =
         schema: {
           summary: 'Obter detalhes do cartão pelo ID',
           tags: ['Cards'],
-          params: z.object({ cardId: z.string() }),
+          params: z.object({ cardId: z.uuid() }),
           response: {
             200: z.object({
               card: z.object({
@@ -99,7 +99,7 @@ export const cardsRoutes =
         schema: {
           summary: 'Atualizar um cartão',
           tags: ['Cards'],
-          params: z.object({ id: z.string() }),
+          params: z.object({ id: z.uuid() }),
           body: updateCardDto,
           response: {
             200: z.object({ message: z.string() }),
@@ -120,7 +120,7 @@ export const cardsRoutes =
           description:
             'Exclui um cartão somente se não houver parcelas pendentes em nenhuma fatura.',
           tags: ['Cards'],
-          params: z.object({ cardId: z.string() }),
+          params: z.object({ cardId: z.uuid() }),
           response: {
             200: z.object({ message: z.string() }),
             400: z.object({ message: z.string() }),
@@ -139,7 +139,7 @@ export const cardsRoutes =
         schema: {
           summary: 'Obter resumo de despesas do cartão por mês',
           tags: ['Cards'],
-          params: z.object({ cardId: z.string() }),
+          params: z.object({ cardId: z.uuid() }),
           querystring: getCardDebtsQueryDto,
           response: {
             200: z.object({
@@ -186,7 +186,7 @@ export const cardsRoutes =
         schema: {
           summary: 'Obter saldo total usado (parcelas futuras)',
           tags: ['Cards'],
-          params: z.object({ cardId: z.string() }),
+          params: z.object({ cardId: z.uuid() }),
           response: {
             200: z.object({ totalAmountCard: z.number() }),
             404: z.object({ message: z.string() }),
@@ -204,7 +204,7 @@ export const cardsRoutes =
         schema: {
           summary: 'Obter valor total da fatura para um mês específico',
           tags: ['Cards'],
-          params: z.object({ cardId: z.string() }),
+          params: z.object({ cardId: z.uuid() }),
           querystring: getCardDebtsQueryDto,
           response: {
             200: z.object({

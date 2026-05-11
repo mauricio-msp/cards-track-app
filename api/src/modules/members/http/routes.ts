@@ -79,7 +79,7 @@ export const membersRoutes =
         schema: {
           summary: 'Obter detalhes do membro pelo ID',
           tags: ['Members'],
-          params: z.object({ memberId: z.string() }),
+          params: z.object({ memberId: z.uuid() }),
           response: {
             200: z.object({
               member: memberSchema.pick({ id: true, name: true, relationship: true, phone: true }),
@@ -101,7 +101,7 @@ export const membersRoutes =
           description:
             'Permite atualizar telefone e parentesco. O nome é imutável para preservar o histórico de despesas.',
           tags: ['Members'],
-          params: z.object({ memberId: z.string() }),
+          params: z.object({ memberId: z.uuid() }),
           body: updateMemberDto,
           response: {
             200: z.object({ member: memberSchema, message: z.string() }),
@@ -122,7 +122,7 @@ export const membersRoutes =
           description:
             'Faz exclusão lógica do membro. Suas despesas permanecem ativas e associadas ao histórico.',
           tags: ['Members'],
-          params: z.object({ memberId: z.string() }),
+          params: z.object({ memberId: z.uuid() }),
           response: {
             200: z.object({ message: z.string() }),
             404: z.object({ message: z.string() }),
@@ -140,7 +140,7 @@ export const membersRoutes =
         schema: {
           summary: 'Obter despesas de um membro agrupadas por cartão',
           tags: ['Members'],
-          params: z.object({ memberId: z.string() }),
+          params: z.object({ memberId: z.uuid() }),
           querystring: getMemberDebtsQueryDto,
           response: {
             200: z.object({

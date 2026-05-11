@@ -1,4 +1,6 @@
 import { fastifyCors } from '@fastify/cors'
+import { fastifyHelmet } from '@fastify/helmet'
+import { fastifyRateLimit } from '@fastify/rate-limit'
 import { fastifySwagger } from '@fastify/swagger'
 import ScalarApiReference from '@scalar/fastify-api-reference'
 
@@ -15,7 +17,6 @@ import { auth } from '@/lib/auth'
 
 import { cardsModule } from '@/modules/cards'
 import { debtsModule } from '@/modules/debts'
-import { installmentsModule } from '@/modules/installments'
 import { membersModule } from '@/modules/members'
 import { subscriptionsModule } from '@/modules/subscriptions'
 
@@ -39,6 +40,16 @@ export const app = fastify({
 app.setValidatorCompiler(validatorCompiler)
 app.setSerializerCompiler(serializerCompiler)
 
+// Security headers
+app.register(fastifyHelmet)
+
+// Rate limiting — auth routes are most sensitive
+app.register(fastifyRateLimit, {
+  max: 60,
+  timeWindow: '1 minute',
+  keyGenerator: request => request.ip,
+})
+
 // Configure CORS policies
 app.register(fastifyCors, {
   origin: true,
@@ -60,16 +71,15 @@ app.register(fastifySwagger, {
   transform: jsonSchemaTransform,
 })
 
-// Register Scalar API Reference for docs
-app.register(ScalarApiReference, {
-  routePrefix: '/docs',
-})
+// Register Scalar API Reference for docs — only in non-production
+if (env.NODE_ENV !== 'production') {
+  app.register(ScalarApiReference, {
+    routePrefix: '/docs',
+  })
+}
 
 // Cards
 app.register(cardsModule)
-
-// Installments
-app.register(installmentsModule)
 
 // Members
 app.register(membersModule)
