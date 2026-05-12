@@ -70,7 +70,7 @@ export function CardsNav() {
               </EmptyMedia>
               <EmptyTitle>Nenhum cartão de crédito adicionado</EmptyTitle>
               <EmptyDescription>
-                Adicione seu primeiro cartão de crédito para começar a rastrear limites, dívidas e
+                Adicione seu primeiro cartão de crédito para começar a rastrear limites, compras e
                 gastos mensais.
               </EmptyDescription>
             </EmptyHeader>

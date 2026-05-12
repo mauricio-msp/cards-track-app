@@ -7,11 +7,11 @@ import { ErrorBoundary } from 'react-error-boundary'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 
-import { DebtsFilter } from '@/features/credit-card/components/debts'
-import { DebtsByCard } from '@/features/member/components/debts-by-card'
+import { PurchasesFilter } from '@/features/credit-card/components/purchases'
+import { PurchasesByCard } from '@/features/member/components/purchases-by-card'
 import { Details } from '@/features/member/components/details'
 import { MemberError } from '@/features/member/components/error'
-import { DebtsByCardSkeleton, DetailsSkeleton } from '@/features/member/components/skeleton'
+import { PurchasesByCardSkeleton, DetailsSkeleton } from '@/features/member/components/skeleton'
 
 export function MemberOverview() {
   const { id } = useParams({ from: '/_app/members/$id' })
@@ -26,7 +26,7 @@ export function MemberOverview() {
           </Link>
         </Button>
 
-        <DebtsFilter />
+        <PurchasesFilter />
       </div>
 
       <QueryErrorResetBoundary>
@@ -55,8 +55,8 @@ export function MemberOverview() {
                 <MemberError title="Dívidas por Cartão" icon={BanknoteArrowDown} {...props} />
               )}
             >
-              <Suspense fallback={<DebtsByCardSkeleton />}>
-                <DebtsByCard memberId={id} />
+              <Suspense fallback={<PurchasesByCardSkeleton />}>
+                <PurchasesByCard memberId={id} />
               </Suspense>
             </ErrorBoundary>
           )}

@@ -2,7 +2,7 @@ import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { Skeleton } from '@/components/ui/skeleton'
 
-function DebtsItemSkeleton() {
+function PurchaseItemSkeleton() {
   return (
     <div className="py-4 px-2 flex gap-4 bg-background rounded-xl border border-accent">
       <div className="flex flex-col flex-1 gap-2 min-w-0">
@@ -21,7 +21,7 @@ function DebtsItemSkeleton() {
   )
 }
 
-function DebtsListSkeleton() {
+function PurchasesListSkeleton() {
   return (
     <Card>
       {/* Header */}
@@ -39,8 +39,8 @@ function DebtsListSkeleton() {
         <Separator className="mb-4" />
 
         <div className="space-y-2">
-          <DebtsItemSkeleton />
-          <DebtsItemSkeleton />
+          <PurchaseItemSkeleton />
+          <PurchaseItemSkeleton />
         </div>
       </CardContent>
 
@@ -53,11 +53,11 @@ function DebtsListSkeleton() {
   )
 }
 
-export function DebtsByCardSkeleton() {
+export function PurchasesByCardSkeleton() {
   return (
     <div className="grid auto-rows-min grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-4">
       {Array.from({ length: 4 }).map((_, index) => (
-        <DebtsListSkeleton key={index} />
+        <PurchasesListSkeleton key={index} />
       ))}
     </div>
   )

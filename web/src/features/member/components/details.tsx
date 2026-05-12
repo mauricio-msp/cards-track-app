@@ -3,7 +3,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { HiddenValue } from '@/components/ui/hidden-value'
 import { UpdateMemberForm } from '@/features/member/components/update-member-form'
-import { useMember, useMemberDebts } from '@/features/member/hooks'
+import { useMember, useMemberPurchases } from '@/features/member/hooks'
 import { formatPhone, formatPrice } from '@/lib/utils'
 
 export function Details({ memberId }: { memberId: string }) {
@@ -12,11 +12,11 @@ export function Details({ memberId }: { memberId: string }) {
   } = useMember(memberId)
 
   const {
-    data: { cardsWithDebts },
-  } = useMemberDebts(memberId)
+    data: { cardsWithPurchases },
+  } = useMemberPurchases(memberId)
 
-  const totalAmount = cardsWithDebts
-    .flatMap(cwd => cwd.debts)
+  const totalAmount = cardsWithPurchases
+    .flatMap(cwd => cwd.purchases)
     .reduce((total, cwd) => total + cwd.installmentsAmount, 0)
 
   return (
@@ -52,7 +52,7 @@ export function Details({ memberId }: { memberId: string }) {
             {formatPrice(totalAmount / 100)}
           </span>
         </HiddenValue>
-        <span className="text-sm text-muted-foreground mt-0.5">Total de dívidas</span>
+        <span className="text-sm text-muted-foreground mt-0.5">Total de compras</span>
       </div>
     </header>
   )

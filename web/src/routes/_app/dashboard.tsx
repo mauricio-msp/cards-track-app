@@ -8,14 +8,14 @@ import { ErrorBoundary } from 'react-error-boundary'
 import {
   DashboardCardError,
   DashboardCardSkeleton,
-  DebtsTrendChart,
-  DebtsTrendChartSkeleton,
-  MonthHighestDebtsAmountCard,
-  MonthLowestDebtsAmountCard,
-  MonthTotalDebtsAmountCard,
-  TotalDebtsAmountCard,
+  PurchasesTrendChart,
+  PurchasesTrendChartSkeleton,
+  MonthHighestPurchasesAmountCard,
+  MonthLowestPurchasesAmountCard,
+  MonthTotalPurchasesAmountCard,
+  TotalPurchasesAmountCard,
 } from '@/features/dashboard'
-import { DebtsTrendChartError } from '@/features/dashboard/components/chart/error'
+import { PurchasesTrendChartError } from '@/features/dashboard/components/chart/error'
 
 export const Route = createFileRoute('/_app/dashboard')({
   loader: () => ({ crumbs: ['Dashboard', 'Overview'] }),
@@ -56,21 +56,21 @@ function RouteComponent() {
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
       <div className="grid auto-rows-min gap-4 md:grid-cols-[repeat(auto-fill,minmax(min(100%,360px),1fr))]">
-        <GridCardWrapper title="Dívida Total" icon={Wallet} Component={TotalDebtsAmountCard} />
+        <GridCardWrapper title="Dívida Total" icon={Wallet} Component={TotalPurchasesAmountCard} />
         <GridCardWrapper
           title="Dívida Total (mês)"
           icon={CreditCard}
-          Component={MonthTotalDebtsAmountCard}
+          Component={MonthTotalPurchasesAmountCard}
         />
         <GridCardWrapper
           icon={TrendingDown}
           title="Menor Dívida (mês)"
-          Component={MonthLowestDebtsAmountCard}
+          Component={MonthLowestPurchasesAmountCard}
         />
         <GridCardWrapper
           icon={TrendingUp}
           title="Maior Dívida (mês)"
-          Component={MonthHighestDebtsAmountCard}
+          Component={MonthHighestPurchasesAmountCard}
         />
       </div>
 
@@ -78,10 +78,10 @@ function RouteComponent() {
         {({ reset }) => (
           <ErrorBoundary
             onReset={reset}
-            fallbackRender={props => <DebtsTrendChartError {...props} />}
+            fallbackRender={props => <PurchasesTrendChartError {...props} />}
           >
-            <Suspense fallback={<DebtsTrendChartSkeleton />}>
-              <DebtsTrendChart />
+            <Suspense fallback={<PurchasesTrendChartSkeleton />}>
+              <PurchasesTrendChart />
             </Suspense>
           </ErrorBoundary>
         )}

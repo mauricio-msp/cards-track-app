@@ -8,10 +8,10 @@ import { HiddenValue } from '@/components/ui/hidden-value'
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { Competence } from '@/features/credit-card/components/competence'
-import { useMemberDebts } from '@/features/member/hooks/use-member-debts'
+import { useMemberPurchases } from '@/features/member/hooks/use-member-purchases'
 import { cn, formatPrice } from '@/lib/utils'
 
-type DebtItemProps = {
+type PurchaseItemProps = {
   id: string
   description: string
   purchaseDate: string
@@ -32,7 +32,7 @@ type StatusBadge = {
   label: string
 }
 
-function DebtItem({ debt }: { debt: DebtItemProps }) {
+function PurchaseItem({ purchase }: { purchase: PurchaseItemProps }) {
   const descRef = React.useRef<HTMLParagraphElement>(null)
   const [isTruncated, setIsTruncated] = React.useState(false)
 
@@ -42,11 +42,11 @@ function DebtItem({ debt }: { debt: DebtItemProps }) {
   }, [])
 
   const isAnticipated =
-    !!debt.anticipatedAt && debt.elapsedInstallments === debt.anticipateFromInstallment
-  const isComplete = debt.remainingInstallments === 0
-  const hasRemainingAfterAnticipation = isAnticipated && debt.remainingInstallments > 0
+    !!purchase.anticipatedAt && purchase.elapsedInstallments === purchase.anticipateFromInstallment
+  const isComplete = purchase.remainingInstallments === 0
+  const hasRemainingAfterAnticipation = isAnticipated && purchase.remainingInstallments > 0
   const isNewPurchase =
-    !isAnticipated && debt.installmentsCount > 1 && debt.elapsedInstallments === 1
+    !isAnticipated && purchase.installmentsCount > 1 && purchase.elapsedInstallments === 1
   const isLastPayment = isComplete && !isAnticipated
 
   const statusBadges: StatusBadge[] = [
@@ -72,7 +72,7 @@ function DebtItem({ debt }: { debt: DebtItemProps }) {
 
   return (
     <div
-      key={debt.id}
+      key={purchase.id}
       className="py-4 px-2 flex gap-4 bg-background not-last:mb-2 rounded-xl border border-accent"
     >
       <div className="flex flex-col flex-1 min-w-0">
@@ -80,10 +80,10 @@ function DebtItem({ debt }: { debt: DebtItemProps }) {
           <Tooltip>
             <TooltipTrigger asChild>
               <p ref={descRef} className="text-sm text-primary truncate">
-                {debt.description}
+                {purchase.description}
               </p>
             </TooltipTrigger>
-            {isTruncated && <TooltipContent side="top">{debt.description}</TooltipContent>}
+            {isTruncated && <TooltipContent side="top">{purchase.description}</TooltipContent>}
           </Tooltip>
           {statusBadges
             .filter(b => b.show)
@@ -97,20 +97,20 @@ function DebtItem({ debt }: { debt: DebtItemProps }) {
 
         <div className="text-xs text-muted-foreground flex items-center flex-wrap gap-x-0.5 gap-y-0">
           <span>
-            {new Date(debt.purchaseDate).toLocaleDateString('pt-BR', { timeZone: 'UTC' })}
+            {new Date(purchase.purchaseDate).toLocaleDateString('pt-BR', { timeZone: 'UTC' })}
           </span>
 
-          {debt.installmentsCount > 1 && (
+          {purchase.installmentsCount > 1 && (
             <>
               <Dot className="shrink-0" />
               {isAnticipated ? (
                 <span className="whitespace-nowrap">
-                  {debt.anticipatedInstallmentsCount}x consolidadas
-                  {hasRemainingAfterAnticipation && ` · ${debt.remainingInstallments} restante(s)`}
+                  {purchase.anticipatedInstallmentsCount}x consolidadas
+                  {hasRemainingAfterAnticipation && ` · ${purchase.remainingInstallments} restante(s)`}
                 </span>
               ) : (
                 <span className="whitespace-nowrap">
-                  {debt.elapsedInstallments}/{debt.installmentsCount}x
+                  {purchase.elapsedInstallments}/{purchase.installmentsCount}x
                 </span>
               )}
             </>
@@ -120,29 +120,29 @@ function DebtItem({ debt }: { debt: DebtItemProps }) {
 
       <div className="ml-auto flex flex-col text-right gap-1 shrink-0">
         <HiddenValue className="w-20 h-5 dark:bg-muted-foreground/20">
-          <p className="text-sm font-semibold">{formatPrice(debt.installmentsAmount / 100)}</p>
+          <p className="text-sm font-semibold">{formatPrice(purchase.installmentsAmount / 100)}</p>
         </HiddenValue>
         <span className="text-xs text-muted-foreground">
-          Total: <HiddenValue placeholder="****">{formatPrice(debt.amount / 100)}</HiddenValue>
+          Total: <HiddenValue placeholder="****">{formatPrice(purchase.amount / 100)}</HiddenValue>
         </span>
       </div>
     </div>
   )
 }
 
-export function DebtsByCard({ memberId }: { memberId: string }) {
+export function PurchasesByCard({ memberId }: { memberId: string }) {
   const {
-    data: { cardsWithDebts },
-  } = useMemberDebts(memberId)
+    data: { cardsWithPurchases },
+  } = useMemberPurchases(memberId)
 
-  if (!cardsWithDebts.length) {
+  if (!cardsWithPurchases.length) {
     return (
       <Empty className="px-2 py-4 border border-dashed md:p-4">
         <EmptyHeader>
           <EmptyMedia variant="icon">
             <BanknoteX />
           </EmptyMedia>
-          <EmptyTitle>Não há dívidas ainda</EmptyTitle>
+          <EmptyTitle>Não há compras ainda</EmptyTitle>
           <EmptyDescription>
             Você não registrou nenhuma <br /> despesa para este membro.
           </EmptyDescription>
@@ -161,7 +161,7 @@ export function DebtsByCard({ memberId }: { memberId: string }) {
       )}
     >
       <div className="flex gap-4 py-3 h-full after:content-[''] after:block after:w-4 after:shrink-0 lg:after:hidden">
-        {cardsWithDebts
+        {cardsWithPurchases
           .sort((a, b) => a.card.dueDay - b.card.dueDay)
           .map((cwd, index) => (
             <Card key={index} className="w-md shrink-0 flex flex-col h-full gap-0">
@@ -179,13 +179,13 @@ export function DebtsByCard({ memberId }: { memberId: string }) {
                   viewportClassName="[&>div]:![display:unset]"
                 >
                   <div className="px-4 py-4 w-full">
-                    {cwd.debts
+                    {cwd.purchases
                       .sort(
                         (a, b) =>
                           new Date(b.purchaseDate).getTime() - new Date(a.purchaseDate).getTime(),
                       )
-                      .map(debt => (
-                        <DebtItem key={debt.id} debt={debt} />
+                      .map(purchase => (
+                        <PurchaseItem key={purchase.id} purchase={purchase} />
                       ))}
                   </div>
                 </ScrollArea>
@@ -193,13 +193,13 @@ export function DebtsByCard({ memberId }: { memberId: string }) {
 
               <CardFooter className="border-t gap-4 justify-between shrink-0">
                 <div className="flex flex-col">
-                  <span className="text-sm">Total da dívida</span>
+                  <span className="text-sm">Total da compra</span>
                   <span className="text-xs text-muted-foreground">{cwd.card.name}</span>
                 </div>
                 <HiddenValue className="w-24 h-7 dark:bg-muted-foreground/20">
                   <span className="text-lg text-destructive font-semibold">
                     {formatPrice(
-                      cwd.debts.reduce((sum, debt) => sum + debt.installmentsAmount, 0) / 100,
+                      cwd.purchases.reduce((sum, purchase) => sum + purchase.installmentsAmount, 0) / 100,
                     )}
                   </span>
                 </HiddenValue>
