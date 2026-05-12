@@ -35,7 +35,7 @@ function PurchaseItemSkeleton() {
 
 export function PurchasesListSkeleton() {
   return (
-    <Card className="col-span-1 lg:col-span-2 xl:col-span-3">
+    <Card className="col-span-1 lg:col-span-2 xl:col-span-3 min-h-109">
       {/* Header */}
       <CardHeader className="flex items-center justify-between">
         <CardTitle className="flex items-center gap-2">

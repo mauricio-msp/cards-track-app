@@ -30,7 +30,7 @@ function MemberItemSkeleton() {
 
 export function PurchasesMembersListSkeleton() {
   return (
-    <Card className="h-max col-span-1 lg:col-span-2 xl:col-span-1 sticky top-4">
+    <Card className="col-span-1 lg:col-span-2 xl:col-span-1 sticky top-4 min-h-109">
       {/* Header */}
       <CardHeader>
         <CardTitle className="flex items-center gap-2">

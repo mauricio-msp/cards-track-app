@@ -26,7 +26,10 @@ export function PurchasesList({ cardId }: { cardId: string }) {
   )
 
   return (
-    <Card className="col-span-1 lg:col-span-2 xl:col-span-3 bg-background border-0 sm:bg-card sm:border py-0 sm:py-6 min-h-109">
+    <Card
+      data-few={sortedPurchases.length === 0}
+      className="col-span-1 lg:col-span-2 xl:col-span-3 bg-background border-0 sm:bg-card sm:border py-0 sm:py-6 data-[few=true]:min-h-109"
+    >
       <CardHeader className="px-0 sm:px-6">
         <CardTitle className="flex items-center gap-2">
           <CreditCard className="size-5" />

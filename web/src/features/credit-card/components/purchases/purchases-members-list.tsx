@@ -59,7 +59,11 @@ export function PurchasesMembersList({ cardId }: { cardId: string }) {
   )
 
   return (
-    <Card className="col-span-1 lg:col-span-2 xl:col-span-1 self-start sticky top-4 min-h-109">
+    <Card
+      data-few={purchases.length === 0}
+      data-many={purchases.length >= 3}
+      className="col-span-1 lg:col-span-2 xl:col-span-1 sticky top-4 data-[few=true]:min-h-109 data-[many=true]:self-start"
+    >
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <User />
@@ -91,7 +95,9 @@ export function PurchasesMembersList({ cardId }: { cardId: string }) {
                   </Avatar>
                   <div className="flex flex-col">
                     <span className="text-sm">{member.name}</span>
-                    <span className="text-xs text-muted-foreground">{member.relationship}</span>
+                    <span className="text-xs text-muted-foreground lowercase">
+                      {member.relationship}
+                    </span>
                   </div>
 
                   <div className="flex flex-col text-right ml-auto">

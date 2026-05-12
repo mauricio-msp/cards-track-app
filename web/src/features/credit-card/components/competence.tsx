@@ -18,7 +18,7 @@ export function Competence({
     <>
       {currentCreditCard?.icon({
         className: 'size-12 rounded-xl grid place-items-center',
-        children: <Landmark className="text-primary" />,
+        children: <Landmark className="text-white" />,
       })}
 
       <div className="flex flex-col gap-0.5">

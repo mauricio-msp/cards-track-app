@@ -53,7 +53,7 @@ export function Details({ cardId }: { cardId: string }) {
       <CardHeader className="flex items-center gap-2">
         {currentCreditCard?.icon({
           className: 'size-12 rounded-xl grid place-items-center',
-          children: <Landmark className="text-primary" />,
+          children: <Landmark className="text-white" />,
         })}
 
         <div className="flex flex-col gap-0.5">

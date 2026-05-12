@@ -19,8 +19,8 @@ export function MonthTotalPurchasesAmountCard() {
         <HiddenValue className="w-32 h-8">
           <span className="text-2xl text-destructive">{formatPrice(data.totalAmount / 100)}</span>
         </HiddenValue>
-        <span className="text-xs text-muted-foreground">
-          Soma de todos os cartões ainda em aberto do mês
+        <span className="text-xs text-muted-foreground truncate w-full">
+          Soma dos cartões em aberto do mês
         </span>
       </CardContent>
     </Card>
