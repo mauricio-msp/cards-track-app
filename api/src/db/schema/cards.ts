@@ -1,4 +1,4 @@
-import { integer, pgTable, text, timestamp } from 'drizzle-orm/pg-core'
+import { index, integer, pgTable, text, timestamp } from 'drizzle-orm/pg-core'
 import { uuidv7 } from 'uuidv7'
 import { users } from '@/db/schema'
 
@@ -16,4 +16,7 @@ export const cards = pgTable('cards', {
   closingOffsetDays: integer('closing_offset_days').notNull(),
   dueDay: integer('due_day').notNull(),
   createdAt: timestamp('created_at').notNull().defaultNow(),
-})
+},
+table => [
+  index('cards_owner_user_id_idx').on(table.ownerUserId),
+])
