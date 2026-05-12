@@ -1,17 +1,15 @@
-import type { FastifyReply, FastifyRequest } from 'fastify'
+import type { FastifyBaseLogger, FastifyReply } from 'fastify'
 import type { GetSubscriptionsUseCase } from '@/modules/subscriptions/application/use-cases/get-subscriptions/get-subscriptions.use-case'
 
 export class GetSubscriptionsController {
   constructor(private readonly useCase: GetSubscriptionsUseCase) {}
 
-  async handle(request: FastifyRequest, reply: FastifyReply) {
+  async handle(userId: string, reply: FastifyReply, log: FastifyBaseLogger) {
     try {
-      const rows = await this.useCase.execute(request.user.id)
-      return reply.status(200).send({
-        subscriptions: rows.map(r => ({ ...r, createdAt: r.createdAt.toISOString() })),
-      })
+      const subscriptions = await this.useCase.execute(userId)
+      return reply.status(200).send({ subscriptions })
     } catch (err) {
-      request.log.error(err)
+      log.error(err)
       return reply.status(500).send({ message: 'Falha ao listar assinaturas' })
     }
   }

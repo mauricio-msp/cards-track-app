@@ -45,7 +45,7 @@ export const subscriptionsRoutes =
           },
         },
       },
-      (req, reply) => controllers.createSubscription.handle(req as any, reply),
+      (req, reply) => controllers.createSubscription.handle(req.body, req.user.id, reply, req.log),
     )
 
     app.get(
@@ -75,7 +75,7 @@ export const subscriptionsRoutes =
           },
         },
       },
-      (req, reply) => controllers.getSubscriptions.handle(req as any, reply),
+      (req, reply) => controllers.getSubscriptions.handle(req.user.id, reply, req.log),
     )
 
     app.patch(
@@ -85,7 +85,7 @@ export const subscriptionsRoutes =
         schema: {
           summary: 'Atualizar assinatura recorrente',
           tags: ['Subscriptions'],
-          params: z.object({ id: z.string() }),
+          params: z.object({ id: z.string().uuid() }),
           body: updateSubscriptionDto,
           response: {
             200: z.object({ message: z.string() }),
@@ -94,7 +94,8 @@ export const subscriptionsRoutes =
           },
         },
       },
-      (req, reply) => controllers.updateSubscription.handle(req as any, reply),
+      (req, reply) =>
+        controllers.updateSubscription.handle(req.params.id, req.body, req.user.id, reply, req.log),
     )
 
     app.delete(
@@ -104,13 +105,14 @@ export const subscriptionsRoutes =
         schema: {
           summary: 'Desativar assinatura recorrente',
           tags: ['Subscriptions'],
-          params: z.object({ id: z.string() }),
+          params: z.object({ id: z.string().uuid() }),
           response: {
             200: z.object({ message: z.string() }),
             404: z.object({ message: z.string() }),
           },
         },
       },
-      (req, reply) => controllers.deactivateSubscription.handle(req as any, reply),
+      (req, reply) =>
+        controllers.deactivateSubscription.handle(req.params.id, req.user.id, reply, req.log),
     )
   }
