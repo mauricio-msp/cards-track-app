@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { apiRequest, apiUrl } from '@/lib/api-client'
 
 type GetMemberPurchasesParams = {
   id: string
@@ -43,18 +44,9 @@ export async function getMemberPurchases({
   month,
   year,
 }: GetMemberPurchasesParams & GetMemberPurchasesQuery) {
-  const url = new URL(`http://localhost:3333/api/members/${id}/purchases-by-card`)
-
-  if (year?.toString()) url.searchParams.set('year', String(year))
-  if (month?.toString()) url.searchParams.set('month', String(month))
-
-  const response = await fetch(url, {
-    credentials: 'include',
-  })
-
-  if (!response.ok) throw new Error('Falha ao solicitar dívidas de todos os cartões por membro.')
-
-  const datas = await response.json()
-
-  return GetMemberPurchasesResponse.parse(datas)
+  const url = apiUrl(`/api/members/${id}/purchases-by-card`)
+  if (year !== undefined) url.searchParams.set('year', String(year))
+  if (month !== undefined) url.searchParams.set('month', String(month))
+  const data = await apiRequest(url)
+  return GetMemberPurchasesResponse.parse(data)
 }

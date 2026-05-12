@@ -1,3 +1,5 @@
+import { apiRequest } from '@/lib/api-client'
+
 type UpdateMemberParams = {
   memberId: string
 }
@@ -12,15 +14,9 @@ export async function updateMember({
   relationship,
   phone,
 }: UpdateMemberParams & UpdateMemberBody) {
-  await fetch(`http://localhost:3333/api/members/${memberId}`, {
+  await apiRequest(`/api/members/${memberId}`, {
     method: 'PATCH',
-    credentials: 'include',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      relationship,
-      phone,
-    }),
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ relationship, phone }),
   })
 }

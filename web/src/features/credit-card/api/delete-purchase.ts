@@ -1,8 +1,5 @@
-export async function deletePurchase(pmId: string) {
-  const response = await fetch(`http://localhost:3333/api/purchases/${pmId}`, {
-    method: 'DELETE',
-    credentials: 'include',
-  })
+import { apiRequest } from '@/lib/api-client'
 
-  if (!response.ok) throw new Error('Falha ao deletar dívida')
+export async function deletePurchase(pmId: string) {
+  await apiRequest(`/api/purchases/${pmId}`, { method: 'DELETE' })
 }

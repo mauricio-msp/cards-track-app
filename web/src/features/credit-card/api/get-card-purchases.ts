@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { apiRequest, apiUrl } from '@/lib/api-client'
 
 type GetCardPurchasesParams = {
   id: string
@@ -40,18 +41,9 @@ const GetCardPurchasesResponse = z.object({
 })
 
 export async function getCardPurchases({ id, month, year }: GetCardPurchasesParams & GetCardPurchasesQuery) {
-  const url = new URL(`http://localhost:3333/api/cards/${id}/purchases`)
-
-  if (year?.toString()) url.searchParams.set('year', String(year))
-  if (month?.toString()) url.searchParams.set('month', String(month))
-
-  const response = await fetch(url, {
-    credentials: 'include',
-  })
-
-  if (!response.ok) throw new Error('Erro ao buscar dívidas do cartão de crédito')
-
-  const datas = await response.json()
-
-  return GetCardPurchasesResponse.parse(datas)
+  const url = apiUrl(`/api/cards/${id}/purchases`)
+  if (year !== undefined) url.searchParams.set('year', String(year))
+  if (month !== undefined) url.searchParams.set('month', String(month))
+  const data = await apiRequest(url)
+  return GetCardPurchasesResponse.parse(data)
 }

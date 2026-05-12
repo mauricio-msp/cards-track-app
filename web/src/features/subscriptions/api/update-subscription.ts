@@ -1,3 +1,5 @@
+import { apiRequest } from '@/lib/api-client'
+
 export type UpdateSubscriptionRequest = {
   id: string
   name?: string
@@ -8,15 +10,9 @@ export type UpdateSubscriptionRequest = {
 }
 
 export async function updateSubscription({ id, ...body }: UpdateSubscriptionRequest) {
-  const response = await fetch(`http://localhost:3333/api/subscriptions/${id}`, {
+  await apiRequest(`/api/subscriptions/${id}`, {
     method: 'PATCH',
-    credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
   })
-
-  if (!response.ok) {
-    const err = await response.json()
-    throw new Error(err.message ?? 'Erro ao atualizar assinatura')
-  }
 }

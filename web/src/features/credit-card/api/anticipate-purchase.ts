@@ -1,3 +1,5 @@
+import { apiRequest } from '@/lib/api-client'
+
 type AnticipatePurchaseParams = {
   purchaseMemberId: string
 }
@@ -10,16 +12,9 @@ export async function anticipatePurchase({
   purchaseMemberId,
   anticipateCount,
 }: AnticipatePurchaseParams & AnticipatePurchaseRequest) {
-  const response = await fetch(`http://localhost:3333/api/purchases/${purchaseMemberId}/anticipate`, {
+  return apiRequest(`/api/purchases/${purchaseMemberId}/anticipate`, {
     method: 'PATCH',
-    credentials: 'include',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ anticipateCount }),
   })
-
-  if (!response.ok) throw new Error('Erro ao antecipar dívida')
-
-  return response.json()
 }

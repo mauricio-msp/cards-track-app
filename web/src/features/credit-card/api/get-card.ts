@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { apiRequest } from '@/lib/api-client'
 
 type GetCardParams = {
   id: string
@@ -14,13 +15,6 @@ const GetCardResponse = z.object({
 })
 
 export async function getCard({ id }: GetCardParams) {
-  const response = await fetch(`http://localhost:3333/api/cards/${id}`, {
-    credentials: 'include',
-  })
-
-  if (!response.ok) throw new Error('Erro ao buscar cartão de crédito por ID.')
-
-  const data = await response.json()
-
+  const data = await apiRequest(`/api/cards/${id}`)
   return GetCardResponse.parse(data)
 }

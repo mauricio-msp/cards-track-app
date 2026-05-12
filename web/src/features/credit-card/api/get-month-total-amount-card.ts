@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { apiRequest, apiUrl } from '@/lib/api-client'
 
 type GetMonthTotalAmountCardParams = {
   id: string
@@ -17,18 +18,9 @@ export async function getMonthTotalAmountCard({
   month,
   year,
 }: GetMonthTotalAmountCardParams & GetMonthTotalAmountCardQuery) {
-  const url = new URL(`http://localhost:3333/api/cards/${id}/month-total-amount`)
-
-  if (year?.toString()) url.searchParams.set('year', String(year))
-  if (month?.toString()) url.searchParams.set('month', String(month))
-
-  const response = await fetch(url, {
-    credentials: 'include',
-  })
-
-  if (!response.ok) throw new Error('Erro ao solicitar o valor total do mês para o cartão.')
-
-  const data = await response.json()
-
+  const url = apiUrl(`/api/cards/${id}/month-total-amount`)
+  if (year !== undefined) url.searchParams.set('year', String(year))
+  if (month !== undefined) url.searchParams.set('month', String(month))
+  const data = await apiRequest(url)
   return GetMonthTotalAmountCardResponse.parse(data)
 }

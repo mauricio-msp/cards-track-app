@@ -1,8 +1,5 @@
-export async function deleteMember(memberId: string) {
-  const response = await fetch(`http://localhost:3333/api/members/${memberId}`, {
-    method: 'DELETE',
-    credentials: 'include',
-  })
+import { apiRequest } from '@/lib/api-client'
 
-  if (!response.ok) throw new Error('Falha ao deletar membro por ID.')
+export async function deleteMember(memberId: string) {
+  await apiRequest(`/api/members/${memberId}`, { method: 'DELETE' })
 }

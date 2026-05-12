@@ -1,3 +1,5 @@
+import { apiRequest } from '@/lib/api-client'
+
 type CreatePurchaseRequest = {
   cardId: string
   members: Array<{
@@ -25,12 +27,9 @@ export async function createPurchase({
   isRecurring,
   billingDay,
 }: CreatePurchaseRequest) {
-  await fetch('http://localhost:3333/api/purchases', {
+  await apiRequest('/api/purchases', {
     method: 'POST',
-    credentials: 'include',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       cardId,
       members,

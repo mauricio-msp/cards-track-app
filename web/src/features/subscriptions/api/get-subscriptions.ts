@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { apiRequest } from '@/lib/api-client'
 
 export const SubscriptionItem = z.object({
   id: z.string(),
@@ -18,12 +19,6 @@ const GetSubscriptionsResponse = z.object({
 })
 
 export async function getSubscriptions() {
-  const response = await fetch('http://localhost:3333/api/subscriptions', {
-    credentials: 'include',
-  })
-
-  if (!response.ok) throw new Error('Erro ao buscar assinaturas')
-
-  const data = await response.json()
+  const data = await apiRequest('/api/subscriptions')
   return GetSubscriptionsResponse.parse(data)
 }

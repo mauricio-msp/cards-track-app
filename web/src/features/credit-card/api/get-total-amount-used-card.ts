@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { apiRequest } from '@/lib/api-client'
 
 type GetTotalAmountCardParams = {
   id: string
@@ -9,13 +10,6 @@ const GetTotalAmountCardResponse = z.object({
 })
 
 export async function getTotalAmountUsedCard({ id }: GetTotalAmountCardParams) {
-  const response = await fetch(`http://localhost:3333/api/cards/${id}/total-amount-used`, {
-    credentials: 'include',
-  })
-
-  if (!response.ok) throw new Error('Erro ao solicitar o valor total utilizado do cartão.')
-
-  const data = await response.json()
-
+  const data = await apiRequest(`/api/cards/${id}/total-amount-used`)
   return GetTotalAmountCardResponse.parse(data)
 }

@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { apiRequest } from '@/lib/api-client'
 
 type GetMemberParams = {
   id: string
@@ -14,13 +15,6 @@ const GetMemberResponse = z.object({
 })
 
 export async function getMember({ id }: GetMemberParams) {
-  const response = await fetch(`http://localhost:3333/api/members/${id}`, {
-    credentials: 'include',
-  })
-
-  if (!response.ok) throw new Error('Falha ao solicitar membro por ID.')
-
-  const data = await response.json()
-
+  const data = await apiRequest(`/api/members/${id}`)
   return GetMemberResponse.parse(data)
 }

@@ -26,5 +26,5 @@ export type UpdatePurchaseRequest = {
 // }
 
 export async function updatePurchase(_payload: UpdatePurchaseRequest): Promise<void> {
-  // placeholder — substituir pelo fetch real quando o endpoint estiver disponível
+  throw new Error('updatePurchase: endpoint PATCH /api/purchases/:pmId ainda não implementado no BE')
 }

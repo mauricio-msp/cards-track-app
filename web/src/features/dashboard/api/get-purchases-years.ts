@@ -1,19 +1,11 @@
 import { z } from 'zod'
+import { apiRequest } from '@/lib/api-client'
 
 const GetPurchasesYearsResponse = z.object({
   years: z.array(z.number()),
 })
 
 export async function getPurchasesYears() {
-  const response = await fetch('http://localhost:3333/api/metrics/years', {
-    credentials: 'include',
-  })
-
-  if (!response.ok) {
-    throw new Error('Falha ao buscar os anos disponíveis.')
-  }
-
-  const data = await response.json()
-
+  const data = await apiRequest('/api/metrics/years')
   return GetPurchasesYearsResponse.parse(data)
 }

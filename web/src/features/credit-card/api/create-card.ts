@@ -1,3 +1,5 @@
+import { apiRequest } from '@/lib/api-client'
+
 type CreateCardRequest = {
   name: string
   limit: number
@@ -6,17 +8,9 @@ type CreateCardRequest = {
 }
 
 export async function createCard({ name, limit, closingOffsetDays, dueDay }: CreateCardRequest) {
-  await fetch('http://localhost:3333/api/cards', {
+  await apiRequest('/api/cards', {
     method: 'POST',
-    credentials: 'include',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      name,
-      limit,
-      closingOffsetDays,
-      dueDay,
-    }),
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name, limit, closingOffsetDays, dueDay }),
   })
 }

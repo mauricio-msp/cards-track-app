@@ -1,3 +1,5 @@
+import { apiRequest } from '@/lib/api-client'
+
 type CreateMemberRequest = {
   name: string
   relationship: string
@@ -5,16 +7,9 @@ type CreateMemberRequest = {
 }
 
 export async function createMember({ name, relationship, phone }: CreateMemberRequest) {
-  await fetch('http://localhost:3333/api/members', {
+  await apiRequest('/api/members', {
     method: 'POST',
-    credentials: 'include',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      name,
-      relationship,
-      phone,
-    }),
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name, relationship, phone }),
   })
 }

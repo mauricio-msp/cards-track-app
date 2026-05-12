@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { apiRequest, apiUrl } from '@/lib/api-client'
 
 type GetPurchasesTrendQuery = {
   year?: number
@@ -11,19 +12,8 @@ const GetPurchasesTrendResponse = z.object({
 export type GetPurchasesTrendResponse = z.infer<typeof GetPurchasesTrendResponse>
 
 export async function getPurchasesTrend({ year }: GetPurchasesTrendQuery) {
-  const url = new URL('http://localhost:3333/api/metrics/trend')
-
-  if (year) url.searchParams.set('year', year.toString())
-
-  const response = await fetch(url, {
-    credentials: 'include',
-  })
-
-  if (!response.ok) {
-    throw new Error('Falha ao buscar os dados evolutivos das dívidas.')
-  }
-
-  const data = await response.json()
-
+  const url = apiUrl('/api/metrics/trend')
+  if (year !== undefined) url.searchParams.set('year', year.toString())
+  const data = await apiRequest(url)
   return GetPurchasesTrendResponse.parse(data)
 }
