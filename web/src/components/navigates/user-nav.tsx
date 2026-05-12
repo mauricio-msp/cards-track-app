@@ -1,5 +1,5 @@
 import { useNavigate, useRouteContext } from '@tanstack/react-router'
-import { BadgeCheck, Bell, ChevronsUpDown, CreditCard, LogOut, Sparkles } from 'lucide-react'
+import { ChevronsUpDown, LogOut } from 'lucide-react'
 import { ModeToggle } from '@/components/mode-toggle'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
@@ -75,31 +75,9 @@ export function UserNav() {
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <Sparkles />
-                Upgrade to Pro
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
-            <DropdownMenuSeparator />
-            <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <BadgeCheck />
-                Account
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <CreditCard />
-                Billing
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Bell />
-                Notifications
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
-            <DropdownMenuSeparator />
-            <DropdownMenuGroup>
-              <DropdownMenuLabel className="text-muted-foreground">Preferences</DropdownMenuLabel>
+              <DropdownMenuLabel className="text-muted-foreground">Preferências</DropdownMenuLabel>
               <DropdownMenuItem className="justify-between">
-                <span>Theme</span>
+                <span>Tema</span>
                 <ModeToggle className="mx-0 bg-primary-foreground" />
               </DropdownMenuItem>
             </DropdownMenuGroup>
