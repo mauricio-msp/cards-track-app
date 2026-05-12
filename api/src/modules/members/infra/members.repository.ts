@@ -3,6 +3,7 @@ import type { db as Db } from '@/db'
 import { cards, installments, invoices, members, purchaseMembers, purchases } from '@/db/schema'
 import type {
   IMembersRepository,
+  MemberPurchase,
   MemberPurchasesByCard,
 } from '@/modules/members/domain/repositories/members.repository.interface'
 import type {
@@ -10,6 +11,24 @@ import type {
   Member,
   UpdateMemberInput,
 } from '@/modules/members/http/dto/members.dto'
+import { calculateConsolidation } from '@/utils/calculate-consolidation'
+
+type GroupedPurchaseRow = {
+  card: { id: string; name: string; dueDay: number }
+  pm: {
+    id: string
+    amount: number
+    installmentAmount: number
+    startInstallment: number
+    endInstallment: number | null
+    anticipatedAt: Date | null
+    anticipateFromInstallment: number | null
+  }
+  purchase: { description: string; purchaseDate: string; installmentsCount: number }
+  installment: { number: number; amount: unknown }
+  targetMonth: unknown
+  targetYear: unknown
+}
 
 export class MembersRepository implements IMembersRepository {
   constructor(private readonly db: typeof Db) {}
@@ -83,37 +102,7 @@ export class MembersRepository implements IMembersRepository {
     month?: number,
     year?: number,
   ): Promise<MemberPurchasesByCard[]> {
-    const now = new Date()
-    const today = now.getDate()
-    const currentMonth = now.getMonth()
-    const currentYear = now.getFullYear()
-
-    const todaySQL = sql<number>`${today}::int`
-    const currentMonthSQL = sql<number>`${currentMonth}::int`
-    const currentYearSQL = sql<number>`${currentYear}::int`
-    const nextYearSQL = sql<number>`${currentYear + 1}::int`
-
-    const targetMonthExpr =
-      month !== undefined
-        ? sql<number>`${month}::int`
-        : sql<number>`
-            CASE
-              WHEN ${todaySQL} > ${cards.dueDay}
-                THEN (${currentMonthSQL} + 1) % 12
-              ELSE ${currentMonthSQL}
-            END
-          `
-
-    const targetYearExpr =
-      year !== undefined
-        ? sql<number>`${year}::int`
-        : sql<number>`
-            CASE
-              WHEN ${todaySQL} > ${cards.dueDay} AND ${currentMonthSQL} = 11
-                THEN ${nextYearSQL}
-              ELSE ${currentYearSQL}
-            END
-          `
+    const { targetMonthExpr, targetYearExpr } = this.buildTargetPeriodExprs(month, year)
 
     const rows = await this.db
       .select({
@@ -163,11 +152,54 @@ export class MembersRepository implements IMembersRepository {
       )
       .where(eq(cards.ownerUserId, userId))
 
+    return this.mapGroupedRows(rows)
+  }
+
+  // ─── Private helpers ──────────────────────────────────────────────────────────
+
+  private buildTargetPeriodExprs(month?: number, year?: number) {
+    const now = new Date()
+    const today = now.getDate()
+    const currentMonth = now.getMonth()
+    const currentYear = now.getFullYear()
+
+    const todaySQL = sql<number>`${today}::int`
+    const currentMonthSQL = sql<number>`${currentMonth}::int`
+    const currentYearSQL = sql<number>`${currentYear}::int`
+    const nextYearSQL = sql<number>`${currentYear + 1}::int`
+
+    const targetMonthExpr =
+      month !== undefined
+        ? sql<number>`${month}::int`
+        : sql<number>`
+            CASE
+              WHEN ${todaySQL} > ${cards.dueDay}
+                THEN (${currentMonthSQL} + 1) % 12
+              ELSE ${currentMonthSQL}
+            END
+          `
+
+    const targetYearExpr =
+      year !== undefined
+        ? sql<number>`${year}::int`
+        : sql<number>`
+            CASE
+              WHEN ${todaySQL} > ${cards.dueDay} AND ${currentMonthSQL} = 11
+                THEN ${nextYearSQL}
+              ELSE ${currentYearSQL}
+            END
+          `
+
+    return { targetMonthExpr, targetYearExpr }
+  }
+
+  private mapGroupedRows(rows: GroupedPurchaseRow[]): MemberPurchasesByCard[] {
     const cardMap = new Map<string, MemberPurchasesByCard>()
-    const pmByCard = new Map<string, Map<string, MemberPurchasesByCard['purchases'][number]>>()
+    const pmByCard = new Map<string, Map<string, MemberPurchase>>()
 
     for (const row of rows) {
       const currentInstallment = row.installment.number
+      const amount = Number(row.installment.amount)
 
       if (!cardMap.has(row.card.id)) {
         cardMap.set(row.card.id, {
@@ -183,52 +215,54 @@ export class MembersRepository implements IMembersRepository {
         pmByCard.set(row.card.id, new Map())
       }
 
-      const cardEntry = cardMap.get(row.card.id)
-      const pmMap = pmByCard.get(row.card.id)
-      if (!cardEntry || !pmMap) continue
+      // biome-ignore lint/style/noNonNullAssertion: set above
+      const cardEntry = cardMap.get(row.card.id)!
+      // biome-ignore lint/style/noNonNullAssertion: set above
+      const pmMap = pmByCard.get(row.card.id)!
 
       const isConsolidation =
         !!row.pm.anticipatedAt && currentInstallment === row.pm.anticipateFromInstallment
 
-      const rawConsolidatedCount =
-        isConsolidation && row.pm.installmentAmount > 0
-          ? Math.round(Number(row.installment.amount) / row.pm.installmentAmount)
-          : 0
-      const anticipatedCount =
-        Number.isFinite(rawConsolidatedCount) && rawConsolidatedCount > 0
-          ? rawConsolidatedCount
-          : isConsolidation
-            ? row.purchase.installmentsCount - currentInstallment + 1
-            : 0
-      const remainingInstallments = isConsolidation
-        ? Math.max(row.purchase.installmentsCount - (currentInstallment + anticipatedCount - 1), 0)
-        : Math.max(row.purchase.installmentsCount - currentInstallment, 0)
+      const { consolidatedCount, remainingInstallments } = isConsolidation
+        ? calculateConsolidation(
+            amount,
+            row.pm.installmentAmount,
+            row.purchase.installmentsCount,
+            currentInstallment,
+          )
+        : {
+            consolidatedCount: 0,
+            remainingInstallments: Math.max(
+              row.purchase.installmentsCount - currentInstallment,
+              0,
+            ),
+          }
 
       const existing = pmMap.get(row.pm.id)
 
       if (existing) {
         if (isConsolidation && !existing.anticipatedAt) {
           existing.anticipatedAt = row.pm.anticipatedAt?.toISOString() ?? null
-          existing.anticipatedInstallmentsCount = anticipatedCount
+          existing.anticipatedInstallmentsCount = consolidatedCount
           existing.anticipateFromInstallment = row.pm.anticipateFromInstallment
           existing.elapsedInstallments = currentInstallment
           existing.remainingInstallments = remainingInstallments
         }
-        existing.installmentsAmount += Number(row.installment.amount)
+        existing.installmentsAmount += amount
         continue
       }
 
-      const entry: MemberPurchasesByCard['purchases'][number] = {
+      const entry: MemberPurchase = {
         id: row.pm.id,
         description: row.purchase.description,
         purchaseDate: row.purchase.purchaseDate,
         amount: row.pm.amount,
         installmentsCount: row.purchase.installmentsCount,
-        installmentsAmount: Number(row.installment.amount),
+        installmentsAmount: amount,
         elapsedInstallments: currentInstallment,
         remainingInstallments,
         anticipatedAt: isConsolidation ? (row.pm.anticipatedAt?.toISOString() ?? null) : null,
-        anticipatedInstallmentsCount: isConsolidation ? anticipatedCount : null,
+        anticipatedInstallmentsCount: isConsolidation ? consolidatedCount : null,
         anticipateFromInstallment: isConsolidation ? row.pm.anticipateFromInstallment : null,
       }
 
