@@ -1,8 +1,7 @@
 import { useRouteContext } from '@tanstack/react-router'
-import { Pencil, User } from 'lucide-react'
+import { User } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { getInitialLetters } from '@/lib/utils'
 
@@ -16,13 +15,7 @@ export function ProfileCard() {
           <User className="size-4" />
           Perfil
         </CardTitle>
-        <CardDescription>
-          Informações da sua conta. A edição estará disponível em breve.
-        </CardDescription>
-        <Button variant="outline" size="sm" className="shrink-0 self-start" disabled>
-          <Pencil className="size-3.5" />
-          Editar perfil
-        </Button>
+        <CardDescription>Informações da sua conta</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="flex items-center gap-4 p-5 rounded-lg border bg-muted/20">
