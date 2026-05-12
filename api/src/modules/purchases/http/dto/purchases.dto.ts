@@ -23,5 +23,24 @@ export const anticipatePurchaseDto = z.object({
   anticipateCount: z.coerce.number().int().min(1),
 })
 
+export const purchaseCreateResultSchema = z.object({
+  purchaseId: z.string(),
+  cardId: z.string(),
+  description: z.string(),
+  category: z.string().nullable(),
+  purchaseDate: z.string(),
+  installmentsCount: z.number(),
+  members: z.array(
+    z.object({
+      purchaseMemberId: z.string(),
+      memberId: z.string(),
+      amount: z.number(),
+      installmentAmount: z.number(),
+      startInstallment: z.number(),
+      endInstallment: z.number().nullable(),
+    }),
+  ),
+})
+
 export type CreatePurchaseInput = z.infer<typeof createPurchaseDto>
 export type AnticipatePurchaseInput = z.infer<typeof anticipatePurchaseDto>

@@ -17,6 +17,7 @@ import { auth } from '@/lib/auth'
 
 import { cardsModule } from '@/modules/cards'
 import { membersModule } from '@/modules/members'
+import { metricsModule } from '@/modules/metrics'
 import { purchasesModule } from '@/modules/purchases'
 import { subscriptionsModule } from '@/modules/subscriptions'
 
@@ -81,6 +82,7 @@ if (env.NODE_ENV !== 'production') {
 // Cards
 app.register(cardsModule)
 app.register(membersModule)
+app.register(metricsModule)
 app.register(purchasesModule)
 
 // Subscriptions

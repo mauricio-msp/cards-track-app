@@ -35,18 +35,6 @@ export type PurchaseCreateResult = {
   }[]
 }
 
-export type ChartDataRow = {
-  cardName: string
-  month: number
-  total: number
-}
-
-export type CardAmountRow = {
-  cardId: string
-  cardName: string
-  total: number
-}
-
 export interface IPurchasesRepository {
   // validation
   findCardByOwner(cardId: string, userId: string): Promise<PurchaseCard | null>
@@ -83,11 +71,4 @@ export interface IPurchasesRepository {
     anticipateCount: number
     anticipatedAmount: number
   }): Promise<void>
-
-  // analytics
-  getPurchasesTrend(userId: string, year: number): Promise<ChartDataRow[]>
-  getPurchasesYears(userId: string): Promise<number[]>
-  getMonthCardAmounts(userId: string, month: number, year: number): Promise<CardAmountRow[]>
-  getMonthTotalAmount(userId: string, month: number, year: number, today: number): Promise<number>
-  getTotalAmount(userId: string): Promise<number>
 }
