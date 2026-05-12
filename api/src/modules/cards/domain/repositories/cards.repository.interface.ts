@@ -1,5 +1,13 @@
 import type { Card, CreateCardInput, UpdateCardInput } from '@/modules/cards/http/dto/cards.dto'
 
+export type CardPurchaseMember = {
+  id: string
+  name: string
+  relationship: string
+  installmentAmount: number
+  perInstallmentAmount: number
+}
+
 export type CardPurchase = {
   purchaseMemberId: string
   groupId: string
@@ -15,13 +23,7 @@ export type CardPurchase = {
   anticipateFromInstallment: number | null
   anticipatableInstallments: number
   subscriptionId: string | null
-  members: Array<{
-    id: string
-    name: string
-    relationship: string
-    installmentAmount: number
-    perInstallmentAmount: number
-  }>
+  members: CardPurchaseMember[]
 }
 
 export interface ICardsRepository {
