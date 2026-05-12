@@ -4,6 +4,20 @@ import type {
   UpdateMemberInput,
 } from '@/modules/members/http/dto/members.dto'
 
+export type MemberPurchase = {
+  id: string
+  description: string
+  purchaseDate: string
+  amount: number
+  installmentsCount: number
+  installmentsAmount: number
+  elapsedInstallments: number
+  remainingInstallments: number
+  anticipatedAt: string | null
+  anticipatedInstallmentsCount: number | null
+  anticipateFromInstallment: number | null
+}
+
 export type MemberPurchasesByCard = {
   card: {
     id: string
@@ -12,19 +26,7 @@ export type MemberPurchasesByCard = {
     targetYear: number
     targetMonth: number
   }
-  purchases: {
-    id: string
-    description: string
-    purchaseDate: string
-    amount: number
-    installmentsCount: number
-    installmentsAmount: number
-    elapsedInstallments: number
-    remainingInstallments: number
-    anticipatedAt: string | null
-    anticipatedInstallmentsCount: number | null
-    anticipateFromInstallment: number | null
-  }[]
+  purchases: MemberPurchase[]
 }
 
 export interface IMembersRepository {
