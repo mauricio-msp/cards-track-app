@@ -1,1 +1,1 @@
-export { DebtsTrendChartError } from '@/features/dashboard/components/chart/error/debts-trend-chart-error'
+export { PurchasesTrendChartError } from '@/features/dashboard/components/chart/error/purchases-trend-chart-error'

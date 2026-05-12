@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-const MonthLowestDebtsAmountResponse = z.object({
+const MonthLowestPurchasesAmountResponse = z.object({
   amount: z.coerce.number(),
   cards: z.array(
     z.object({
@@ -11,8 +11,8 @@ const MonthLowestDebtsAmountResponse = z.object({
   ),
 })
 
-export async function getMonthLowestDebtsAmount() {
-  const response = await fetch('http://localhost:3333/api/month-lowest-debts-amount', {
+export async function getMonthLowestPurchasesAmount() {
+  const response = await fetch('http://localhost:3333/api/purchases/month-lowest-amount', {
     credentials: 'include',
   })
 
@@ -20,5 +20,5 @@ export async function getMonthLowestDebtsAmount() {
 
   const data = await response.json()
 
-  return MonthLowestDebtsAmountResponse.parse(data)
+  return MonthLowestPurchasesAmountResponse.parse(data)
 }

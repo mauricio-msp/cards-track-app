@@ -1,11 +1,11 @@
 import { z } from 'zod'
 
-const MonthTotalDebtsAmountResponse = z.object({
+const MonthTotalPurchasesAmountResponse = z.object({
   totalAmount: z.coerce.number(),
 })
 
-export async function getMonthTotalDebtsAmount() {
-  const response = await fetch('http://localhost:3333/api/month-total-debts-amount', {
+export async function getMonthTotalPurchasesAmount() {
+  const response = await fetch('http://localhost:3333/api/purchases/month-total-amount', {
     credentials: 'include',
   })
 
@@ -14,5 +14,5 @@ export async function getMonthTotalDebtsAmount() {
 
   const data = await response.json()
 
-  return MonthTotalDebtsAmountResponse.parse(data)
+  return MonthTotalPurchasesAmountResponse.parse(data)
 }

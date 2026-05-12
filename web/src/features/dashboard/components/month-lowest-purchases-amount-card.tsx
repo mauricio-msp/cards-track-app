@@ -1,17 +1,17 @@
 import { TrendingDown } from 'lucide-react'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { HiddenValue } from '@/components/ui/hidden-value'
-import { useMonthLowestDebtsAmount } from '@/features/dashboard/hooks/use-month-lowest-debts-amount'
+import { useMonthLowestPurchasesAmount } from '@/features/dashboard/hooks/use-month-lowest-purchases-amount'
 import { formatPrice } from '@/lib/utils'
 
-export function MonthLowestDebtsAmountCard() {
-  const { data } = useMonthLowestDebtsAmount()
+export function MonthLowestPurchasesAmountCard() {
+  const { data } = useMonthLowestPurchasesAmount()
 
   return (
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
-          <span className="text-sm font-medium text-muted-foreground">Menor Dívida (mês)</span>
+          <span className="text-sm font-medium text-muted-foreground">Menor Compra (mês)</span>
           <TrendingDown className="size-5 text-muted-foreground" />
         </div>
       </CardHeader>

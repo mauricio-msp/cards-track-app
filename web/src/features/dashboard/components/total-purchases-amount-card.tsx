@@ -1,17 +1,17 @@
 import { Wallet } from 'lucide-react'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { HiddenValue } from '@/components/ui/hidden-value'
-import { useMonthTotalDebtsAmount } from '@/features/dashboard/hooks/use-month-total-debts-amount'
+import { useTotalPurchasesAmount } from '@/features/dashboard/hooks/use-total-purchases-amount'
 import { formatPrice } from '@/lib/utils'
 
-export function MonthTotalDebtsAmountCard() {
-  const { data } = useMonthTotalDebtsAmount()
+export function TotalPurchasesAmountCard() {
+  const { data } = useTotalPurchasesAmount()
 
   return (
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
-          <span className="text-sm font-medium text-muted-foreground">Dívida Total (mês)</span>
+          <span className="text-sm font-medium text-muted-foreground">Dívida Total</span>
           <Wallet className="size-5 text-muted-foreground" />
         </div>
       </CardHeader>
@@ -19,9 +19,7 @@ export function MonthTotalDebtsAmountCard() {
         <HiddenValue className="w-32 h-8">
           <span className="text-2xl text-destructive">{formatPrice(data.totalAmount / 100)}</span>
         </HiddenValue>
-        <span className="text-xs text-muted-foreground">
-          Soma de todos os cartões ainda em aberto do mês
-        </span>
+        <span className="text-xs text-muted-foreground">Soma de todos os cartões</span>
       </CardContent>
     </Card>
   )

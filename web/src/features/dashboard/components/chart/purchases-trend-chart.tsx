@@ -18,22 +18,22 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { useDebtsTrend } from '@/features/dashboard/hooks/use-debts-trend'
-import { useDebtsYears } from '@/features/dashboard/hooks/use-debts-years'
+import { usePurchasesTrend } from '@/features/dashboard/hooks/use-purchases-trend'
+import { usePurchasesYears } from '@/features/dashboard/hooks/use-purchases-years'
 import { creditCards } from '@/helpers/credit-cards'
 import { useIsMobile } from '@/hooks/use-mobile'
 import { formatPrice } from '@/lib/utils'
 
-export function DebtsTrendChart() {
+export function PurchasesTrendChart() {
   const [year, setYear] = React.useState<number | undefined>(undefined)
   const isMobile = useIsMobile()
 
   const {
     data: { years: yearsToFilter },
-  } = useDebtsYears()
+  } = usePurchasesYears()
   const {
     data: { chartData },
-  } = useDebtsTrend(year)
+  } = usePurchasesTrend(year)
 
   const activeCardKeys = Array.from(
     new Set(chartData.flatMap(entry => Object.keys(entry).filter(k => k !== 'date'))),
@@ -58,8 +58,8 @@ export function DebtsTrendChart() {
     <Card className="flex-1">
       <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="space-y-2">
-          <CardTitle>Gráfico de Dívidas</CardTitle>
-          <CardDescription>Visualização das dívidas ao longo do tempo</CardDescription>
+          <CardTitle>Gráfico de Compras</CardTitle>
+          <CardDescription>Visualização das compras ao longo do tempo</CardDescription>
         </div>
 
         <Select onValueChange={value => setYear(Number(value))}>

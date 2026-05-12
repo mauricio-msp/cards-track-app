@@ -1,11 +1,11 @@
 import { z } from 'zod'
 
-const GetDebtsYearsResponse = z.object({
+const GetPurchasesYearsResponse = z.object({
   years: z.array(z.number()),
 })
 
-export async function getDebtsYears() {
-  const response = await fetch('http://localhost:3333/api/debts/years', {
+export async function getPurchasesYears() {
+  const response = await fetch('http://localhost:3333/api/purchases/years', {
     credentials: 'include',
   })
 
@@ -15,5 +15,5 @@ export async function getDebtsYears() {
 
   const data = await response.json()
 
-  return GetDebtsYearsResponse.parse(data)
+  return GetPurchasesYearsResponse.parse(data)
 }

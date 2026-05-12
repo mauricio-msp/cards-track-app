@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 
-export function DebtsTrendChartSkeleton() {
+export function PurchasesTrendChartSkeleton() {
   return (
     <Card className="flex-1">
       <CardHeader className="flex items-center justify-between">

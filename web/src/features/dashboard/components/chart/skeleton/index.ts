@@ -1,1 +1,1 @@
-export { DebtsTrendChartSkeleton } from '@/features/dashboard/components/chart/skeleton/debts-trend-chart-skeleton'
+export { PurchasesTrendChartSkeleton } from '@/features/dashboard/components/chart/skeleton/purchases-trend-chart-skeleton'

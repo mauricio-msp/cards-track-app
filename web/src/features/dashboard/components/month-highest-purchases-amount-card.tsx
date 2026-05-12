@@ -1,17 +1,17 @@
 import { TrendingUp } from 'lucide-react'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { HiddenValue } from '@/components/ui/hidden-value'
-import { useMonthHighestDebtsAmount } from '@/features/dashboard/hooks/use-month-highest-debts-amount'
+import { useMonthHighestPurchasesAmount } from '@/features/dashboard/hooks/use-month-highest-purchases-amount'
 import { formatPrice } from '@/lib/utils'
 
-export function MonthHighestDebtsAmountCard() {
-  const { data } = useMonthHighestDebtsAmount()
+export function MonthHighestPurchasesAmountCard() {
+  const { data } = useMonthHighestPurchasesAmount()
 
   return (
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
-          <span className="text-sm font-medium text-muted-foreground">Maior Dívida (mês)</span>
+          <span className="text-sm font-medium text-muted-foreground">Maior Compra (mês)</span>
           <TrendingUp className="size-5 text-muted-foreground" />
         </div>
       </CardHeader>

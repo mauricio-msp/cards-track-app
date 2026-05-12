@@ -1,17 +1,17 @@
 import { z } from 'zod'
 
-type GetDebtsTrendQuery = {
+type GetPurchasesTrendQuery = {
   year?: number
 }
 
-const GetDebtsTrendResponse = z.object({
+const GetPurchasesTrendResponse = z.object({
   chartData: z.array(z.record(z.string(), z.union([z.string(), z.number()]))),
 })
 
-export type GetDebtsTrendResponse = z.infer<typeof GetDebtsTrendResponse>
+export type GetPurchasesTrendResponse = z.infer<typeof GetPurchasesTrendResponse>
 
-export async function getDebtsTrend({ year }: GetDebtsTrendQuery) {
-  const url = new URL('http://localhost:3333/api/debts/trend')
+export async function getPurchasesTrend({ year }: GetPurchasesTrendQuery) {
+  const url = new URL('http://localhost:3333/api/purchases/trend')
 
   if (year) url.searchParams.set('year', year.toString())
 
@@ -25,5 +25,5 @@ export async function getDebtsTrend({ year }: GetDebtsTrendQuery) {
 
   const data = await response.json()
 
-  return GetDebtsTrendResponse.parse(data)
+  return GetPurchasesTrendResponse.parse(data)
 }
