@@ -1,13 +1,24 @@
 import { and, eq, isNull, sql } from 'drizzle-orm'
-import { uuidv7 } from 'uuidv7'
 import type { db as Db } from '@/db'
-import { cards, installments, invoices, members, purchaseMembers, purchases, subscriptions } from '@/db/schema'
+import {
+  cards,
+  installments,
+  invoices,
+  members,
+  purchaseMembers,
+  purchases,
+} from '@/db/schema'
 import type {
   CardPurchase,
   CardPurchaseMember,
   ICardsRepository,
 } from '@/modules/cards/domain/repositories/cards.repository.interface'
-import type { Card, CreateCardInput, UpdateCardInput } from '@/modules/cards/http/dto/cards.dto'
+import type {
+  Card,
+  CardSummary,
+  CreateCardInput,
+  UpdateCardInput,
+} from '@/modules/cards/http/dto/cards.dto'
 import { calculateConsolidation } from '@/utils/calculate-consolidation'
 import { calculateInvoiceCompetence } from '@/utils/calculate-invoice-competence'
 
@@ -17,7 +28,6 @@ type PurchaseRow = {
   member: typeof members.$inferSelect
   installment: typeof installments.$inferSelect
 }
-
 
 export class CardsRepository implements ICardsRepository {
   constructor(private readonly db: typeof Db) {}
@@ -32,9 +42,7 @@ export class CardsRepository implements ICardsRepository {
     return card ?? null
   }
 
-  async findAll(
-    userId: string,
-  ): Promise<Pick<Card, 'id' | 'name' | 'limit' | 'closingOffsetDays' | 'dueDay'>[]> {
+  async findAll(userId: string): Promise<CardSummary[]> {
     return this.db
       .select({
         id: cards.id,
@@ -78,7 +86,10 @@ export class CardsRepository implements ICardsRepository {
       .select({ id: installments.id })
       .from(installments)
       .innerJoin(purchaseMembers, eq(installments.purchaseMemberId, purchaseMembers.id))
-      .innerJoin(purchases, and(eq(purchaseMembers.purchaseId, purchases.id), eq(purchases.cardId, cardId)))
+      .innerJoin(
+        purchases,
+        and(eq(purchaseMembers.purchaseId, purchases.id), eq(purchases.cardId, cardId)),
+      )
       .where(isNull(installments.paidAt))
       .limit(1)
 
@@ -91,8 +102,6 @@ export class CardsRepository implements ICardsRepository {
     targetMonth: number,
     targetYear: number,
   ): Promise<CardPurchase[]> {
-    await this.ensureSubscriptionPurchases(cardId, card, targetMonth, targetYear)
-
     const rows = await this.db
       .select({
         pm: purchaseMembers,
@@ -140,7 +149,10 @@ export class CardsRepository implements ICardsRepository {
       .from(installments)
       .innerJoin(invoices, eq(installments.invoiceId, invoices.id))
       .innerJoin(purchaseMembers, eq(installments.purchaseMemberId, purchaseMembers.id))
-      .innerJoin(purchases, and(eq(purchaseMembers.purchaseId, purchases.id), eq(purchases.cardId, cardId)))
+      .innerJoin(
+        purchases,
+        and(eq(purchaseMembers.purchaseId, purchases.id), eq(purchases.cardId, cardId)),
+      )
       .where(
         sql`(${invoices.year} > ${targetYear} OR (${invoices.year} = ${targetYear} AND ${invoices.month} >= ${targetMonth}))`,
       )
@@ -196,7 +208,10 @@ export class CardsRepository implements ICardsRepository {
     for (let k = currentInstallment + 1; k <= installmentsCount; k++) {
       let m = targetMonth + (k - 1)
       let y = targetYear
-      while (m > 11) { m -= 12; y++ }
+      while (m > 11) {
+        m -= 12
+        y++
+      }
       if (
         y > targetBill.invoiceYear ||
         (y === targetBill.invoiceYear && m > targetBill.invoiceMonth)
@@ -310,105 +325,4 @@ export class CardsRepository implements ICardsRepository {
     return Array.from(grouped.values()).filter(g => g.members.length > 0)
   }
 
-  // Ensures subscription purchases exist for the queried period before reading.
-  // TODO: move to a scheduled job — this write side-effect runs on every GET /cards/:id/purchases.
-  private async ensureSubscriptionPurchases(
-    cardId: string,
-    card: Pick<Card, 'dueDay' | 'closingOffsetDays'>,
-    targetMonth: number,
-    targetYear: number,
-  ): Promise<void> {
-    const activeSubs = await this.db
-      .select()
-      .from(subscriptions)
-      .where(and(eq(subscriptions.cardId, cardId), eq(subscriptions.active, true)))
-
-    for (const sub of activeSubs) {
-      const actualMonth = targetMonth + 1
-      const lastDayOfMonth = new Date(targetYear, actualMonth, 0).getDate()
-      const day = Math.min(sub.billingDay, lastDayOfMonth)
-      const purchaseDateStr = `${targetYear}-${String(actualMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`
-      const purchaseDate = new Date(`${purchaseDateStr}T00:00:00`)
-
-      const { invoiceMonth, invoiceYear } = calculateInvoiceCompetence(
-        purchaseDate,
-        card.dueDay,
-        card.closingOffsetDays,
-      )
-
-      if (invoiceMonth !== targetMonth || invoiceYear !== targetYear) continue
-
-      const [existing] = await this.db
-        .select({ id: purchases.id })
-        .from(purchases)
-        .innerJoin(
-          invoices,
-          and(
-            eq(purchases.invoiceId, invoices.id),
-            eq(invoices.month, invoiceMonth),
-            eq(invoices.year, invoiceYear),
-          ),
-        )
-        .where(eq(purchases.subscriptionId, sub.id))
-        .limit(1)
-
-      if (existing) continue
-
-      let [invoice] = await this.db
-        .select()
-        .from(invoices)
-        .where(
-          and(
-            eq(invoices.cardId, cardId),
-            eq(invoices.month, invoiceMonth),
-            eq(invoices.year, invoiceYear),
-          ),
-        )
-
-      if (!invoice) {
-        const dueDate = new Date(invoiceYear, invoiceMonth, card.dueDay)
-        const [newInv] = await this.db
-          .insert(invoices)
-          .values({ cardId, month: invoiceMonth, year: invoiceYear, dueDate })
-          .returning()
-        invoice = newInv
-      }
-
-      const purchaseId = uuidv7()
-      const [newPurchase] = await this.db
-        .insert(purchases)
-        .values({
-          id: purchaseId,
-          cardId,
-          invoiceId: invoice.id,
-          subscriptionId: sub.id,
-          description: sub.name,
-          category: 'Assinatura',
-          purchaseDate: purchaseDateStr,
-          installmentsCount: 1,
-        })
-        .returning()
-
-      const [pm] = await this.db
-        .insert(purchaseMembers)
-        .values({
-          purchaseId: newPurchase.id,
-          memberId: sub.memberId,
-          amount: sub.amount,
-          installmentAmount: sub.amount,
-          startInstallment: 1,
-          endInstallment: 1,
-        })
-        .returning()
-
-      await this.db.insert(installments).values({
-        purchaseMemberId: pm.id,
-        debtId: pm.id,
-        invoiceId: invoice.id,
-        memberId: sub.memberId,
-        number: 1,
-        amount: sub.amount,
-      })
-    }
-  }
 }
