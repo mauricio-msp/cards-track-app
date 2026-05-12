@@ -4,15 +4,15 @@ import { createFileRoute } from '@tanstack/react-router'
 import { CreditCard, TrendingDown, TrendingUp, Wallet } from 'lucide-react'
 import { Suspense } from 'react'
 import { ErrorBoundary } from 'react-error-boundary'
-
+import { ScrollArea } from '@/components/ui/scroll-area'
 import {
   DashboardCardError,
   DashboardCardSkeleton,
-  PurchasesTrendChart,
-  PurchasesTrendChartSkeleton,
   MonthHighestPurchasesAmountCard,
   MonthLowestPurchasesAmountCard,
   MonthTotalPurchasesAmountCard,
+  PurchasesTrendChart,
+  PurchasesTrendChartSkeleton,
   TotalPurchasesAmountCard,
 } from '@/features/dashboard'
 import { PurchasesTrendChartError } from '@/features/dashboard/components/chart/error'
@@ -55,24 +55,42 @@ function GridCardWrapper({ title, icon, Component }: GridCardProps) {
 function RouteComponent() {
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-      <div className="grid auto-rows-min gap-4 md:grid-cols-[repeat(auto-fill,minmax(min(100%,360px),1fr))]">
-        <GridCardWrapper title="Dívida Total" icon={Wallet} Component={TotalPurchasesAmountCard} />
-        <GridCardWrapper
-          title="Dívida Total (mês)"
-          icon={CreditCard}
-          Component={MonthTotalPurchasesAmountCard}
-        />
-        <GridCardWrapper
-          icon={TrendingDown}
-          title="Menor Dívida (mês)"
-          Component={MonthLowestPurchasesAmountCard}
-        />
-        <GridCardWrapper
-          icon={TrendingUp}
-          title="Maior Dívida (mês)"
-          Component={MonthHighestPurchasesAmountCard}
-        />
-      </div>
+      <ScrollArea
+        type="auto"
+        className="-mx-4 sm:mx-0"
+        viewportClassName="px-4 scroll-px-4 lg:px-0 lg:scroll-px-0 snap-x snap-mandatory lg:snap-none"
+      >
+        <div className="flex lg:grid lg:grid-cols-4 gap-4 pb-3 lg:pb-0">
+          <div className="min-w-72 snap-start *:h-full">
+            <GridCardWrapper
+              title="Dívida Total"
+              icon={Wallet}
+              Component={TotalPurchasesAmountCard}
+            />
+          </div>
+          <div className="min-w-72 snap-start *:h-full">
+            <GridCardWrapper
+              title="Dívida Total (mês)"
+              icon={CreditCard}
+              Component={MonthTotalPurchasesAmountCard}
+            />
+          </div>
+          <div className="min-w-72 snap-start *:h-full">
+            <GridCardWrapper
+              icon={TrendingDown}
+              title="Menor Dívida (mês)"
+              Component={MonthLowestPurchasesAmountCard}
+            />
+          </div>
+          <div className="min-w-72 snap-start *:h-full">
+            <GridCardWrapper
+              icon={TrendingUp}
+              title="Maior Dívida (mês)"
+              Component={MonthHighestPurchasesAmountCard}
+            />
+          </div>
+        </div>
+      </ScrollArea>
 
       <QueryErrorResetBoundary>
         {({ reset }) => (
