@@ -1,13 +1,13 @@
-import type { FastifyReply, FastifyRequest } from 'fastify'
+import type { FastifyBaseLogger, FastifyReply } from 'fastify'
 import type { GetMemberUseCase } from '@/modules/members/application/use-cases/get-member/get-member.use-case'
 import { MemberNotFoundError } from '@/modules/members/domain/errors/members.errors'
 
 export class GetMemberController {
   constructor(private readonly useCase: GetMemberUseCase) {}
 
-  async handle(request: FastifyRequest<{ Params: { memberId: string } }>, reply: FastifyReply) {
+  async handle(memberId: string, userId: string, reply: FastifyReply, log: FastifyBaseLogger) {
     try {
-      const member = await this.useCase.execute(request.params.memberId, request.user.id)
+      const member = await this.useCase.execute(memberId, userId)
       return reply.send({
         member: {
           id: member.id,
@@ -20,7 +20,7 @@ export class GetMemberController {
       if (err instanceof MemberNotFoundError) {
         return reply.status(404).send({ message: err.message })
       }
-      request.log.error(err)
+      log.error(err)
       return reply.status(500).send({ message: 'Falha ao buscar o membro' })
     }
   }

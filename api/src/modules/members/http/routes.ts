@@ -9,7 +9,7 @@ import type { GetMembersController } from '@/modules/members/http/controllers/ge
 import type { UpdateMemberController } from '@/modules/members/http/controllers/update-member.controller'
 import {
   createMemberDto,
-  getMemberPurchasesQueryDto,
+  memberPeriodQueryDto,
   memberSchema,
   updateMemberDto,
 } from '@/modules/members/http/dto/members.dto'
@@ -41,7 +41,7 @@ export const membersRoutes =
           },
         },
       },
-      (req, reply) => controllers.createMember.handle(req as any, reply),
+      (req, reply) => controllers.createMember.handle(req.body, req.user.id, reply, req.log),
     )
 
     app.get(
@@ -69,7 +69,7 @@ export const membersRoutes =
           },
         },
       },
-      (req, reply) => controllers.getMembers.handle(req as any, reply),
+      (req, reply) => controllers.getMembers.handle(req.user.id, reply, req.log),
     )
 
     app.get(
@@ -89,7 +89,7 @@ export const membersRoutes =
           },
         },
       },
-      (req, reply) => controllers.getMember.handle(req as any, reply),
+      (req, reply) => controllers.getMember.handle(req.params.memberId, req.user.id, reply, req.log),
     )
 
     app.patch(
@@ -110,7 +110,8 @@ export const membersRoutes =
           },
         },
       },
-      (req, reply) => controllers.updateMember.handle(req as any, reply),
+      (req, reply) =>
+        controllers.updateMember.handle(req.params.memberId, req.body, req.user.id, reply, req.log),
     )
 
     app.delete(
@@ -130,7 +131,7 @@ export const membersRoutes =
           },
         },
       },
-      (req, reply) => controllers.deleteMember.handle(req as any, reply),
+      (req, reply) => controllers.deleteMember.handle(req.params.memberId, req.user.id, reply, req.log),
     )
 
     app.get(
@@ -141,7 +142,7 @@ export const membersRoutes =
           summary: 'Obter despesas de um membro agrupadas por cartão',
           tags: ['Members'],
           params: z.object({ memberId: z.string().uuid() }),
-          querystring: getMemberPurchasesQueryDto,
+          querystring: memberPeriodQueryDto,
           response: {
             200: z.object({
               cardsWithPurchases: z.array(
@@ -176,6 +177,13 @@ export const membersRoutes =
           },
         },
       },
-      (req, reply) => controllers.getMemberPurchases.handle(req as any, reply),
+      (req, reply) =>
+        controllers.getMemberPurchases.handle(
+          req.params.memberId,
+          req.user.id,
+          req.query,
+          reply,
+          req.log,
+        ),
     )
   }
