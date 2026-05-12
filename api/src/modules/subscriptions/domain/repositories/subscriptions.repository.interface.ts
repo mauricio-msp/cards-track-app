@@ -11,7 +11,7 @@ export type Subscription = {
   cardId: string
   memberId: string
   active: boolean
-  createdAt: Date
+  createdAt: string
 }
 
 export type SubscriptionRow = {
@@ -24,7 +24,7 @@ export type SubscriptionRow = {
   cardName: string
   memberId: string
   memberName: string
-  createdAt: Date
+  createdAt: string
 }
 
 export interface ISubscriptionsRepository {

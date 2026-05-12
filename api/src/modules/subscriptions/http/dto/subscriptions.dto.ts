@@ -1,8 +1,8 @@
 import { z } from 'zod'
 
 export const createSubscriptionDto = z.object({
-  cardId: z.string(),
-  memberId: z.string(),
+  cardId: z.string().uuid(),
+  memberId: z.string().uuid(),
   name: z.string().min(1),
   amount: z.coerce.number().int().positive().describe('Valor em centavos'),
   billingDay: z.coerce.number().int().min(1).max(31),
@@ -12,7 +12,7 @@ export const updateSubscriptionDto = z.object({
   name: z.string().min(1).optional(),
   amount: z.coerce.number().int().positive().optional(),
   billingDay: z.coerce.number().int().min(1).max(31).optional(),
-  cardId: z.string().optional(),
+  cardId: z.string().uuid().optional(),
   active: z.boolean().optional(),
 })
 

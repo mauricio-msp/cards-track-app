@@ -16,6 +16,7 @@ export class SubscriptionsRepository implements ISubscriptionsRepository {
       .select({ id: cards.id })
       .from(cards)
       .where(and(eq(cards.id, cardId), eq(cards.ownerUserId, userId)))
+      .limit(1)
     return card ?? null
   }
 
@@ -24,6 +25,7 @@ export class SubscriptionsRepository implements ISubscriptionsRepository {
       .select({ id: members.id })
       .from(members)
       .where(and(eq(members.id, memberId), isNull(members.deletedAt)))
+      .limit(1)
     return member ?? null
   }
 
@@ -32,11 +34,12 @@ export class SubscriptionsRepository implements ISubscriptionsRepository {
       .select({ id: subscriptions.id })
       .from(subscriptions)
       .where(and(eq(subscriptions.id, id), eq(subscriptions.userId, userId)))
+      .limit(1)
     return sub ?? null
   }
 
   async findAll(userId: string): Promise<SubscriptionRow[]> {
-    return this.db
+    const rows = await this.db
       .select({
         id: subscriptions.id,
         name: subscriptions.name,
@@ -54,6 +57,8 @@ export class SubscriptionsRepository implements ISubscriptionsRepository {
       .innerJoin(members, eq(subscriptions.memberId, members.id))
       .where(eq(subscriptions.userId, userId))
       .orderBy(subscriptions.createdAt)
+
+    return rows.map(r => ({ ...r, createdAt: r.createdAt.toISOString() }))
   }
 
   async create(data: CreateSubscriptionInput & { userId: string }): Promise<Subscription> {
@@ -68,7 +73,7 @@ export class SubscriptionsRepository implements ISubscriptionsRepository {
         billingDay: data.billingDay,
       })
       .returning()
-    return created
+    return { ...created, createdAt: created.createdAt.toISOString() }
   }
 
   async update(id: string, data: UpdateSubscriptionInput): Promise<void> {
