@@ -5,7 +5,7 @@ import { useFieldArray, useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { useCreatePurchase } from '@/features/credit-card/hooks/purchases/use-create-purchase'
 import type { Member } from '@/features/member/api/get-members'
-import { useMembersStore } from '@/hooks/store/use-members-store'
+import { useMembers } from '@/features/member/hooks'
 import { formatValueToCents } from '@/lib/utils'
 
 const CreatePurchaseFormSchema = z.object({
@@ -63,7 +63,7 @@ const defaultValues: Partial<CreatePurchaseFormValues> = {
 export function useCreatePurchaseForm() {
   const { id: cardId } = useParams({ from: '/_app/credit-card/$id' })
   const { mutateAsync: createPurchaseFn, isPending } = useCreatePurchase(cardId)
-  const membersStore = useMembersStore(state => state.members)
+  const { data: { members: membersStore } } = useMembers()
 
   const [calendarOpen, setCalendarOpen] = React.useState(false)
   const [installmentsEnabled, setInstallmentsEnabled] = React.useState(false)

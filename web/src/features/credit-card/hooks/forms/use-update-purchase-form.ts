@@ -6,7 +6,7 @@ import { z } from 'zod'
 import type { GetCardPurchasesItem } from '@/features/credit-card/api/get-card-purchases'
 import { useUpdatePurchase } from '@/features/credit-card/hooks/purchases/use-update-purchase'
 import type { Member } from '@/features/member/api/get-members'
-import { useMembersStore } from '@/hooks/store/use-members-store'
+import { useMembers } from '@/features/member/hooks'
 import { formatValueToCents } from '@/lib/utils'
 
 // Mesmo schema do create — ambos exigem os mesmos campos
@@ -58,7 +58,7 @@ type Purchase = z.infer<typeof GetCardPurchasesItem>
 export function useUpdatePurchaseForm(purchase: Purchase) {
   const { id: cardId } = useParams({ from: '/_app/credit-card/$id' })
   const { mutateAsync: updatePurchaseFn, isPending } = useUpdatePurchase(cardId)
-  const membersStore = useMembersStore(state => state.members)
+  const { data: { members: membersStore } } = useMembers()
 
   const [calendarOpen, setCalendarOpen] = React.useState(false)
   const [installmentsEnabled, setInstallmentsEnabled] = React.useState(purchase.installmentsCount > 1)
