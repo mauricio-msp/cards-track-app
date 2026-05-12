@@ -1,8 +1,8 @@
 import { boolean, integer, pgTable, text, timestamp } from 'drizzle-orm/pg-core'
 import { uuidv7 } from 'uuidv7'
+import { users } from '@/db/schema/auth/users'
 import { cards } from '@/db/schema/cards'
 import { members } from '@/db/schema/members'
-import { users } from '@/db/schema/users'
 
 export const subscriptions = pgTable('subscriptions', {
   id: text('id')

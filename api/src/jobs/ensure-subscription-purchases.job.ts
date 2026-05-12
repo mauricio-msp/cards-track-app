@@ -136,7 +136,6 @@ export async function ensureSubscriptionPurchases(db: typeof Db): Promise<void> 
 
     await db.insert(installments).values({
       purchaseMemberId: pm.id,
-      debtId: pm.id,
       invoiceId: invoice.id,
       memberId: sub.memberId,
       number: 1,

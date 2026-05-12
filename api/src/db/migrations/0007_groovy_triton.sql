@@ -1,0 +1,1 @@
+ALTER TABLE "installments" ALTER COLUMN "debt_id" DROP NOT NULL;

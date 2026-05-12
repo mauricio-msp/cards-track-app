@@ -134,7 +134,6 @@ export class PurchasesRepository implements IPurchasesRepository {
 
           installmentRows.push({
             purchaseMemberId: pm.id,
-            debtId: pm.id,
             invoiceId: inv.id,
             memberId: member.id,
             number: num,
@@ -274,7 +273,6 @@ export class PurchasesRepository implements IPurchasesRepository {
 
       await tx.insert(installments).values({
         purchaseMemberId: pmId,
-        debtId: pmId,
         memberId,
         invoiceId: inv.id,
         number: anticipateFromInstallment,

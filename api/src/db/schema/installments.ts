@@ -1,6 +1,6 @@
 import { index, integer, pgTable, text, timestamp } from 'drizzle-orm/pg-core'
 import { uuidv7 } from 'uuidv7'
-import { debts, invoices, members } from '@/db/schema'
+import { invoices, members } from '@/db/schema'
 
 export const installments = pgTable(
   'installments',
@@ -8,10 +8,6 @@ export const installments = pgTable(
     id: text('id')
       .primaryKey()
       .$defaultFn(() => uuidv7()),
-
-    debtId: text('debt_id')
-      .notNull()
-      .references(() => debts.id, { onDelete: 'cascade' }),
 
     invoiceId: text('invoice_id')
       .notNull()
@@ -21,7 +17,6 @@ export const installments = pgTable(
       .notNull()
       .references(() => members.id, { onDelete: 'cascade' }),
 
-    // Bridge column for new schema — populated by migration script, then made NOT NULL
     purchaseMemberId: text('purchase_member_id'),
 
     number: integer('number').notNull(),
@@ -31,7 +26,6 @@ export const installments = pgTable(
     createdAt: timestamp('created_at').notNull().defaultNow(),
   },
   table => [
-    index('installments_debt_id_idx').on(table.debtId),
     index('installments_invoice_id_idx').on(table.invoiceId),
     index('installments_paid_at_idx').on(table.paidAt),
   ],
