@@ -1,11 +1,14 @@
 import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod'
 import { z } from 'zod'
 import { authMiddleware } from '@/middleware/auth'
-import { createSubscriptionDto, updateSubscriptionDto } from '@/modules/subscriptions/http/dto/subscriptions.dto'
 import type { CreateSubscriptionController } from '@/modules/subscriptions/http/controllers/create-subscription.controller'
 import type { DeactivateSubscriptionController } from '@/modules/subscriptions/http/controllers/deactivate-subscription.controller'
 import type { GetSubscriptionsController } from '@/modules/subscriptions/http/controllers/get-subscriptions.controller'
 import type { UpdateSubscriptionController } from '@/modules/subscriptions/http/controllers/update-subscription.controller'
+import {
+  createSubscriptionDto,
+  updateSubscriptionDto,
+} from '@/modules/subscriptions/http/dto/subscriptions.dto'
 
 type Controllers = {
   createSubscription: CreateSubscriptionController
@@ -42,7 +45,7 @@ export const subscriptionsRoutes =
           },
         },
       },
-      (req, reply) => controllers.createSubscription.handle(req, reply),
+      (req, reply) => controllers.createSubscription.handle(req as any, reply),
     )
 
     app.get(
@@ -72,7 +75,7 @@ export const subscriptionsRoutes =
           },
         },
       },
-      (req, reply) => controllers.getSubscriptions.handle(req, reply),
+      (req, reply) => controllers.getSubscriptions.handle(req as any, reply),
     )
 
     app.patch(
@@ -91,7 +94,7 @@ export const subscriptionsRoutes =
           },
         },
       },
-      (req, reply) => controllers.updateSubscription.handle(req, reply),
+      (req, reply) => controllers.updateSubscription.handle(req as any, reply),
     )
 
     app.delete(
@@ -108,6 +111,6 @@ export const subscriptionsRoutes =
           },
         },
       },
-      (req, reply) => controllers.deactivateSubscription.handle(req, reply),
+      (req, reply) => controllers.deactivateSubscription.handle(req as any, reply),
     )
   }

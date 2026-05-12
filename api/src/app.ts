@@ -16,8 +16,8 @@ import { env } from '@/env'
 import { auth } from '@/lib/auth'
 
 import { cardsModule } from '@/modules/cards'
-import { debtsModule } from '@/modules/debts'
 import { membersModule } from '@/modules/members'
+import { purchasesModule } from '@/modules/purchases'
 import { subscriptionsModule } from '@/modules/subscriptions'
 
 export const app = fastify({
@@ -80,12 +80,8 @@ if (env.NODE_ENV !== 'production') {
 
 // Cards
 app.register(cardsModule)
-
-// Members
 app.register(membersModule)
-
-// Debts/Overview
-app.register(debtsModule)
+app.register(purchasesModule)
 
 // Subscriptions
 app.register(subscriptionsModule)

@@ -11,7 +11,8 @@
     "db:studio": "drizzle-kit studio",
     "db:seed": "tsx --env-file=.env src/db/seed.ts",
     "db:migrate-data": "tsx --env-file=.env src/scripts/migrate-debts-to-invoices.ts",
-    "db:migrate-data-v2": "tsx --env-file=.env src/scripts/migrate-debts-to-invoices-v2.ts"
+    "db:migrate-data-v2": "tsx --env-file=.env src/scripts/migrate-debts-to-invoices-v2.ts",
+    "db:migrate-schema": "tsx --env-file=.env src/scripts/migrate-to-new-schema.ts"
   },
   "keywords": [],
   "author": "",
