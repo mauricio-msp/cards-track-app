@@ -8,6 +8,7 @@ import type {
   ICardsRepository,
 } from '@/modules/cards/domain/repositories/cards.repository.interface'
 import type { Card, CreateCardInput, UpdateCardInput } from '@/modules/cards/http/dto/cards.dto'
+import { calculateConsolidation } from '@/utils/calculate-consolidation'
 import { calculateInvoiceCompetence } from '@/utils/calculate-invoice-competence'
 
 type PurchaseRow = {
@@ -17,10 +18,6 @@ type PurchaseRow = {
   installment: typeof installments.$inferSelect
 }
 
-type ConsolidationResult = {
-  consolidatedCount: number
-  remainingInstallments: number
-}
 
 export class CardsRepository implements ICardsRepository {
   constructor(private readonly db: typeof Db) {}
@@ -189,27 +186,6 @@ export class CardsRepository implements ICardsRepository {
 
   // ─── Private helpers ──────────────────────────────────────────────────────────
 
-  private resolveConsolidation(
-    amount: number,
-    pmInstallmentAmount: number,
-    installmentsCount: number,
-    currentInstallment: number,
-  ): ConsolidationResult {
-    const rawCount =
-      pmInstallmentAmount > 0 ? Math.round(amount / pmInstallmentAmount) : 0
-    const consolidatedCount =
-      Number.isFinite(rawCount) && rawCount > 0
-        ? rawCount
-        : installmentsCount - currentInstallment + 1
-    return {
-      consolidatedCount,
-      remainingInstallments: Math.max(
-        installmentsCount - (currentInstallment + consolidatedCount - 1),
-        0,
-      ),
-    }
-  }
-
   private countAnticipatableInstallments(
     currentInstallment: number,
     installmentsCount: number,
@@ -265,7 +241,7 @@ export class CardsRepository implements ICardsRepository {
             )
 
         const { consolidatedCount, remainingInstallments } = isConsolidation
-          ? this.resolveConsolidation(
+          ? calculateConsolidation(
               amount,
               pm.installmentAmount,
               purchase.installmentsCount,
@@ -296,7 +272,7 @@ export class CardsRepository implements ICardsRepository {
         grouped.set(purchase.id, group)
         memberMaps.set(purchase.id, new Map())
       } else if (isConsolidation && !group.anticipatedAt) {
-        const { consolidatedCount, remainingInstallments } = this.resolveConsolidation(
+        const { consolidatedCount, remainingInstallments } = calculateConsolidation(
           amount,
           pm.installmentAmount,
           purchase.installmentsCount,
