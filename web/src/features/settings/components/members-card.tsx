@@ -1,5 +1,5 @@
 import { Pencil, Plus, Star, Trash2, Users } from 'lucide-react'
-import React, { useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import { ActionAlertDialog } from '@/components/action-alert-dialog'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
@@ -18,11 +18,13 @@ export function MembersCard() {
   const { mutateAsync: deleteMemberFn } = useDeleteMember()
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null)
 
-  const titularMember = members.find(member => member.relationship === 'Titular')
-  const otherMembers = members
-    .filter(member => member.relationship !== 'Titular')
-    .sort((a, b) => a.name.localeCompare(b.name))
-  const sortedMembers = titularMember ? [titularMember, ...otherMembers] : otherMembers
+  const sortedMembers = useMemo(() => {
+    const titular = members.find(m => m.relationship === 'Titular')
+    const others = members
+      .filter(m => m.relationship !== 'Titular')
+      .sort((a, b) => a.name.localeCompare(b.name))
+    return titular ? [titular, ...others] : others
+  }, [members])
 
   return (
     <Card>

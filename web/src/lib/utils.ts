@@ -15,8 +15,16 @@ export function getInitialLetters(name: string): string {
   return firstLetter + secondLetter
 }
 
+const brlFormatter = new Intl.NumberFormat('pt-br', { style: 'currency', currency: 'BRL' })
+
 export function formatPrice(value: number) {
-  return new Intl.NumberFormat('pt-br', { style: 'currency', currency: 'BRL' }).format(value)
+  return brlFormatter.format(value)
+}
+
+export function formatCompact(cents: number) {
+  const value = cents / 100
+  if (value >= 1000) return `R$ ${(value / 1000).toFixed(1)}k`
+  return formatPrice(value)
 }
 
 export function formatValueToCents(value: string): number | null {

@@ -1,5 +1,6 @@
 import { Link } from '@tanstack/react-router'
 import { Plus, User, UserX } from 'lucide-react'
+import { useMemo } from 'react'
 
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
@@ -36,27 +37,21 @@ export function PurchasesMembersList({ cardId }: { cardId: string }) {
     data: { totalAmountMonth },
   } = useMonthTotalAmountCard(cardId)
 
-  const members = purchases.flatMap(purchase => purchase.members)
-
-  const memberByPurchases = members.reduce(
-    (acc, member) => {
-      const id = member.id
-
-      if (!acc[id]) {
-        acc[id] = {
-          id,
-          name: member.name,
-          relationship: member.relationship,
-          installmentAmount: 0,
+  const { members, memberByPurchases } = useMemo(() => {
+    const members = purchases.flatMap(purchase => purchase.members)
+    const memberByPurchases = members.reduce(
+      (acc, member) => {
+        const id = member.id
+        if (!acc[id]) {
+          acc[id] = { id, name: member.name, relationship: member.relationship, installmentAmount: 0 }
         }
-      }
-
-      acc[id].installmentAmount += member.installmentAmount
-
-      return acc
-    },
-    {} as Record<string, Omit<Member, 'remainingInstallments'>>,
-  )
+        acc[id].installmentAmount += member.installmentAmount
+        return acc
+      },
+      {} as Record<string, Omit<Member, 'remainingInstallments'>>,
+    )
+    return { members, memberByPurchases }
+  }, [purchases])
 
   return (
     <Card
@@ -78,9 +73,7 @@ export function PurchasesMembersList({ cardId }: { cardId: string }) {
         {Object.values(memberByPurchases)
           .sort((a, b) => b.installmentAmount - a.installmentAmount)
           .map(member => {
-            const percentUsage = Number(
-              ((member.installmentAmount / 100) * 100) / (totalAmountMonth / 100),
-            )
+            const percentUsage = (member.installmentAmount / totalAmountMonth) * 100
 
             return (
               <Link
@@ -88,6 +81,7 @@ export function PurchasesMembersList({ cardId }: { cardId: string }) {
                 key={member.id}
                 params={{ id: member.id }}
                 className="space-y-3"
+                aria-label={`Ver detalhes de ${member.name}`}
               >
                 <div className="flex items-center gap-2">
                   <Avatar>
@@ -111,7 +105,11 @@ export function PurchasesMembersList({ cardId }: { cardId: string }) {
                     </span>
                   </div>
                 </div>
-                <Progress value={percentUsage} className="h-1.5" />
+                <Progress
+                  value={percentUsage}
+                  className="h-1.5"
+                  aria-label={`${member.name} representa ${percentUsage.toFixed(1)}% do total`}
+                />
               </Link>
             )
           })}

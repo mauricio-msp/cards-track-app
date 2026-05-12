@@ -9,13 +9,7 @@ import { creditCards } from '@/helpers/credit-cards'
 import { MONTHS } from '@/helpers/months'
 import { useHideValuesStore } from '@/hooks/store/use-hide-values-store'
 import { useIsMobile } from '@/hooks/use-mobile'
-import { formatPrice } from '@/lib/utils'
-
-function formatCompact(cents: number) {
-  const value = cents / 100
-  if (value >= 1000) return `R$ ${(value / 1000).toFixed(1)}k`
-  return formatPrice(value)
-}
+import { formatCompact, formatPrice } from '@/lib/utils'
 
 export function Details({ cardId }: { cardId: string }) {
   const { hideValues, toggleHideValues } = useHideValuesStore()
@@ -72,7 +66,12 @@ export function Details({ cardId }: { cardId: string }) {
         </div>
 
         <div className="ml-auto flex gap-1 self-start">
-          <Button size="icon" variant="ghost" onClick={toggleHideValues}>
+          <Button
+            size="icon"
+            variant="ghost"
+            onClick={toggleHideValues}
+            aria-label={hideValues ? 'Mostrar valores' : 'Ocultar valores'}
+          >
             {hideValues ? <EyeClosed className="size-4" /> : <Eye className="size-4" />}
           </Button>
         </div>
@@ -90,7 +89,10 @@ export function Details({ cardId }: { cardId: string }) {
             </span>
           </HiddenValue>
         </div>
-        <Progress value={((totalAmountCard / 100) * 100) / (card.limit / 100)} />
+        <Progress
+          value={(totalAmountCard / card.limit) * 100}
+          aria-label={`Limite utilizado: ${formatPrice(totalAmountCard / 100)} de ${formatPrice(card.limit / 100)}`}
+        />
       </CardContent>
       <CardFooter className="gap-1 justify-start md:justify-between">
         <div className="flex items-center gap-1 text-muted-foreground">

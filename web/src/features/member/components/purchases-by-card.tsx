@@ -1,6 +1,6 @@
 import type { LucideIcon } from 'lucide-react'
 import { BanknoteX, Dot, Sparkles, TriangleAlert, Zap } from 'lucide-react'
-import React from 'react'
+import React, { useMemo } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty'
@@ -136,6 +136,11 @@ export function PurchasesByCard({ memberId }: { memberId: string }) {
     data: { cardsWithPurchases },
   } = useMemberPurchases(memberId)
 
+  const sortedCards = useMemo(
+    () => cardsWithPurchases.slice().sort((a, b) => a.card.dueDay - b.card.dueDay),
+    [cardsWithPurchases],
+  )
+
   if (!cardsWithPurchases.length) {
     return (
       <Empty className="px-2 py-4 border border-dashed md:p-4">
@@ -162,11 +167,9 @@ export function PurchasesByCard({ memberId }: { memberId: string }) {
       )}
     >
       <div className="flex h-full gap-4 pb-3 lg:pb-0 after:content-[''] after:block after:w-0.5 after:shrink-0 lg:after:hidden">
-        {cardsWithPurchases
-          .sort((a, b) => a.card.dueDay - b.card.dueDay)
-          .map((cwd, index) => (
+        {sortedCards.map(cwd => (
             <Card
-              key={index}
+              key={cwd.card.name}
               className="w-xs md:w-md shrink-0 flex flex-col h-full gap-0 snap-start"
             >
               <CardHeader className="flex items-center gap-2 shrink-0 border-b">

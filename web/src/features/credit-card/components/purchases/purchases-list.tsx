@@ -1,4 +1,5 @@
 import { BanknoteX, CreditCard, Plus } from 'lucide-react'
+import { useMemo } from 'react'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -21,8 +22,9 @@ export function PurchasesList({ cardId }: { cardId: string }) {
 
   const { data } = useCardPurchases(cardId)
 
-  const sortedPurchases = [...data.purchases].sort(
-    (a, b) => Number(b.purchaseDate) - Number(a.purchaseDate),
+  const sortedPurchases = useMemo(
+    () => [...data.purchases].sort((a, b) => Number(b.purchaseDate) - Number(a.purchaseDate)),
+    [data.purchases],
   )
 
   return (
