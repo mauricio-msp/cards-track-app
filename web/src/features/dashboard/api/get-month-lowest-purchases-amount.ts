@@ -12,7 +12,7 @@ const MonthLowestPurchasesAmountResponse = z.object({
 })
 
 export async function getMonthLowestPurchasesAmount() {
-  const response = await fetch('http://localhost:3333/api/purchases/month-lowest-amount', {
+  const response = await fetch('http://localhost:3333/api/metrics/month-lowest-amount', {
     credentials: 'include',
   })
 

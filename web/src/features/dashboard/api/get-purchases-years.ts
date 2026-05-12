@@ -5,7 +5,7 @@ const GetPurchasesYearsResponse = z.object({
 })
 
 export async function getPurchasesYears() {
-  const response = await fetch('http://localhost:3333/api/purchases/years', {
+  const response = await fetch('http://localhost:3333/api/metrics/years', {
     credentials: 'include',
   })
 

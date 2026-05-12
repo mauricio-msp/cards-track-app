@@ -12,7 +12,7 @@ const MonthHighestPurchasesAmountResponse = z.object({
 })
 
 export async function getMonthHighestPurchasesAmount() {
-  const response = await fetch('http://localhost:3333/api/purchases/month-highest-amount', {
+  const response = await fetch('http://localhost:3333/api/metrics/month-highest-amount', {
     credentials: 'include',
   })
 

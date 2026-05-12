@@ -5,7 +5,7 @@ const MonthTotalPurchasesAmountResponse = z.object({
 })
 
 export async function getMonthTotalPurchasesAmount() {
-  const response = await fetch('http://localhost:3333/api/purchases/month-total-amount', {
+  const response = await fetch('http://localhost:3333/api/metrics/month-total-amount', {
     credentials: 'include',
   })
 

@@ -11,7 +11,7 @@ const GetPurchasesTrendResponse = z.object({
 export type GetPurchasesTrendResponse = z.infer<typeof GetPurchasesTrendResponse>
 
 export async function getPurchasesTrend({ year }: GetPurchasesTrendQuery) {
-  const url = new URL('http://localhost:3333/api/purchases/trend')
+  const url = new URL('http://localhost:3333/api/metrics/trend')
 
   if (year) url.searchParams.set('year', year.toString())
 
