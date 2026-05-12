@@ -1,1 +1,0 @@
-ALTER TABLE "debts" ALTER COLUMN "invoice_id" SET NOT NULL;

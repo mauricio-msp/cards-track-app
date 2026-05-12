@@ -1,1 +1,0 @@
-ALTER TABLE "debts" ADD COLUMN "anticipate_from_installment" integer;
