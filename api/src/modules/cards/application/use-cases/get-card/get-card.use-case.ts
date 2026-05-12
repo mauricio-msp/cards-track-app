@@ -7,7 +7,9 @@ export class GetCardUseCase {
 
   async execute(id: string, userId: string): Promise<Card> {
     const card = await this.repo.findById(id, userId)
+
     if (!card) throw new CardNotFoundError()
+
     return card
   }
 }

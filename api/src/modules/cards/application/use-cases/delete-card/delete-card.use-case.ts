@@ -9,11 +9,13 @@ export class DeleteCardUseCase {
 
   async execute(id: string, userId: string): Promise<void> {
     const card = await this.repo.findById(id, userId)
+
     if (!card) throw new CardNotFoundError()
 
     const hasPurchases = await this.repo.hasActiveInstallments(id)
 
     if (hasPurchases) throw new CardHasActivePurchasesError()
+
     return this.repo.delete(id)
   }
 }

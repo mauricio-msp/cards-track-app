@@ -1,13 +1,13 @@
-import type { FastifyReply, FastifyRequest } from 'fastify'
+import type { FastifyBaseLogger, FastifyReply } from 'fastify'
 import type { GetCardUseCase } from '@/modules/cards/application/use-cases/get-card/get-card.use-case'
 import { CardNotFoundError } from '@/modules/cards/domain/errors/cards.errors'
 
 export class GetCardController {
   constructor(private readonly useCase: GetCardUseCase) {}
 
-  async handle(request: FastifyRequest<{ Params: { cardId: string } }>, reply: FastifyReply) {
+  async handle(cardId: string, userId: string, reply: FastifyReply, log: FastifyBaseLogger) {
     try {
-      const card = await this.useCase.execute(request.params.cardId, request.user.id)
+      const card = await this.useCase.execute(cardId, userId)
       return reply.send({
         card: {
           name: card.name,
@@ -20,7 +20,8 @@ export class GetCardController {
       if (err instanceof CardNotFoundError) {
         return reply.status(404).send({ message: err.message })
       }
-      request.log.error(err)
+
+      log.error(err)
       return reply.status(500).send({ message: 'Falha ao buscar o cartão' })
     }
   }
