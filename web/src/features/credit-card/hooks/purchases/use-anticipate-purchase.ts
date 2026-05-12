@@ -1,16 +1,16 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { anticipateDebt } from '@/features/credit-card/api/anticipate-debt'
-import { useDebtsFilter } from '@/hooks/store/use-debts-filter-store'
+import { anticipatePurchase } from '@/features/credit-card/api/anticipate-purchase'
+import { usePurchasesFilter } from '@/hooks/store/use-purchases-filter-store'
 
-export function useAnticipateDebt(cardId: string) {
+export function useAnticipatePurchase(cardId: string) {
   const queryClient = useQueryClient()
-  const { month, year } = useDebtsFilter()
+  const { month, year } = usePurchasesFilter()
 
   return useMutation({
-    mutationFn: anticipateDebt,
+    mutationFn: anticipatePurchase,
     onSuccess: async () => {
       const keys = [
-        ['cards', cardId, 'debts', month, year],
+        ['cards', cardId, 'purchases', month, year],
         ['cards', cardId, 'month-total-amount', month, year],
         ['cards', cardId, 'total-amount-used'],
       ]

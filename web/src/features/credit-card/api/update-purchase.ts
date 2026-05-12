@@ -1,7 +1,7 @@
-// TODO: Uncomment when BE endpoint is ready (PATCH /api/debts/:id)
+// TODO: Uncomment when BE endpoint is ready (PATCH /api/purchases/:pmId)
 
-export type UpdateDebtRequest = {
-  debtId: string
+export type UpdatePurchaseRequest = {
+  pmId: string
   description: string
   category: string
   purchaseDate: Date
@@ -15,8 +15,8 @@ export type UpdateDebtRequest = {
   }>
 }
 
-// export async function updateDebt({ debtId, ...body }: UpdateDebtRequest) {
-//   const response = await fetch(`http://localhost:3333/api/debts/${debtId}`, {
+// export async function updatePurchase({ pmId, ...body }: UpdatePurchaseRequest) {
+//   const response = await fetch(`http://localhost:3333/api/purchases/${pmId}`, {
 //     method: 'PATCH',
 //     credentials: 'include',
 //     headers: { 'Content-Type': 'application/json' },
@@ -25,6 +25,6 @@ export type UpdateDebtRequest = {
 //   if (!response.ok) throw new Error('Erro ao atualizar despesa.')
 // }
 
-export async function updateDebt(_payload: UpdateDebtRequest): Promise<void> {
+export async function updatePurchase(_payload: UpdatePurchaseRequest): Promise<void> {
   // placeholder — substituir pelo fetch real quando o endpoint estiver disponível
 }

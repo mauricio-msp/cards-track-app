@@ -8,14 +8,14 @@ import { ErrorBoundary } from 'react-error-boundary'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 
-import { DebtsFilter, DebtsList, DebtsMembersList } from '@/features/credit-card/components/debts'
+import { PurchasesFilter, PurchasesList, PurchasesMembersList } from '@/features/credit-card/components/purchases'
 import {
-  DebtsListSkeleton,
-  DebtsMembersListSkeleton,
-} from '@/features/credit-card/components/debts/skeleton'
+  PurchasesListSkeleton,
+  PurchasesMembersListSkeleton,
+} from '@/features/credit-card/components/purchases/skeleton'
 import { Details } from '@/features/credit-card/components/details'
 import { CardError } from '@/features/credit-card/components/error/card-error'
-import { CreateDebtForm } from '@/features/credit-card/components/forms'
+import { CreatePurchaseForm } from '@/features/credit-card/components/forms'
 import { DetailsSkeleton, TotalAmountSkeleton } from '@/features/credit-card/components/skeleton'
 import { TotalAmount } from '@/features/credit-card/components/total-amount'
 import { useIsMobile } from '@/hooks/use-mobile'
@@ -35,7 +35,7 @@ export function Overview() {
           </Link>
         </Button>
 
-        <DebtsFilter />
+        <PurchasesFilter />
       </div>
 
       <ScrollArea
@@ -89,12 +89,12 @@ export function Overview() {
         </div>
       </ScrollArea>
 
-      <CreateDebtForm>
+      <CreatePurchaseForm>
         <Button variant="outline" className="md:self-start my-3 cursor-pointer">
           <PlusCircle />
           Adicionar despesa
         </Button>
-      </CreateDebtForm>
+      </CreatePurchaseForm>
 
       <div className="flex-1 grid auto-rows-min gap-4 grid-cols-1 lg:grid-cols-2 xl:grid-cols-4">
         <QueryErrorResetBoundary>
@@ -110,8 +110,8 @@ export function Overview() {
                 />
               )}
             >
-              <Suspense fallback={<DebtsListSkeleton />}>
-                <DebtsList cardId={id} />
+              <Suspense fallback={<PurchasesListSkeleton />}>
+                <PurchasesList cardId={id} />
               </Suspense>
             </ErrorBoundary>
           )}
@@ -125,8 +125,8 @@ export function Overview() {
                 <CardError title="Total por Pessoa" icon={User} {...props} />
               )}
             >
-              <Suspense fallback={<DebtsMembersListSkeleton />}>
-                <DebtsMembersList cardId={id} />
+              <Suspense fallback={<PurchasesMembersListSkeleton />}>
+                <PurchasesMembersList cardId={id} />
               </Suspense>
             </ErrorBoundary>
           )}

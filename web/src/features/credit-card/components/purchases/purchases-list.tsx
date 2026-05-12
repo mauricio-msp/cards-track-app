@@ -11,17 +11,17 @@ import {
   EmptyTitle,
 } from '@/components/ui/empty'
 
-import { DebtsItem } from '@/features/credit-card/components/debts/debts-item'
-import { CreateDebtForm } from '@/features/credit-card/components/forms'
-import { useAnticipateDebt, useCardDebts, useDeleteDebt } from '@/features/credit-card/hooks'
+import { PurchasesItem } from '@/features/credit-card/components/purchases/purchases-item'
+import { CreatePurchaseForm } from '@/features/credit-card/components/forms'
+import { useAnticipatePurchase, useCardPurchases, useDeletePurchase } from '@/features/credit-card/hooks'
 
-export function DebtsList({ cardId }: { cardId: string }) {
-  const { mutateAsync: anticipateDebtFn } = useAnticipateDebt(cardId)
-  const { mutateAsync: deleteDebtFn } = useDeleteDebt(cardId)
+export function PurchasesList({ cardId }: { cardId: string }) {
+  const { mutateAsync: anticipatePurchaseFn } = useAnticipatePurchase(cardId)
+  const { mutateAsync: deletePurchaseFn } = useDeletePurchase(cardId)
 
-  const { data } = useCardDebts(cardId)
+  const { data } = useCardPurchases(cardId)
 
-  const sortedDebts = [...data.debts].sort(
+  const sortedPurchases = [...data.purchases].sort(
     (a, b) => Number(b.purchaseDate) - Number(a.purchaseDate),
   )
 
@@ -40,21 +40,21 @@ export function DebtsList({ cardId }: { cardId: string }) {
       </CardHeader>
 
       <CardContent className="flex flex-col gap-4 sm:gap-2 px-0 sm:px-6">
-        {sortedDebts.map(debt => (
-          <DebtsItem
-            key={debt.groupId}
-            debt={debt}
+        {sortedPurchases.map(purchase => (
+          <PurchasesItem
+            key={purchase.groupId}
+            purchase={purchase}
             onAnticipate={count =>
-              anticipateDebtFn({
-                debtId: debt.debtId,
+              anticipatePurchaseFn({
+                purchaseMemberId: purchase.purchaseMemberId,
                 anticipateCount: count,
               })
             }
-            onDelete={debtId => deleteDebtFn(debtId)}
+            onDelete={purchaseMemberId => deletePurchaseFn(purchaseMemberId)}
           />
         ))}
 
-        {sortedDebts.length === 0 && (
+        {sortedPurchases.length === 0 && (
           <Empty className="px-2 py-8 border border-dashed">
             <EmptyHeader>
               <EmptyMedia variant="icon">
@@ -66,11 +66,11 @@ export function DebtsList({ cardId }: { cardId: string }) {
               </EmptyDescription>
             </EmptyHeader>
             <EmptyContent>
-              <CreateDebtForm>
+              <CreatePurchaseForm>
                 <Button variant="outline" size="sm">
                   <Plus className="mr-2 size-4" /> Adicionar despesa
                 </Button>
-              </CreateDebtForm>
+              </CreatePurchaseForm>
             </EmptyContent>
           </Empty>
         )}

@@ -28,7 +28,7 @@ function MemberItemSkeleton() {
   )
 }
 
-export function DebtsMembersListSkeleton() {
+export function PurchasesMembersListSkeleton() {
   return (
     <Card className="h-max col-span-1 lg:col-span-2 xl:col-span-1 sticky top-4">
       {/* Header */}

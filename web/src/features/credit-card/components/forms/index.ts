@@ -1,5 +1,5 @@
 export { CreateCardForm } from '@/features/credit-card/components/forms/create-card-form'
-export { CreateDebtForm } from '@/features/credit-card/components/forms/create-debt-form'
-export { DebtFormFields } from '@/features/credit-card/components/forms/debt-form-fields'
+export { CreatePurchaseForm } from '@/features/credit-card/components/forms/create-purchase-form'
+export { PurchaseFormFields } from '@/features/credit-card/components/forms/purchase-form-fields'
 export { UpdateCardForm } from '@/features/credit-card/components/forms/update-card-form'
-export { UpdateDebtForm } from '@/features/credit-card/components/forms/update-debt-form'
+export { UpdatePurchaseForm } from '@/features/credit-card/components/forms/update-purchase-form'

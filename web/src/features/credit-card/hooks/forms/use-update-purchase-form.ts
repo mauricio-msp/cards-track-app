@@ -3,14 +3,14 @@ import { useParams } from '@tanstack/react-router'
 import React from 'react'
 import { useFieldArray, useForm } from 'react-hook-form'
 import { z } from 'zod'
-import type { GetCardDebtsItem } from '@/features/credit-card/api/get-card-debts'
-import { useUpdateDebt } from '@/features/credit-card/hooks/debts/use-update-debt'
+import type { GetCardPurchasesItem } from '@/features/credit-card/api/get-card-purchases'
+import { useUpdatePurchase } from '@/features/credit-card/hooks/purchases/use-update-purchase'
 import type { Member } from '@/features/member/api/get-members'
 import { useMembersStore } from '@/hooks/store/use-members-store'
 import { formatValueToCents } from '@/lib/utils'
 
 // Mesmo schema do create — ambos exigem os mesmos campos
-const UpdateDebtFormSchema = z.object({
+const UpdatePurchaseFormSchema = z.object({
   description: z.string().min(1, 'Descrição é obrigatória'),
   members: z
     .array(
@@ -51,27 +51,27 @@ const UpdateDebtFormSchema = z.object({
     .positive('Deve ser maior que zero'),
 })
 
-export type UpdateDebtFormValues = z.infer<typeof UpdateDebtFormSchema>
+export type UpdatePurchaseFormValues = z.infer<typeof UpdatePurchaseFormSchema>
 
-type Debt = z.infer<typeof GetCardDebtsItem>
+type Purchase = z.infer<typeof GetCardPurchasesItem>
 
-export function useUpdateDebtForm(debt: Debt) {
+export function useUpdatePurchaseForm(purchase: Purchase) {
   const { id: cardId } = useParams({ from: '/_app/credit-card/$id' })
-  const { mutateAsync: updateDebtFn, isPending } = useUpdateDebt(cardId)
+  const { mutateAsync: updatePurchaseFn, isPending } = useUpdatePurchase(cardId)
   const membersStore = useMembersStore(state => state.members)
 
   const [calendarOpen, setCalendarOpen] = React.useState(false)
-  const [installmentsEnabled, setInstallmentsEnabled] = React.useState(debt.installmentsCount > 1)
+  const [installmentsEnabled, setInstallmentsEnabled] = React.useState(purchase.installmentsCount > 1)
 
-  const form = useForm<UpdateDebtFormValues>({
-    resolver: zodResolver(UpdateDebtFormSchema),
+  const form = useForm<UpdatePurchaseFormValues>({
+    resolver: zodResolver(UpdatePurchaseFormSchema),
     // Popula o form com os dados existentes da despesa
     defaultValues: {
-      description: debt.description,
-      category: debt.category,
-      purchaseDate: new Date(debt.purchaseDate),
-      installmentsCount: debt.installmentsCount,
-      members: debt.members.map(member => ({
+      description: purchase.description,
+      category: purchase.category,
+      purchaseDate: new Date(purchase.purchaseDate),
+      installmentsCount: purchase.installmentsCount,
+      members: purchase.members.map(member => ({
         id: member.id,
         name: member.name,
         // installmentAmount está em centavos → converte para string "0.00"
@@ -79,7 +79,7 @@ export function useUpdateDebtForm(debt: Debt) {
         // TODO: o BE ainda não retorna startInstallment/endInstallment por membro.
         // Quando o endpoint de update retornar esses dados, mapear corretamente.
         startInstallment: 1,
-        endInstallment: debt.installmentsCount,
+        endInstallment: purchase.installmentsCount,
       })),
     },
     mode: 'onSubmit',
@@ -129,9 +129,9 @@ export function useUpdateDebtForm(debt: Debt) {
     members,
     purchaseDate,
     installmentsCount,
-  }: UpdateDebtFormValues) {
-    await updateDebtFn({
-      debtId: debt.debtId,
+  }: UpdatePurchaseFormValues) {
+    await updatePurchaseFn({
+      pmId: purchase.purchaseMemberId,
       cardId,
       members: members.map(member => ({
         ...member,
@@ -143,7 +143,7 @@ export function useUpdateDebtForm(debt: Debt) {
       description,
       purchaseDate: new Date(purchaseDate),
       installmentsCount,
-    } as Parameters<typeof updateDebtFn>[0])
+    } as Parameters<typeof updatePurchaseFn>[0])
 
     // TODO: fechar o dialog após sucesso (passar onSuccess callback ou usar estado externo)
   }

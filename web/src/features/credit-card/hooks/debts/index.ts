@@ -1,6 +1,0 @@
-export { useCreateDebt } from '@/features/credit-card/hooks/debts/use-create-debt'
-export { useUpdateDebt } from '@/features/credit-card/hooks/debts/use-update-debt'
-export { useDeleteDebt } from '@/features/credit-card/hooks/debts/use-delete-debt'
-export { useAnticipateDebt } from '@/features/credit-card/hooks/debts/use-anticipate-debt'
-export { useCardDebts } from '@/features/credit-card/hooks/debts/use-card-debts'
-export { useMonthTotalAmountCard } from '@/features/credit-card/hooks/debts/use-month-total-amount-card'

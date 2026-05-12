@@ -3,12 +3,12 @@ import { useParams } from '@tanstack/react-router'
 import React from 'react'
 import { useFieldArray, useForm } from 'react-hook-form'
 import { z } from 'zod'
-import { useCreateDebt } from '@/features/credit-card/hooks/debts/use-create-debt'
+import { useCreatePurchase } from '@/features/credit-card/hooks/purchases/use-create-purchase'
 import type { Member } from '@/features/member/api/get-members'
 import { useMembersStore } from '@/hooks/store/use-members-store'
 import { formatValueToCents } from '@/lib/utils'
 
-const CreateDebtFormSchema = z.object({
+const CreatePurchaseFormSchema = z.object({
   description: z.string().min(1, 'Descrição é obrigatória'),
   members: z
     .array(
@@ -50,9 +50,9 @@ const CreateDebtFormSchema = z.object({
   billingDay: z.number().int().min(1, 'Mínimo 1').max(31, 'Máximo 31').optional(),
 })
 
-export type CreateDebtFormValues = z.infer<typeof CreateDebtFormSchema>
+export type CreatePurchaseFormValues = z.infer<typeof CreatePurchaseFormSchema>
 
-const defaultValues: Partial<CreateDebtFormValues> = {
+const defaultValues: Partial<CreatePurchaseFormValues> = {
   members: [],
   category: '',
   description: '',
@@ -60,17 +60,17 @@ const defaultValues: Partial<CreateDebtFormValues> = {
   installmentsCount: 1,
 }
 
-export function useCreateDebtForm() {
+export function useCreatePurchaseForm() {
   const { id: cardId } = useParams({ from: '/_app/credit-card/$id' })
-  const { mutateAsync: createDebtFn, isPending } = useCreateDebt(cardId)
+  const { mutateAsync: createPurchaseFn, isPending } = useCreatePurchase(cardId)
   const membersStore = useMembersStore(state => state.members)
 
   const [calendarOpen, setCalendarOpen] = React.useState(false)
   const [installmentsEnabled, setInstallmentsEnabled] = React.useState(false)
   const [isRecurring, setIsRecurring] = React.useState(false)
 
-  const form = useForm<CreateDebtFormValues>({
-    resolver: zodResolver(CreateDebtFormSchema),
+  const form = useForm<CreatePurchaseFormValues>({
+    resolver: zodResolver(CreatePurchaseFormSchema),
     defaultValues,
     mode: 'onSubmit',
     reValidateMode: 'onSubmit',
@@ -138,8 +138,8 @@ export function useCreateDebtForm() {
     purchaseDate,
     installmentsCount,
     billingDay,
-  }: CreateDebtFormValues) {
-    await createDebtFn({
+  }: CreatePurchaseFormValues) {
+    await createPurchaseFn({
       cardId,
       members: members.map(member => ({
         ...member,

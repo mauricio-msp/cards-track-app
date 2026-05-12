@@ -1,17 +1,17 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 
-import { createDebt } from '@/features/credit-card/api'
-import { useDebtsFilter } from '@/hooks/store/use-debts-filter-store'
+import { createPurchase } from '@/features/credit-card/api'
+import { usePurchasesFilter } from '@/hooks/store/use-purchases-filter-store'
 
-export function useCreateDebt(cardId: string) {
+export function useCreatePurchase(cardId: string) {
   const queryClient = useQueryClient()
-  const { month, year } = useDebtsFilter()
+  const { month, year } = usePurchasesFilter()
 
   return useMutation({
-    mutationFn: createDebt,
+    mutationFn: createPurchase,
     onSuccess: async () => {
       await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ['cards', cardId, 'debts', month, year] }),
+        queryClient.invalidateQueries({ queryKey: ['cards', cardId, 'purchases', month, year] }),
         queryClient.invalidateQueries({
           queryKey: ['cards', cardId, 'month-total-amount', month, year],
         }),
@@ -20,7 +20,7 @@ export function useCreateDebt(cardId: string) {
       ])
     },
     onError: error => {
-      console.error('Failed to create debt:', error)
+      console.error('Failed to create purchase:', error)
     },
   })
 }

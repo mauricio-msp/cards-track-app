@@ -13,18 +13,18 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
-import type { GetCardDebtsItem } from '@/features/credit-card/api/get-card-debts'
-import { DebtFormFields } from '@/features/credit-card/components/forms/debt-form-fields'
-import { useUpdateDebtForm } from '@/features/credit-card/hooks'
+import type { GetCardPurchasesItem } from '@/features/credit-card/api/get-card-purchases'
+import { PurchaseFormFields } from '@/features/credit-card/components/forms/purchase-form-fields'
+import { useUpdatePurchaseForm } from '@/features/credit-card/hooks'
 
-type Debt = z.infer<typeof GetCardDebtsItem>
+type Purchase = z.infer<typeof GetCardPurchasesItem>
 
-interface UpdateDebtFormProps {
-  debt: Debt
+interface UpdatePurchaseFormProps {
+  purchase: Purchase
   children: ReactNode
 }
 
-export function UpdateDebtForm({ debt, children }: UpdateDebtFormProps) {
+export function UpdatePurchaseForm({ purchase, children }: UpdatePurchaseFormProps) {
   const {
     form,
     fields,
@@ -38,7 +38,7 @@ export function UpdateDebtForm({ debt, children }: UpdateDebtFormProps) {
     membersStore,
     handleMembersChange,
     onSubmit,
-  } = useUpdateDebtForm(debt)
+  } = useUpdatePurchaseForm(purchase)
 
   const {
     control,
@@ -57,7 +57,7 @@ export function UpdateDebtForm({ debt, children }: UpdateDebtFormProps) {
             <DialogDescription>Atualize as informações da despesa selecionada.</DialogDescription>
           </DialogHeader>
 
-          <DebtFormFields
+          <PurchaseFormFields
             control={control}
             register={register}
             errors={errors}

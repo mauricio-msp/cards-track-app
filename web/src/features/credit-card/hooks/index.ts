@@ -1,22 +1,22 @@
-export {
-  useAnticipateDebt,
-  useCardDebts,
-  useCreateDebt,
-  useDeleteDebt,
-  useMonthTotalAmountCard,
-  useUpdateDebt,
-} from '@/features/credit-card/hooks/debts'
 export type {
-  CreateDebtFormValues,
+  CreatePurchaseFormValues,
   UpdateCardFormValues,
-  UpdateDebtFormValues,
+  UpdatePurchaseFormValues,
 } from '@/features/credit-card/hooks/forms'
 export {
   useCreateCardForm,
-  useCreateDebtForm,
+  useCreatePurchaseForm,
   useUpdateCardForm,
-  useUpdateDebtForm,
+  useUpdatePurchaseForm,
 } from '@/features/credit-card/hooks/forms'
+export {
+  useAnticipatePurchase,
+  useCardPurchases,
+  useCreatePurchase,
+  useDeletePurchase,
+  useMonthTotalAmountCard,
+  useUpdatePurchase,
+} from '@/features/credit-card/hooks/purchases'
 export { useCard } from '@/features/credit-card/hooks/use-card'
 export { useCards } from '@/features/credit-card/hooks/use-cards'
 export { useCreateCard } from '@/features/credit-card/hooks/use-create-card'

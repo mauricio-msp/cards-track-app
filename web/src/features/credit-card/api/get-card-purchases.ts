@@ -1,19 +1,19 @@
 import { z } from 'zod'
 
-type GetCardDebtsParams = {
+type GetCardPurchasesParams = {
   id: string
 }
 
-type GetCardDebtsQuery = {
+type GetCardPurchasesQuery = {
   year?: number
   month?: number
 }
 
-export const GetCardDebtsItem = z.object({
-  debtId: z.string(),
+export const GetCardPurchasesItem = z.object({
+  purchaseMemberId: z.string(),
   groupId: z.string(),
   description: z.string(),
-  category: z.string(),
+  category: z.string().nullable(),
   purchaseDate: z.coerce.date(),
   totalAmount: z.coerce.number(),
   installmentsCount: z.coerce.number(),
@@ -35,12 +35,12 @@ export const GetCardDebtsItem = z.object({
   ),
 })
 
-const GetCardDebtsResponse = z.object({
-  debts: z.array(GetCardDebtsItem),
+const GetCardPurchasesResponse = z.object({
+  purchases: z.array(GetCardPurchasesItem),
 })
 
-export async function getCardDebts({ id, month, year }: GetCardDebtsParams & GetCardDebtsQuery) {
-  const url = new URL(`http://localhost:3333/api/cards/${id}/debts`)
+export async function getCardPurchases({ id, month, year }: GetCardPurchasesParams & GetCardPurchasesQuery) {
+  const url = new URL(`http://localhost:3333/api/cards/${id}/purchases`)
 
   if (year?.toString()) url.searchParams.set('year', String(year))
   if (month?.toString()) url.searchParams.set('month', String(month))
@@ -53,5 +53,5 @@ export async function getCardDebts({ id, month, year }: GetCardDebtsParams & Get
 
   const datas = await response.json()
 
-  return GetCardDebtsResponse.parse(datas)
+  return GetCardPurchasesResponse.parse(datas)
 }

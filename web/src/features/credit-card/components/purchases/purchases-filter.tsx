@@ -18,19 +18,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { useDebtsYears } from '@/features/dashboard/hooks'
+import { usePurchasesYears } from '@/features/dashboard/hooks'
 import { MONTHS } from '@/helpers/months'
-import { useDebtsFilter } from '@/hooks/store/use-debts-filter-store'
+import { usePurchasesFilter } from '@/hooks/store/use-purchases-filter-store'
 import { useIsMobile } from '@/hooks/use-mobile'
 
-export function DebtsFilter() {
+export function PurchasesFilter() {
   const {
     data: { years: yearsToFilter },
-  } = useDebtsYears()
+  } = usePurchasesYears()
   const isMobile = useIsMobile()
   const isDesktop = !isMobile
 
-  const { month, year, setFilters, clearFilters } = useDebtsFilter()
+  const { month, year, setFilters, clearFilters } = usePurchasesFilter()
 
   return (
     <Popover>

@@ -1,4 +1,4 @@
-type CreateDebtRequest = {
+type CreatePurchaseRequest = {
   cardId: string
   members: Array<{
     id: string
@@ -15,7 +15,7 @@ type CreateDebtRequest = {
   billingDay?: number
 }
 
-export async function createDebt({
+export async function createPurchase({
   cardId,
   members,
   category,
@@ -24,8 +24,8 @@ export async function createDebt({
   installmentsCount,
   isRecurring,
   billingDay,
-}: CreateDebtRequest) {
-  await fetch('http://localhost:3333/api/debts', {
+}: CreatePurchaseRequest) {
+  await fetch('http://localhost:3333/api/purchases', {
     method: 'POST',
     credentials: 'include',
     headers: {

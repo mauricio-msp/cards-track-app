@@ -28,15 +28,15 @@ import {
 import { HiddenValue } from '@/components/ui/hidden-value'
 import { Progress } from '@/components/ui/progress'
 import { Separator } from '@/components/ui/separator'
-import type { GetCardDebtsItem } from '@/features/credit-card/api/get-card-debts'
+import type { GetCardPurchasesItem } from '@/features/credit-card/api/get-card-purchases'
 import { cn, formatPrice } from '@/lib/utils'
 
-type Debt = z.infer<typeof GetCardDebtsItem>
+type Purchase = z.infer<typeof GetCardPurchasesItem>
 
-interface DebtsItemProps {
-  debt: Debt
+interface PurchasesItemProps {
+  purchase: Purchase
   onAnticipate: (installments: number) => Promise<unknown>
-  onDelete: (debtId: string) => Promise<unknown>
+  onDelete: (purchaseMemberId: string) => Promise<unknown>
 }
 
 type StatusBadge = {
@@ -46,7 +46,7 @@ type StatusBadge = {
   label: string
 }
 
-export function DebtsItem({ debt, onAnticipate, onDelete }: DebtsItemProps) {
+export function PurchasesItem({ purchase, onAnticipate, onDelete }: PurchasesItemProps) {
   const [deleteOpen, setDeleteOpen] = React.useState(false)
   const [isDeleting, setIsDeleting] = React.useState(false)
   const [anticipateOpen, setAnticipateOpen] = React.useState(false)
@@ -56,7 +56,7 @@ export function DebtsItem({ debt, onAnticipate, onDelete }: DebtsItemProps) {
   async function handleConfirmDelete() {
     setIsDeleting(true)
     try {
-      await onDelete(debt.debtId)
+      await onDelete(purchase.purchaseMemberId)
       setDeleteOpen(false)
     } finally {
       setIsDeleting(false)
@@ -79,30 +79,30 @@ export function DebtsItem({ debt, onAnticipate, onDelete }: DebtsItemProps) {
   }
 
   const isAnticipated =
-    !!debt.anticipatedAt && debt.elapsedInstallments === debt.anticipateFromInstallment
+    !!purchase.anticipatedAt && purchase.elapsedInstallments === purchase.anticipateFromInstallment
 
-  const isComplete = debt.remainingInstallments === 0
+  const isComplete = purchase.remainingInstallments === 0
 
-  const progress = (debt.elapsedInstallments * 100) / debt.installmentsCount
+  const progress = (purchase.elapsedInstallments * 100) / purchase.installmentsCount
 
-  const hasRemainingAfterAnticipation = isAnticipated && debt.remainingInstallments > 0
+  const hasRemainingAfterAnticipation = isAnticipated && purchase.remainingInstallments > 0
 
   const isNewPurchase =
-    !isAnticipated && debt.installmentsCount > 1 && debt.elapsedInstallments === 1
+    !isAnticipated && purchase.installmentsCount > 1 && purchase.elapsedInstallments === 1
 
-  const isLastPayment = isComplete && !isAnticipated && !debt.subscriptionId
+  const isLastPayment = isComplete && !isAnticipated && !purchase.subscriptionId
 
-  const totalMembersAmount = debt.members.reduce(
+  const totalMembersAmount = purchase.members.reduce(
     (sum: number, member) => sum + member.installmentAmount / 100,
     0,
   )
 
-  const perInstallmentTotal = debt.members.reduce(
+  const perInstallmentTotal = purchase.members.reduce(
     (sum: number, member) => sum + member.perInstallmentAmount / 100,
     0,
   )
 
-  const fullDebtTotal = perInstallmentTotal * debt.installmentsCount
+  const fullPurchaseTotal = perInstallmentTotal * purchase.installmentsCount
 
   const statusBadges: StatusBadge[] = [
     {
@@ -112,7 +112,7 @@ export function DebtsItem({ debt, onAnticipate, onDelete }: DebtsItemProps) {
       className: 'gap-1 text-amber-600 bg-amber-100 dark:bg-amber-950 dark:text-amber-400',
     },
     {
-      show: !!debt.subscriptionId,
+      show: !!purchase.subscriptionId,
       icon: RefreshCw,
       label: 'Recorrente',
       className: 'gap-1 text-blue-600 bg-blue-100 dark:bg-blue-950 dark:text-blue-400',
@@ -149,7 +149,7 @@ export function DebtsItem({ debt, onAnticipate, onDelete }: DebtsItemProps) {
 
           <div className="flex flex-col flex-1 min-w-0">
             <div className="flex items-center gap-2">
-              <p className="text-lg text-primary truncate">{debt.description}</p>
+              <p className="text-lg text-primary truncate">{purchase.description}</p>
               {statusBadges
                 .filter(b => b.show)
                 .map(({ className, icon: Icon, label }) => (
@@ -162,26 +162,26 @@ export function DebtsItem({ debt, onAnticipate, onDelete }: DebtsItemProps) {
 
             <div className="text-sm text-muted-foreground flex items-center flex-wrap gap-0.5">
               <span>
-                {new Date(debt.purchaseDate).toLocaleDateString('pt-BR', { timeZone: 'UTC' })}
+                {new Date(purchase.purchaseDate).toLocaleDateString('pt-BR', { timeZone: 'UTC' })}
               </span>
 
               <Dot />
 
-              <Badge variant="secondary">{debt.category}</Badge>
+              <Badge variant="secondary">{purchase.category}</Badge>
 
-              {debt.installmentsCount > 1 && (
+              {purchase.installmentsCount > 1 && (
                 <>
                   <Dot />
                   <span>
                     {isAnticipated
-                      ? `${debt.anticipatedInstallmentsCount}x consolidadas ${hasRemainingAfterAnticipation ? `· ${debt.remainingInstallments} restante(s)` : ''}`
-                      : `${debt.elapsedInstallments}/${debt.installmentsCount}x`}
+                      ? `${purchase.anticipatedInstallmentsCount}x consolidadas ${hasRemainingAfterAnticipation ? `· ${purchase.remainingInstallments} restante(s)` : ''}`
+                      : `${purchase.elapsedInstallments}/${purchase.installmentsCount}x`}
                   </span>
                 </>
               )}
             </div>
 
-            {debt.installmentsCount > 1 && (
+            {purchase.installmentsCount > 1 && (
               <div className="flex items-center gap-2 mt-1">
                 {isAnticipated ? (
                   <div className="h-1 w-24 rounded-full bg-amber-200 dark:bg-amber-900 overflow-hidden">
@@ -189,7 +189,7 @@ export function DebtsItem({ debt, onAnticipate, onDelete }: DebtsItemProps) {
                       className="h-full bg-amber-500 dark:bg-amber-400"
                       style={{
                         width: hasRemainingAfterAnticipation
-                          ? `${((debt.anticipatedInstallmentsCount ?? 0) * 100) / debt.installmentsCount}%`
+                          ? `${((purchase.anticipatedInstallmentsCount ?? 0) * 100) / purchase.installmentsCount}%`
                           : '100%',
                       }}
                     />
@@ -200,10 +200,10 @@ export function DebtsItem({ debt, onAnticipate, onDelete }: DebtsItemProps) {
                 <span className="text-xs text-muted-foreground">
                   {isAnticipated
                     ? hasRemainingAfterAnticipation
-                      ? `${debt.anticipatedInstallmentsCount}x antecipadas`
+                      ? `${purchase.anticipatedInstallmentsCount}x antecipadas`
                       : 'Parcelas consolidadas'
-                    : debt.remainingInstallments > 0
-                      ? `Falta(m) ${debt.remainingInstallments} parcela(s)`
+                    : purchase.remainingInstallments > 0
+                      ? `Falta(m) ${purchase.remainingInstallments} parcela(s)`
                       : 'Última parcela'}
                 </span>
               </div>
@@ -214,8 +214,8 @@ export function DebtsItem({ debt, onAnticipate, onDelete }: DebtsItemProps) {
 
           <div className="w-full flex justify-between items-start sm:items-end sm:w-auto sm:ml-auto sm:flex-col sm:text-right sm:shrink-0">
             <div className="text-xs text-muted-foreground flex flex-col sm:order-last">
-              {debt.members.length > 1
-                ? debt.members.map(member => (
+              {purchase.members.length > 1
+                ? purchase.members.map(member => (
                     <span key={member.name}>
                       {member.name} (
                       <HiddenValue placeholder="****">
@@ -224,14 +224,14 @@ export function DebtsItem({ debt, onAnticipate, onDelete }: DebtsItemProps) {
                       )
                     </span>
                   ))
-                : debt.members[0].name}
+                : purchase.members[0].name}
             </div>
             <div className="flex flex-col items-end sm:order-first">
               <HiddenValue className="w-24 h-7 mb-0.5">
                 <p className="text-lg font-semibold">{formatPrice(totalMembersAmount)}</p>
               </HiddenValue>
               <span className="text-xs text-muted-foreground">
-                Total: <HiddenValue placeholder="****">{formatPrice(fullDebtTotal)}</HiddenValue>
+                Total: <HiddenValue placeholder="****">{formatPrice(fullPurchaseTotal)}</HiddenValue>
               </span>
             </div>
           </div>
@@ -244,13 +244,13 @@ export function DebtsItem({ debt, onAnticipate, onDelete }: DebtsItemProps) {
             </ContextMenuItem>
           </ContextMenuGroup>
 
-          {!isComplete && debt.anticipatableInstallments > 0 && (
+          {!isComplete && purchase.anticipatableInstallments > 0 && (
             <ContextMenuSub>
               <ContextMenuSubTrigger>
                 <UndoDot className="mr-2" /> Antecipar parcelas
               </ContextMenuSubTrigger>
               <ContextMenuSubContent className="min-w-20">
-                {Array.from({ length: debt.anticipatableInstallments }, (_, i) => (
+                {Array.from({ length: purchase.anticipatableInstallments }, (_, i) => (
                   <ContextMenuItem
                     key={i}
                     onSelect={e => {
@@ -289,9 +289,9 @@ export function DebtsItem({ debt, onAnticipate, onDelete }: DebtsItemProps) {
           <div className="space-y-2">
             <p>Esta ação removerá</p>
             <div className="rounded-md border bg-muted/50 px-3 py-2 text-sm text-foreground">
-              <p className="font-medium">{debt.description}</p>
+              <p className="font-medium">{purchase.description}</p>
               <p className="text-xs text-muted-foreground">
-                {debt.members.map(m => m.name).join(', ')} · {formatPrice(fullDebtTotal)}
+                {purchase.members.map(m => m.name).join(', ')} · {formatPrice(fullPurchaseTotal)}
               </p>
             </div>
             <p>e todas as parcelas associadas permanentemente. Ela não pode ser desfeita.</p>
@@ -311,7 +311,7 @@ export function DebtsItem({ debt, onAnticipate, onDelete }: DebtsItemProps) {
         content={
           <div className="space-y-2">
             <div className="rounded-md border bg-muted/50 px-3 py-2 text-sm text-foreground">
-              <p className="font-medium">{debt.description}</p>
+              <p className="font-medium">{purchase.description}</p>
               <p className="text-xs text-muted-foreground">
                 {anticipatingCount}x parcela(s) ·{' '}
                 {formatPrice(perInstallmentTotal * anticipatingCount)}

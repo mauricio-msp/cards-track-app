@@ -16,8 +16,8 @@ import { HiddenValue } from '@/components/ui/hidden-value'
 import { Progress } from '@/components/ui/progress'
 import { Separator } from '@/components/ui/separator'
 
-import { CreateDebtForm } from '@/features/credit-card/components/forms'
-import { useCardDebts, useMonthTotalAmountCard } from '@/features/credit-card/hooks'
+import { CreatePurchaseForm } from '@/features/credit-card/components/forms'
+import { useCardPurchases, useMonthTotalAmountCard } from '@/features/credit-card/hooks'
 import { formatPrice, getInitialLetters } from '@/lib/utils'
 
 type Member = {
@@ -27,18 +27,18 @@ type Member = {
   installmentAmount: number
 }
 
-export function DebtsMembersList({ cardId }: { cardId: string }) {
+export function PurchasesMembersList({ cardId }: { cardId: string }) {
   const {
-    data: { debts },
-  } = useCardDebts(cardId)
+    data: { purchases },
+  } = useCardPurchases(cardId)
 
   const {
     data: { totalAmountMonth },
   } = useMonthTotalAmountCard(cardId)
 
-  const members = debts.flatMap(debt => debt.members)
+  const members = purchases.flatMap(purchase => purchase.members)
 
-  const memberByDebts = members.reduce(
+  const memberByPurchases = members.reduce(
     (acc, member) => {
       const id = member.id
 
@@ -71,7 +71,7 @@ export function DebtsMembersList({ cardId }: { cardId: string }) {
       </CardHeader>
 
       <CardContent className="flex-1 flex flex-col gap-4">
-        {Object.values(memberByDebts)
+        {Object.values(memberByPurchases)
           .sort((a, b) => b.installmentAmount - a.installmentAmount)
           .map(member => {
             const percentUsage = Number(
@@ -135,12 +135,12 @@ export function DebtsMembersList({ cardId }: { cardId: string }) {
               </EmptyDescription>
             </EmptyHeader>
             <EmptyContent>
-              <CreateDebtForm>
+              <CreatePurchaseForm>
                 <Button variant="outline" size="sm" className="cursor-pointer">
                   <Plus />
                   Adicionar despesa
                 </Button>
-              </CreateDebtForm>
+              </CreatePurchaseForm>
             </EmptyContent>
           </Empty>
         )}

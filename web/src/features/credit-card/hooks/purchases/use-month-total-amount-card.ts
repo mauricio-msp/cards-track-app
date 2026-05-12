@@ -1,9 +1,9 @@
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { getMonthTotalAmountCard } from '@/features/credit-card/api/get-month-total-amount-card'
-import { useDebtsFilter } from '@/hooks/store/use-debts-filter-store'
+import { usePurchasesFilter } from '@/hooks/store/use-purchases-filter-store'
 
 export function useMonthTotalAmountCard(cardId: string) {
-  const { month, year } = useDebtsFilter()
+  const { month, year } = usePurchasesFilter()
 
   return useSuspenseQuery({
     queryKey: ['cards', cardId, 'month-total-amount', month, year],

@@ -13,10 +13,10 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 
-import { DebtFormFields } from '@/features/credit-card/components/forms/debt-form-fields'
-import { useCreateDebtForm } from '@/features/credit-card/hooks'
+import { PurchaseFormFields } from '@/features/credit-card/components/forms/purchase-form-fields'
+import { useCreatePurchaseForm } from '@/features/credit-card/hooks'
 
-export function CreateDebtForm({ children }: { children: ReactNode }) {
+export function CreatePurchaseForm({ children }: { children: ReactNode }) {
   const {
     form,
     fields,
@@ -33,7 +33,7 @@ export function CreateDebtForm({ children }: { children: ReactNode }) {
     onSubmit,
     isRecurring,
     setIsRecurring,
-  } = useCreateDebtForm()
+  } = useCreatePurchaseForm()
 
   const {
     control,
@@ -54,7 +54,7 @@ export function CreateDebtForm({ children }: { children: ReactNode }) {
             </DialogDescription>
           </DialogHeader>
 
-          <DebtFormFields
+          <PurchaseFormFields
             control={control}
             register={register}
             errors={errors}

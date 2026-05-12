@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 
-function DebtItemSkeleton() {
+function PurchaseItemSkeleton() {
   return (
     <div className="py-4 not-last:border-b flex items-center gap-4">
       {/* Icon */}
@@ -33,7 +33,7 @@ function DebtItemSkeleton() {
   )
 }
 
-export function DebtsListSkeleton() {
+export function PurchasesListSkeleton() {
   return (
     <Card className="col-span-1 lg:col-span-2 xl:col-span-3">
       {/* Header */}
@@ -47,7 +47,7 @@ export function DebtsListSkeleton() {
       {/* Content */}
       <CardContent>
         {Array.from({ length: 4 }).map((_, index) => (
-          <DebtItemSkeleton key={index} />
+          <PurchaseItemSkeleton key={index} />
         ))}
       </CardContent>
     </Card>

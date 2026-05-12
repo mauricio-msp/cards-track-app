@@ -39,16 +39,16 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Separator } from '@/components/ui/separator'
 import { Switch } from '@/components/ui/switch'
 import { CATEGORIES } from '@/features/credit-card/categories'
-import type { CreateDebtFormValues } from '@/features/credit-card/hooks'
+import type { CreatePurchaseFormValues } from '@/features/credit-card/hooks'
 import type { Member } from '@/features/member/api/get-members'
 import { RELATIONSHIPS } from '@/helpers/relationships'
 import { applyBRLMask, cn, formatPrice } from '@/lib/utils'
 
-export type DebtFormFieldsProps = {
-  control: Control<CreateDebtFormValues>
-  register: UseFormRegister<CreateDebtFormValues>
-  errors: FieldErrors<CreateDebtFormValues>
-  fields: FieldArrayWithId<CreateDebtFormValues, 'members', '_rhf_id'>[]
+export type PurchaseFormFieldsProps = {
+  control: Control<CreatePurchaseFormValues>
+  register: UseFormRegister<CreatePurchaseFormValues>
+  errors: FieldErrors<CreatePurchaseFormValues>
+  fields: FieldArrayWithId<CreatePurchaseFormValues, 'members', '_rhf_id'>[]
   isPending: boolean
   calendarOpen: boolean
   setCalendarOpen: (open: boolean) => void
@@ -63,7 +63,7 @@ export type DebtFormFieldsProps = {
   setIsRecurring: (value: boolean) => void
 }
 
-export function DebtFormFields({
+export function PurchaseFormFields({
   control,
   register,
   errors,
@@ -80,7 +80,7 @@ export function DebtFormFields({
   handleMembersChange,
   isRecurring,
   setIsRecurring,
-}: DebtFormFieldsProps) {
+}: PurchaseFormFieldsProps) {
   const anchor = useComboboxAnchor()
 
   return (
