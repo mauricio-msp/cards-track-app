@@ -1,7 +1,7 @@
 import type { FastifyReply, FastifyRequest } from 'fastify'
 import type { DeleteCardUseCase } from '@/modules/cards/application/use-cases/delete-card/delete-card.use-case'
 import {
-  CardHasActiveDebtsError,
+  CardHasActivePurchasesError,
   CardNotFoundError,
 } from '@/modules/cards/domain/errors/cards.errors'
 
@@ -16,7 +16,7 @@ export class DeleteCardController {
       if (err instanceof CardNotFoundError) {
         return reply.status(404).send({ message: err.message })
       }
-      if (err instanceof CardHasActiveDebtsError) {
+      if (err instanceof CardHasActivePurchasesError) {
         return reply.status(400).send({ message: err.message })
       }
       request.log.error(err)

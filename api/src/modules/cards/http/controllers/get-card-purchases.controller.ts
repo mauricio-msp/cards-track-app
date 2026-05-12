@@ -1,9 +1,9 @@
 import type { FastifyReply, FastifyRequest } from 'fastify'
-import type { GetCardDebtsUseCase } from '@/modules/cards/application/use-cases/get-card-debts/get-card-debts.use-case'
+import type { GetCardPurchasesUseCase } from '@/modules/cards/application/use-cases/get-card-purchases/get-card-purchases.use-case'
 import { CardNotFoundError } from '@/modules/cards/domain/errors/cards.errors'
 
-export class GetCardDebtsController {
-  constructor(private readonly useCase: GetCardDebtsUseCase) {}
+export class GetCardPurchasesController {
+  constructor(private readonly useCase: GetCardPurchasesUseCase) {}
 
   async handle(
     request: FastifyRequest<{
@@ -13,13 +13,13 @@ export class GetCardDebtsController {
     reply: FastifyReply,
   ) {
     try {
-      const cardDebts = await this.useCase.execute(
+      const cardPurchases = await this.useCase.execute(
         request.params.cardId,
         request.user.id,
         request.query.month,
         request.query.year,
       )
-      return reply.send({ debts: cardDebts })
+      return reply.send({ purchases: cardPurchases })
     } catch (err) {
       if (err instanceof CardNotFoundError) {
         return reply.status(404).send({ message: err.message })

@@ -1,9 +1,9 @@
 import { and, eq, isNull, sql } from 'drizzle-orm'
 import { uuidv7 } from 'uuidv7'
 import type { db as Db } from '@/db'
-import { cards, debts, installments, invoices, members, subscriptions } from '@/db/schema'
+import { cards, installments, invoices, members, purchaseMembers, purchases, subscriptions } from '@/db/schema'
 import type {
-  CardDebt,
+  CardPurchase,
   ICardsRepository,
 } from '@/modules/cards/domain/repositories/cards.repository.interface'
 import type { Card, CreateCardInput, UpdateCardInput } from '@/modules/cards/http/dto/cards.dto'
@@ -67,30 +67,31 @@ export class CardsRepository implements ICardsRepository {
     const [check] = await this.db
       .select({ id: installments.id })
       .from(installments)
-      .innerJoin(invoices, eq(installments.invoiceId, invoices.id))
-      .where(and(eq(invoices.cardId, cardId), isNull(installments.paidAt)))
+      .innerJoin(purchaseMembers, eq(installments.purchaseMemberId, purchaseMembers.id))
+      .innerJoin(purchases, and(eq(purchaseMembers.purchaseId, purchases.id), eq(purchases.cardId, cardId)))
+      .where(isNull(installments.paidAt))
       .limit(1)
 
     return !!check
   }
 
-  async findDebts(
+  // Ensures subscription debts exist for the queried period before reading.
+  // Separated from findDebts to make the side-effect explicit.
+  private async ensureSubscriptionPurchases(
     cardId: string,
     card: Pick<Card, 'dueDay' | 'closingOffsetDays'>,
     targetMonth: number,
     targetYear: number,
-  ): Promise<CardDebt[]> {
-    // Auto-generate subscription debts for the queried period
-    const activeSubscriptions = await this.db
+  ): Promise<void> {
+    const activeSubs = await this.db
       .select()
       .from(subscriptions)
       .where(and(eq(subscriptions.cardId, cardId), eq(subscriptions.active, true)))
 
-    for (const sub of activeSubscriptions) {
+    for (const sub of activeSubs) {
       const actualMonth = targetMonth + 1
       const lastDayOfMonth = new Date(targetYear, actualMonth, 0).getDate()
       const day = Math.min(sub.billingDay, lastDayOfMonth)
-
       const purchaseDateStr = `${targetYear}-${String(actualMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`
       const purchaseDate = new Date(`${purchaseDateStr}T00:00:00`)
 
@@ -102,16 +103,20 @@ export class CardsRepository implements ICardsRepository {
 
       if (invoiceMonth !== targetMonth || invoiceYear !== targetYear) continue
 
+      // Check via invoice join — subscriptionId + correct invoice month/year
       const [existing] = await this.db
-        .select({ id: debts.id })
-        .from(debts)
-        .where(
+        .select({ id: purchases.id })
+        .from(purchases)
+        .innerJoin(
+          invoices,
           and(
-            eq(debts.subscriptionId, sub.id),
-            eq(debts.invoiceMonth, invoiceMonth),
-            eq(debts.invoiceYear, invoiceYear),
+            eq(purchases.invoiceId, invoices.id),
+            eq(invoices.month, invoiceMonth),
+            eq(invoices.year, invoiceYear),
           ),
         )
+        .where(eq(purchases.subscriptionId, sub.id))
+        .limit(1)
 
       if (existing) continue
 
@@ -135,48 +140,77 @@ export class CardsRepository implements ICardsRepository {
         invoice = newInv
       }
 
-      const groupId = uuidv7()
-
-      const [newDebt] = await this.db
-        .insert(debts)
+      const purchaseId = uuidv7()
+      const [newPurchase] = await this.db
+        .insert(purchases)
         .values({
-          groupId,
+          id: purchaseId,
           cardId,
-          memberId: sub.memberId,
           invoiceId: invoice.id,
+          subscriptionId: sub.id,
           description: sub.name,
           category: 'Assinatura',
-          amount: sub.amount,
-          installmentsCount: 1,
-          installmentsAmount: sub.amount,
           purchaseDate: purchaseDateStr,
-          invoiceMonth,
-          invoiceYear,
+          installmentsCount: 1,
+        })
+        .returning()
+
+      const [pm] = await this.db
+        .insert(purchaseMembers)
+        .values({
+          purchaseId: newPurchase.id,
+          memberId: sub.memberId,
+          amount: sub.amount,
+          installmentAmount: sub.amount,
           startInstallment: 1,
           endInstallment: 1,
-          subscriptionId: sub.id,
         })
         .returning()
 
       await this.db.insert(installments).values({
-        debtId: newDebt.id,
-        memberId: sub.memberId,
+        purchaseMemberId: pm.id,
+        debtId: pm.id,
         invoiceId: invoice.id,
+        memberId: sub.memberId,
         number: 1,
         amount: sub.amount,
       })
     }
+  }
 
+  async findPurchases(
+    cardId: string,
+    card: Pick<Card, 'dueDay' | 'closingOffsetDays'>,
+    targetMonth: number,
+    targetYear: number,
+  ): Promise<CardPurchase[]> {
+    await this.ensureSubscriptionPurchases(cardId, card, targetMonth, targetYear)
+
+    // Range filter pushed to JOIN — DB eliminates out-of-range installments before returning rows
     const rows = await this.db
       .select({
-        debt: debts,
+        pm: purchaseMembers,
+        purchase: purchases,
         member: members,
         installment: installments,
       })
       .from(installments)
       .innerJoin(invoices, eq(installments.invoiceId, invoices.id))
-      .innerJoin(debts, eq(installments.debtId, debts.id))
-      .innerJoin(members, eq(installments.memberId, members.id))
+      .innerJoin(
+        purchaseMembers,
+        and(
+          eq(installments.purchaseMemberId, purchaseMembers.id),
+          sql`${installments.number} >= ${purchaseMembers.startInstallment}`,
+        ),
+      )
+      .innerJoin(
+        purchases,
+        and(
+          eq(purchaseMembers.purchaseId, purchases.id),
+          sql`${installments.number} <= COALESCE(${purchaseMembers.endInstallment}, ${purchases.installmentsCount})`,
+        ),
+      )
+      .innerJoin(members, eq(purchaseMembers.memberId, members.id))
       .where(
         and(
           eq(invoices.cardId, cardId),
@@ -185,41 +219,29 @@ export class CardsRepository implements ICardsRepository {
         ),
       )
 
-    const grouped = new Map<string, CardDebt>()
+    const grouped = new Map<string, CardPurchase>()
     const targetBill = calculateInvoiceCompetence(new Date(), card.dueDay, card.closingOffsetDays)
 
-    for (const { installment, debt, member } of rows) {
+    for (const { installment, pm, purchase, member } of rows) {
       const currentInstallment = installment.number
-      const start = debt.startInstallment
-      const end = debt.endInstallment ?? debt.installmentsCount
-
-      if (currentInstallment < start || currentInstallment > end) continue
-
       const amount = Number(installment.amount)
 
-      // Identify if this installment is the consolidated/anticipated one.
-      // For new records: use stored anticipateFromInstallment.
-      // For legacy records (column is null): fall back to amount comparison.
       const isConsolidation =
-        !!debt.anticipatedAt &&
-        (debt.anticipateFromInstallment !== null
-          ? installment.number === debt.anticipateFromInstallment
-          : amount > debt.installmentsAmount)
+        !!pm.anticipatedAt &&
+        (pm.anticipateFromInstallment !== null
+          ? installment.number === pm.anticipateFromInstallment
+          : amount > pm.installmentAmount)
 
-      let group = grouped.get(debt.groupId)
+      let group = grouped.get(purchase.id)
 
       if (!group) {
-        // Compute anticipatable installments mathematically (installments strictly after target invoice)
         let anticipatableInstallments = 0
-        if (!debt.anticipatedAt) {
+        if (!pm.anticipatedAt) {
           let firstAnticipatable: number | null = null
-          for (let k = currentInstallment + 1; k <= debt.installmentsCount; k++) {
-            let m = debt.invoiceMonth + (k - 1)
-            let y = debt.invoiceYear
-            while (m > 11) {
-              m -= 12
-              y++
-            }
+          for (let k = currentInstallment + 1; k <= purchase.installmentsCount; k++) {
+            let m = targetMonth + (k - 1)
+            let y = targetYear
+            while (m > 11) { m -= 12; y++ }
             if (
               y > targetBill.invoiceYear ||
               (y === targetBill.invoiceYear && m > targetBill.invoiceMonth)
@@ -229,58 +251,62 @@ export class CardsRepository implements ICardsRepository {
             }
           }
           anticipatableInstallments =
-            firstAnticipatable !== null ? debt.installmentsCount - firstAnticipatable + 1 : 0
+            firstAnticipatable !== null ? purchase.installmentsCount - firstAnticipatable + 1 : 0
         }
 
-        const rawConsolidatedCount = isConsolidation && debt.installmentsAmount > 0
-          ? Math.round(Number(installment.amount) / debt.installmentsAmount)
-          : 0
-        const consolidatedCount = Number.isFinite(rawConsolidatedCount) && rawConsolidatedCount > 0
-          ? rawConsolidatedCount
-          : isConsolidation ? debt.installmentsCount - currentInstallment + 1 : 0
-        const anticipatedCount = consolidatedCount
+        const rawConsolidatedCount =
+          isConsolidation && pm.installmentAmount > 0
+            ? Math.round(Number(installment.amount) / pm.installmentAmount)
+            : 0
+        const consolidatedCount =
+          Number.isFinite(rawConsolidatedCount) && rawConsolidatedCount > 0
+            ? rawConsolidatedCount
+            : isConsolidation
+              ? purchase.installmentsCount - currentInstallment + 1
+              : 0
         const remainingInstallments = isConsolidation
-          ? Math.max(debt.installmentsCount - (currentInstallment + consolidatedCount - 1), 0)
-          : Math.max(debt.installmentsCount - currentInstallment, 0)
+          ? Math.max(purchase.installmentsCount - (currentInstallment + consolidatedCount - 1), 0)
+          : Math.max(purchase.installmentsCount - currentInstallment, 0)
 
         group = {
-          debtId: debt.id,
-          groupId: debt.groupId,
-          description: debt.description,
-          purchaseDate: debt.purchaseDate,
-          category: debt.category,
+          purchaseMemberId: pm.id,
+          groupId: purchase.id,
+          description: purchase.description,
+          purchaseDate: purchase.purchaseDate,
+          category: purchase.category,
           totalAmount: 0,
-          installmentsCount: debt.installmentsCount,
+          installmentsCount: purchase.installmentsCount,
           elapsedInstallments: currentInstallment,
           remainingInstallments,
-          anticipatedAt: isConsolidation ? (debt.anticipatedAt?.toISOString() ?? null) : null,
-          anticipatedInstallmentsCount: isConsolidation ? anticipatedCount : null,
+          anticipatedAt: isConsolidation ? (pm.anticipatedAt?.toISOString() ?? null) : null,
+          anticipatedInstallmentsCount: isConsolidation ? consolidatedCount : null,
           anticipateFromInstallment: isConsolidation ? currentInstallment : null,
           anticipatableInstallments,
-          subscriptionId: debt.subscriptionId ?? null,
+          subscriptionId: purchase.subscriptionId ?? null,
           members: [],
         }
-        grouped.set(debt.groupId, group)
-      } else if (isConsolidation && !group.anticipatedAt) {
-        // Same debt has a regular installment AND the consolidation in the same month.
-        // Update the group to reflect the anticipation now that we found the consolidated installment.
-        const rawCount = debt.installmentsAmount > 0 ? Math.round(amount / debt.installmentsAmount) : 0
-        const consolidatedCount = Number.isFinite(rawCount) && rawCount > 0
-          ? rawCount
-          : debt.installmentsCount - currentInstallment + 1
-        group.anticipatedAt = debt.anticipatedAt?.toISOString() ?? null
+        grouped.set(purchase.id, group)
+      } else if (isConsolidation && !group?.anticipatedAt) {
+        const rawCount =
+          pm.installmentAmount > 0 ? Math.round(amount / pm.installmentAmount) : 0
+        const consolidatedCount =
+          Number.isFinite(rawCount) && rawCount > 0
+            ? rawCount
+            : purchase.installmentsCount - currentInstallment + 1
+        group.anticipatedAt = pm.anticipatedAt?.toISOString() ?? null
         group.anticipatedInstallmentsCount = consolidatedCount
         group.anticipateFromInstallment = currentInstallment
         group.elapsedInstallments = currentInstallment
         group.remainingInstallments = Math.max(
-          debt.installmentsCount - (currentInstallment + consolidatedCount - 1),
+          purchase.installmentsCount - (currentInstallment + consolidatedCount - 1),
           0,
         )
       }
 
+      if (!group) continue
+
       group.totalAmount += amount
 
-      // Deduplicate members when the same member appears across multiple installments in the same month
       const existingMember = group.members.find(m => m.id === member.id)
       if (existingMember) {
         existingMember.installmentAmount += amount
@@ -291,8 +317,8 @@ export class CardsRepository implements ICardsRepository {
           relationship: member.relationship,
           installmentAmount: amount,
           perInstallmentAmount:
-            Number(debt.installmentsAmount) ||
-            Math.round(Number(debt.amount) / debt.installmentsCount),
+            Number(pm.installmentAmount) ||
+            Math.round(Number(pm.amount) / purchase.installmentsCount),
         })
       }
     }
@@ -311,11 +337,10 @@ export class CardsRepository implements ICardsRepository {
       })
       .from(installments)
       .innerJoin(invoices, eq(installments.invoiceId, invoices.id))
+      .innerJoin(purchaseMembers, eq(installments.purchaseMemberId, purchaseMembers.id))
+      .innerJoin(purchases, and(eq(purchaseMembers.purchaseId, purchases.id), eq(purchases.cardId, cardId)))
       .where(
-        and(
-          eq(invoices.cardId, cardId),
-          sql`(${invoices.year} > ${targetYear} OR (${invoices.year} = ${targetYear} AND ${invoices.month} >= ${targetMonth}))`,
-        ),
+        sql`(${invoices.year} > ${targetYear} OR (${invoices.year} = ${targetYear} AND ${invoices.month} >= ${targetMonth}))`,
       )
 
     return result?.total ?? 0
@@ -332,8 +357,8 @@ export class CardsRepository implements ICardsRepository {
           COALESCE(
             SUM(
               CASE
-                WHEN ${installments.number} >= ${debts.startInstallment}
-                  AND ${installments.number} <= COALESCE(${debts.endInstallment}, ${debts.installmentsCount})
+                WHEN ${installments.number} >= ${purchaseMembers.startInstallment}
+                  AND ${installments.number} <= COALESCE(${purchaseMembers.endInstallment}, ${purchases.installmentsCount})
                 THEN ${installments.amount}
                 ELSE 0
               END
@@ -344,10 +369,11 @@ export class CardsRepository implements ICardsRepository {
       })
       .from(installments)
       .innerJoin(invoices, eq(installments.invoiceId, invoices.id))
-      .innerJoin(debts, eq(installments.debtId, debts.id))
+      .innerJoin(purchaseMembers, eq(installments.purchaseMemberId, purchaseMembers.id))
+      .innerJoin(purchases, eq(purchaseMembers.purchaseId, purchases.id))
       .where(
         and(
-          eq(invoices.cardId, cardId),
+          eq(purchases.cardId, cardId),
           eq(invoices.month, targetMonth),
           eq(invoices.year, targetYear),
         ),

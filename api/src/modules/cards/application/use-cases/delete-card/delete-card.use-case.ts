@@ -1,5 +1,5 @@
 import {
-  CardHasActiveDebtsError,
+  CardHasActivePurchasesError,
   CardNotFoundError,
 } from '@/modules/cards/domain/errors/cards.errors'
 import type { ICardsRepository } from '@/modules/cards/domain/repositories/cards.repository.interface'
@@ -11,9 +11,9 @@ export class DeleteCardUseCase {
     const card = await this.repo.findById(id, userId)
     if (!card) throw new CardNotFoundError()
 
-    const hasDebts = await this.repo.hasActiveInstallments(id)
+    const hasPurchases = await this.repo.hasActiveInstallments(id)
 
-    if (hasDebts) throw new CardHasActiveDebtsError()
+    if (hasPurchases) throw new CardHasActivePurchasesError()
     return this.repo.delete(id)
   }
 }

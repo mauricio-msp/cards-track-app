@@ -18,7 +18,7 @@ export const updateCardDto = z.object({
   dueDay: z.number().int().min(1).max(31),
 })
 
-export const getCardDebtsQueryDto = z.object({
+export const getCardPurchasesQueryDto = z.object({
   month: z.coerce.number().int().min(0).max(11).optional(),
   year: z.coerce.number().int().optional(),
 })
@@ -27,5 +27,5 @@ export const cardSchema = createSelectSchema(cards)
 
 export type CreateCardInput = z.infer<typeof createCardDto>
 export type UpdateCardInput = z.infer<typeof updateCardDto>
-export type GetCardDebtsQuery = z.infer<typeof getCardDebtsQueryDto>
+export type GetCardPurchasesQuery = z.infer<typeof getCardPurchasesQueryDto>
 export type Card = z.infer<typeof cardSchema>

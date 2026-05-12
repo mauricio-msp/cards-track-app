@@ -4,7 +4,7 @@ import { authMiddleware } from '@/middleware/auth'
 import type { CreateCardController } from '@/modules/cards/http/controllers/create-card.controller'
 import type { DeleteCardController } from '@/modules/cards/http/controllers/delete-card.controller'
 import type { GetCardController } from '@/modules/cards/http/controllers/get-card.controller'
-import type { GetCardDebtsController } from '@/modules/cards/http/controllers/get-card-debts.controller'
+import type { GetCardPurchasesController } from '@/modules/cards/http/controllers/get-card-purchases.controller'
 import type { GetCardsController } from '@/modules/cards/http/controllers/get-cards.controller'
 import type { GetMonthTotalAmountController } from '@/modules/cards/http/controllers/get-month-total-amount.controller'
 import type { GetTotalAmountUsedController } from '@/modules/cards/http/controllers/get-total-amount-used.controller'
@@ -12,7 +12,7 @@ import type { UpdateCardController } from '@/modules/cards/http/controllers/upda
 import {
   cardSchema,
   createCardDto,
-  getCardDebtsQueryDto,
+  getCardPurchasesQueryDto,
   updateCardDto,
 } from '@/modules/cards/http/dto/cards.dto'
 
@@ -22,7 +22,7 @@ type Controllers = {
   getCard: GetCardController
   updateCard: UpdateCardController
   deleteCard: DeleteCardController
-  getCardDebts: GetCardDebtsController
+  getCardPurchases: GetCardPurchasesController
   getTotalAmountUsed: GetTotalAmountUsedController
   getMonthTotalAmount: GetMonthTotalAmountController
 }
@@ -47,7 +47,7 @@ export const cardsRoutes =
           },
         },
       },
-      (req, reply) => controllers.createCard.handle(req, reply),
+      (req, reply) => controllers.createCard.handle(req as any, reply),
     )
 
     app.get(
@@ -64,7 +64,7 @@ export const cardsRoutes =
           },
         },
       },
-      (req, reply) => controllers.getCards.handle(req, reply),
+      (req, reply) => controllers.getCards.handle(req as any, reply),
     )
 
     app.get(
@@ -74,7 +74,7 @@ export const cardsRoutes =
         schema: {
           summary: 'Obter detalhes do cartão pelo ID',
           tags: ['Cards'],
-          params: z.object({ cardId: z.uuid() }),
+          params: z.object({ cardId: z.string().uuid() }),
           response: {
             200: z.object({
               card: z.object({
@@ -89,7 +89,7 @@ export const cardsRoutes =
           },
         },
       },
-      (req, reply) => controllers.getCard.handle(req, reply),
+      (req, reply) => controllers.getCard.handle(req as any, reply),
     )
 
     app.patch(
@@ -99,7 +99,7 @@ export const cardsRoutes =
         schema: {
           summary: 'Atualizar um cartão',
           tags: ['Cards'],
-          params: z.object({ id: z.uuid() }),
+          params: z.object({ id: z.string().uuid() }),
           body: updateCardDto,
           response: {
             200: z.object({ message: z.string() }),
@@ -108,7 +108,7 @@ export const cardsRoutes =
           },
         },
       },
-      (req, reply) => controllers.updateCard.handle(req, reply),
+      (req, reply) => controllers.updateCard.handle(req as any, reply),
     )
 
     app.delete(
@@ -120,7 +120,7 @@ export const cardsRoutes =
           description:
             'Exclui um cartão somente se não houver parcelas pendentes em nenhuma fatura.',
           tags: ['Cards'],
-          params: z.object({ cardId: z.uuid() }),
+          params: z.object({ cardId: z.string().uuid() }),
           response: {
             200: z.object({ message: z.string() }),
             400: z.object({ message: z.string() }),
@@ -129,23 +129,23 @@ export const cardsRoutes =
           },
         },
       },
-      (req, reply) => controllers.deleteCard.handle(req, reply),
+      (req, reply) => controllers.deleteCard.handle(req as any, reply),
     )
 
     app.get(
-      '/api/cards/:cardId/debts',
+      '/api/cards/:cardId/purchases',
       {
         preHandler: [authMiddleware],
         schema: {
-          summary: 'Obter resumo de despesas do cartão por mês',
+          summary: 'Obter compras do cartão por mês',
           tags: ['Cards'],
-          params: z.object({ cardId: z.uuid() }),
-          querystring: getCardDebtsQueryDto,
+          params: z.object({ cardId: z.string().uuid() }),
+          querystring: getCardPurchasesQueryDto,
           response: {
             200: z.object({
-              debts: z.array(
+              purchases: z.array(
                 z.object({
-                  debtId: z.string(),
+                  purchaseMemberId: z.string(),
                   groupId: z.string(),
                   description: z.string(),
                   purchaseDate: z.string(),
@@ -176,7 +176,7 @@ export const cardsRoutes =
           },
         },
       },
-      (req, reply) => controllers.getCardDebts.handle(req, reply),
+      (req, reply) => controllers.getCardPurchases.handle(req as any, reply),
     )
 
     app.get(
@@ -186,7 +186,7 @@ export const cardsRoutes =
         schema: {
           summary: 'Obter saldo total usado (parcelas futuras)',
           tags: ['Cards'],
-          params: z.object({ cardId: z.uuid() }),
+          params: z.object({ cardId: z.string().uuid() }),
           response: {
             200: z.object({ totalAmountCard: z.number() }),
             404: z.object({ message: z.string() }),
@@ -194,7 +194,7 @@ export const cardsRoutes =
           },
         },
       },
-      (req, reply) => controllers.getTotalAmountUsed.handle(req, reply),
+      (req, reply) => controllers.getTotalAmountUsed.handle(req as any, reply),
     )
 
     app.get(
@@ -204,8 +204,8 @@ export const cardsRoutes =
         schema: {
           summary: 'Obter valor total da fatura para um mês específico',
           tags: ['Cards'],
-          params: z.object({ cardId: z.uuid() }),
-          querystring: getCardDebtsQueryDto,
+          params: z.object({ cardId: z.string().uuid() }),
+          querystring: getCardPurchasesQueryDto,
           response: {
             200: z.object({
               totalAmountMonth: z.number(),
@@ -217,6 +217,6 @@ export const cardsRoutes =
           },
         },
       },
-      (req, reply) => controllers.getMonthTotalAmount.handle(req, reply),
+      (req, reply) => controllers.getMonthTotalAmount.handle(req as any, reply),
     )
   }

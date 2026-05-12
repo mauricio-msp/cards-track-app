@@ -1,17 +1,17 @@
 import { CardNotFoundError } from '@/modules/cards/domain/errors/cards.errors'
 import type {
-  CardDebt,
+  CardPurchase,
   ICardsRepository,
 } from '@/modules/cards/domain/repositories/cards.repository.interface'
 import { resolveTargetPeriod } from '@/utils/resolve-target-period'
 
-export class GetCardDebtsUseCase {
+export class GetCardPurchasesUseCase {
   constructor(private readonly repo: ICardsRepository) {}
 
-  async execute(id: string, userId: string, month?: number, year?: number): Promise<CardDebt[]> {
+  async execute(id: string, userId: string, month?: number, year?: number): Promise<CardPurchase[]> {
     const card = await this.repo.findById(id, userId)
     if (!card) throw new CardNotFoundError()
     const { targetMonth, targetYear } = resolveTargetPeriod(card.dueDay, month, year)
-    return this.repo.findDebts(id, card, targetMonth, targetYear)
+    return this.repo.findPurchases(id, card, targetMonth, targetYear)
   }
 }

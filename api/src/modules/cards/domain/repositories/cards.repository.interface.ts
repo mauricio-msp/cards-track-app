@@ -1,7 +1,7 @@
 import type { Card, CreateCardInput, UpdateCardInput } from '@/modules/cards/http/dto/cards.dto'
 
-export type CardDebt = {
-  debtId: string
+export type CardPurchase = {
+  purchaseMemberId: string
   groupId: string
   description: string
   purchaseDate: string
@@ -33,12 +33,12 @@ export interface ICardsRepository {
   update(id: string, data: UpdateCardInput): Promise<void>
   delete(id: string): Promise<void>
   hasActiveInstallments(cardId: string): Promise<boolean>
-  findDebts(
+  findPurchases(
     cardId: string,
     card: Pick<Card, 'dueDay' | 'closingOffsetDays'>,
     targetMonth: number,
     targetYear: number,
-  ): Promise<CardDebt[]>
+  ): Promise<CardPurchase[]>
   findTotalAmountUsed(cardId: string, targetMonth: number, targetYear: number): Promise<number>
   findMonthTotalAmount(cardId: string, targetMonth: number, targetYear: number): Promise<number>
 }

@@ -5,11 +5,11 @@ export class CardNotFoundError extends Error {
   }
 }
 
-export class CardHasActiveDebtsError extends Error {
+export class CardHasActivePurchasesError extends Error {
   constructor() {
     super(
       'Não é possível excluir um cartão com despesas ativas. Quite todas as parcelas antes de excluir.',
     )
-    this.name = 'CardHasActiveDebtsError'
+    this.name = 'CardHasActivePurchasesError'
   }
 }
