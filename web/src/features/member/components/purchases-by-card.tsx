@@ -73,7 +73,7 @@ function PurchaseItem({ purchase }: { purchase: PurchaseItemProps }) {
   return (
     <div
       key={purchase.id}
-      className="py-4 px-2 flex gap-4 bg-background not-last:mb-2 rounded-xl border border-accent"
+      className="py-4 px-2 flex gap-4 dark:bg-background bg-muted not-last:mb-2 rounded-xl border border-accent"
     >
       <div className="flex flex-col flex-1 min-w-0">
         <div className="flex items-center gap-2 min-w-0">
@@ -106,7 +106,8 @@ function PurchaseItem({ purchase }: { purchase: PurchaseItemProps }) {
               {isAnticipated ? (
                 <span className="whitespace-nowrap">
                   {purchase.anticipatedInstallmentsCount}x consolidadas
-                  {hasRemainingAfterAnticipation && ` · ${purchase.remainingInstallments} restante(s)`}
+                  {hasRemainingAfterAnticipation &&
+                    ` · ${purchase.remainingInstallments} restante(s)`}
                 </span>
               ) : (
                 <span className="whitespace-nowrap">
@@ -160,11 +161,14 @@ export function PurchasesByCard({ memberId }: { memberId: string }) {
         'px-4 scroll-px-4 lg:px-0 lg:scroll-px-0 snap-x snap-mandatory lg:snap-none',
       )}
     >
-      <div className="flex gap-4 py-3 h-full after:content-[''] after:block after:w-4 after:shrink-0 lg:after:hidden">
+      <div className="flex h-full gap-4 pb-3 lg:pb-0 after:content-[''] after:block after:w-0.5 after:shrink-0 lg:after:hidden">
         {cardsWithPurchases
           .sort((a, b) => a.card.dueDay - b.card.dueDay)
           .map((cwd, index) => (
-            <Card key={index} className="w-md shrink-0 flex flex-col h-full gap-0">
+            <Card
+              key={index}
+              className="w-xs md:w-md shrink-0 flex flex-col h-full gap-0 snap-start"
+            >
               <CardHeader className="flex items-center gap-2 shrink-0 border-b">
                 <Competence
                   cardName={cwd.card.name}
@@ -174,10 +178,7 @@ export function PurchasesByCard({ memberId }: { memberId: string }) {
               </CardHeader>
 
               <CardContent className="flex-1 min-h-0 p-0">
-                <ScrollArea
-                  className="size-full"
-                  viewportClassName="[&>div]:![display:unset]"
-                >
+                <ScrollArea className="size-full" viewportClassName="[&>div]:![display:unset]">
                   <div className="px-4 py-4 w-full">
                     {cwd.purchases
                       .sort(
@@ -199,7 +200,10 @@ export function PurchasesByCard({ memberId }: { memberId: string }) {
                 <HiddenValue className="w-24 h-7 dark:bg-muted-foreground/20">
                   <span className="text-lg text-destructive font-semibold">
                     {formatPrice(
-                      cwd.purchases.reduce((sum, purchase) => sum + purchase.installmentsAmount, 0) / 100,
+                      cwd.purchases.reduce(
+                        (sum, purchase) => sum + purchase.installmentsAmount,
+                        0,
+                      ) / 100,
                     )}
                   </span>
                 </HiddenValue>

@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import { HiddenValue } from '@/components/ui/hidden-value'
 import { UpdateMemberForm } from '@/features/member/components/update-member-form'
 import { useMember, useMemberPurchases } from '@/features/member/hooks'
-import { formatPhone, formatPrice } from '@/lib/utils'
+import { cn, formatPhone, formatPrice } from '@/lib/utils'
 
 export function Details({ memberId }: { memberId: string }) {
   const {
@@ -20,11 +20,11 @@ export function Details({ memberId }: { memberId: string }) {
     .reduce((total, cwd) => total + cwd.installmentsAmount, 0)
 
   return (
-    <header className="flex items-center gap-2">
+    <header className="flex items-center gap-2 flex-wrap shrink-0">
       <div className="bg-muted/50 rounded-xl size-12 grid place-items-center">
         {['titular', 'Titular'].includes(member.relationship) ? <UserStar /> : <User />}
       </div>
-      <div className="flex flex-col">
+      <div className="flex flex-col gap-2">
         <div className="flex items-center gap-1">
           <span className="text-2xl">{member.name}</span>
           <UpdateMemberForm member={member}>
@@ -46,7 +46,14 @@ export function Details({ memberId }: { memberId: string }) {
           )}
         </div>
       </div>
-      <div className="ml-auto flex flex-col items-end">
+
+      <div
+        className={cn(
+          'ml-auto flex flex-col items-start shrink-0',
+          'dark:bg-muted/40 bg-muted border rounded-2xl p-4 w-full',
+          'md:w-auto md:dark:bg-transparent md:bg-transparent md:items-end md:border-0',
+        )}
+      >
         <HiddenValue className="w-36 h-9 dark:bg-muted-foreground/20">
           <span className="text-3xl text-destructive font-semibold">
             {formatPrice(totalAmount / 100)}
