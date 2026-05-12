@@ -1,10 +1,10 @@
 import { MemberNotFoundError } from '@/modules/members/domain/errors/members.errors'
 import type {
   IMembersRepository,
-  MemberDebtsByCard,
+  MemberPurchasesByCard,
 } from '@/modules/members/domain/repositories/members.repository.interface'
 
-export class GetMemberDebtsUseCase {
+export class GetMemberPurchasesUseCase {
   constructor(private readonly repo: IMembersRepository) {}
 
   async execute(
@@ -12,9 +12,9 @@ export class GetMemberDebtsUseCase {
     userId: string,
     month?: number,
     year?: number,
-  ): Promise<MemberDebtsByCard[]> {
+  ): Promise<MemberPurchasesByCard[]> {
     const member = await this.repo.findById(id, userId)
     if (!member) throw new MemberNotFoundError()
-    return this.repo.findDebtsGroupedByCard(id, userId, month, year)
+    return this.repo.findPurchasesGroupedByCard(id, userId, month, year)
   }
 }

@@ -4,12 +4,12 @@ import { authMiddleware } from '@/middleware/auth'
 import type { CreateMemberController } from '@/modules/members/http/controllers/create-member.controller'
 import type { DeleteMemberController } from '@/modules/members/http/controllers/delete-member.controller'
 import type { GetMemberController } from '@/modules/members/http/controllers/get-member.controller'
-import type { GetMemberDebtsController } from '@/modules/members/http/controllers/get-member-debts.controller'
+import type { GetMemberPurchasesController } from '@/modules/members/http/controllers/get-member-purchases.controller'
 import type { GetMembersController } from '@/modules/members/http/controllers/get-members.controller'
 import type { UpdateMemberController } from '@/modules/members/http/controllers/update-member.controller'
 import {
   createMemberDto,
-  getMemberDebtsQueryDto,
+  getMemberPurchasesQueryDto,
   memberSchema,
   updateMemberDto,
 } from '@/modules/members/http/dto/members.dto'
@@ -20,7 +20,7 @@ type Controllers = {
   getMember: GetMemberController
   updateMember: UpdateMemberController
   deleteMember: DeleteMemberController
-  getMemberDebts: GetMemberDebtsController
+  getMemberPurchases: GetMemberPurchasesController
 }
 
 export const membersRoutes =
@@ -41,7 +41,7 @@ export const membersRoutes =
           },
         },
       },
-      (req, reply) => controllers.createMember.handle(req, reply),
+      (req, reply) => controllers.createMember.handle(req as any, reply),
     )
 
     app.get(
@@ -69,7 +69,7 @@ export const membersRoutes =
           },
         },
       },
-      (req, reply) => controllers.getMembers.handle(req, reply),
+      (req, reply) => controllers.getMembers.handle(req as any, reply),
     )
 
     app.get(
@@ -79,7 +79,7 @@ export const membersRoutes =
         schema: {
           summary: 'Obter detalhes do membro pelo ID',
           tags: ['Members'],
-          params: z.object({ memberId: z.uuid() }),
+          params: z.object({ memberId: z.string().uuid() }),
           response: {
             200: z.object({
               member: memberSchema.pick({ id: true, name: true, relationship: true, phone: true }),
@@ -89,7 +89,7 @@ export const membersRoutes =
           },
         },
       },
-      (req, reply) => controllers.getMember.handle(req, reply),
+      (req, reply) => controllers.getMember.handle(req as any, reply),
     )
 
     app.patch(
@@ -101,7 +101,7 @@ export const membersRoutes =
           description:
             'Permite atualizar telefone e parentesco. O nome é imutável para preservar o histórico de despesas.',
           tags: ['Members'],
-          params: z.object({ memberId: z.uuid() }),
+          params: z.object({ memberId: z.string().uuid() }),
           body: updateMemberDto,
           response: {
             200: z.object({ member: memberSchema, message: z.string() }),
@@ -110,7 +110,7 @@ export const membersRoutes =
           },
         },
       },
-      (req, reply) => controllers.updateMember.handle(req, reply),
+      (req, reply) => controllers.updateMember.handle(req as any, reply),
     )
 
     app.delete(
@@ -122,7 +122,7 @@ export const membersRoutes =
           description:
             'Faz exclusão lógica do membro. Suas despesas permanecem ativas e associadas ao histórico.',
           tags: ['Members'],
-          params: z.object({ memberId: z.uuid() }),
+          params: z.object({ memberId: z.string().uuid() }),
           response: {
             200: z.object({ message: z.string() }),
             404: z.object({ message: z.string() }),
@@ -130,21 +130,21 @@ export const membersRoutes =
           },
         },
       },
-      (req, reply) => controllers.deleteMember.handle(req, reply),
+      (req, reply) => controllers.deleteMember.handle(req as any, reply),
     )
 
     app.get(
-      '/api/members/:memberId/debts-by-card',
+      '/api/members/:memberId/purchases-by-card',
       {
         preHandler: [authMiddleware],
         schema: {
           summary: 'Obter despesas de um membro agrupadas por cartão',
           tags: ['Members'],
-          params: z.object({ memberId: z.uuid() }),
-          querystring: getMemberDebtsQueryDto,
+          params: z.object({ memberId: z.string().uuid() }),
+          querystring: getMemberPurchasesQueryDto,
           response: {
             200: z.object({
-              cardsWithDebts: z.array(
+              cardsWithPurchases: z.array(
                 z.object({
                   card: z.object({
                     id: z.string(),
@@ -153,7 +153,7 @@ export const membersRoutes =
                     targetYear: z.number(),
                     targetMonth: z.number(),
                   }),
-                  debts: z.array(
+                  purchases: z.array(
                     z.object({
                       id: z.string(),
                       description: z.string(),
@@ -176,6 +176,6 @@ export const membersRoutes =
           },
         },
       },
-      (req, reply) => controllers.getMemberDebts.handle(req, reply),
+      (req, reply) => controllers.getMemberPurchases.handle(req as any, reply),
     )
   }

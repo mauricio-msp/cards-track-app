@@ -1,9 +1,9 @@
 import type { FastifyReply, FastifyRequest } from 'fastify'
-import type { GetMemberDebtsUseCase } from '@/modules/members/application/use-cases/get-member-debts/get-member-debts.use-case'
+import type { GetMemberPurchasesUseCase } from '@/modules/members/application/use-cases/get-member-purchases/get-member-purchases.use-case'
 import { MemberNotFoundError } from '@/modules/members/domain/errors/members.errors'
 
-export class GetMemberDebtsController {
-  constructor(private readonly useCase: GetMemberDebtsUseCase) {}
+export class GetMemberPurchasesController {
+  constructor(private readonly useCase: GetMemberPurchasesUseCase) {}
 
   async handle(
     request: FastifyRequest<{
@@ -13,13 +13,13 @@ export class GetMemberDebtsController {
     reply: FastifyReply,
   ) {
     try {
-      const cardsWithDebts = await this.useCase.execute(
+      const cardsWithPurchases = await this.useCase.execute(
         request.params.memberId,
         request.user.id,
         request.query.month,
         request.query.year,
       )
-      return reply.send({ cardsWithDebts })
+      return reply.send({ cardsWithPurchases })
     } catch (err) {
       if (err instanceof MemberNotFoundError) {
         return reply.status(404).send({ message: err.message })

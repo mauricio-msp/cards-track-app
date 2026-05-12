@@ -1,9 +1,9 @@
 import { and, eq, isNull, sql } from 'drizzle-orm'
 import type { db as Db } from '@/db'
-import { cards, debts, installments, invoices, members } from '@/db/schema'
+import { cards, installments, invoices, members, purchaseMembers, purchases } from '@/db/schema'
 import type {
   IMembersRepository,
-  MemberDebtsByCard,
+  MemberPurchasesByCard,
 } from '@/modules/members/domain/repositories/members.repository.interface'
 import type {
   CreateMemberInput,
@@ -77,12 +77,12 @@ export class MembersRepository implements IMembersRepository {
     await this.db.update(members).set({ deletedAt: new Date() }).where(eq(members.id, id))
   }
 
-  async findDebtsGroupedByCard(
+  async findPurchasesGroupedByCard(
     memberId: string,
     userId: string,
     month?: number,
     year?: number,
-  ): Promise<MemberDebtsByCard[]> {
+  ): Promise<MemberPurchasesByCard[]> {
     const now = new Date()
     const today = now.getDate()
     const currentMonth = now.getMonth()
@@ -118,17 +118,19 @@ export class MembersRepository implements IMembersRepository {
     const rows = await this.db
       .select({
         card: { id: cards.id, name: cards.name, dueDay: cards.dueDay },
-        debt: {
-          id: debts.id,
-          description: debts.description,
-          purchaseDate: debts.purchaseDate,
-          amount: debts.amount,
-          installmentsCount: debts.installmentsCount,
-          installmentsAmount: debts.installmentsAmount,
-          startInstallment: debts.startInstallment,
-          endInstallment: debts.endInstallment,
-          anticipatedAt: debts.anticipatedAt,
-          anticipateFromInstallment: debts.anticipateFromInstallment,
+        pm: {
+          id: purchaseMembers.id,
+          amount: purchaseMembers.amount,
+          installmentAmount: purchaseMembers.installmentAmount,
+          startInstallment: purchaseMembers.startInstallment,
+          endInstallment: purchaseMembers.endInstallment,
+          anticipatedAt: purchaseMembers.anticipatedAt,
+          anticipateFromInstallment: purchaseMembers.anticipateFromInstallment,
+        },
+        purchase: {
+          description: purchases.description,
+          purchaseDate: purchases.purchaseDate,
+          installmentsCount: purchases.installmentsCount,
         },
         installment: { number: installments.number, amount: installments.amount },
         targetMonth: targetMonthExpr,
@@ -143,22 +145,29 @@ export class MembersRepository implements IMembersRepository {
           eq(invoices.year, targetYearExpr),
         ),
       )
+      .innerJoin(installments, eq(installments.invoiceId, invoices.id))
       .innerJoin(
-        installments,
-        and(eq(installments.invoiceId, invoices.id), eq(installments.memberId, memberId)),
+        purchaseMembers,
+        and(
+          eq(installments.purchaseMemberId, purchaseMembers.id),
+          eq(purchaseMembers.memberId, memberId),
+          sql`${installments.number} >= ${purchaseMembers.startInstallment}`,
+        ),
       )
-      .innerJoin(debts, eq(installments.debtId, debts.id))
+      .innerJoin(
+        purchases,
+        and(
+          eq(purchaseMembers.purchaseId, purchases.id),
+          sql`${installments.number} <= COALESCE(${purchaseMembers.endInstallment}, ${purchases.installmentsCount})`,
+        ),
+      )
       .where(eq(cards.ownerUserId, userId))
 
-    const cardMap = new Map<string, MemberDebtsByCard>()
-    const debtsByCard = new Map<string, Map<string, MemberDebtsByCard['debts'][number]>>()
+    const cardMap = new Map<string, MemberPurchasesByCard>()
+    const pmByCard = new Map<string, Map<string, MemberPurchasesByCard['purchases'][number]>>()
 
     for (const row of rows) {
       const currentInstallment = row.installment.number
-      const start = row.debt.startInstallment
-      const end = row.debt.endInstallment ?? row.debt.installmentsCount
-
-      if (currentInstallment < start || currentInstallment > end) continue
 
       if (!cardMap.has(row.card.id)) {
         cardMap.set(row.card.id, {
@@ -169,36 +178,39 @@ export class MembersRepository implements IMembersRepository {
             targetMonth: Number(row.targetMonth),
             targetYear: Number(row.targetYear),
           },
-          debts: [],
+          purchases: [],
         })
-        debtsByCard.set(row.card.id, new Map())
+        pmByCard.set(row.card.id, new Map())
       }
 
       const cardEntry = cardMap.get(row.card.id)
-      const debtMap = debtsByCard.get(row.card.id)
-      if (!cardEntry || !debtMap) continue
+      const pmMap = pmByCard.get(row.card.id)
+      if (!cardEntry || !pmMap) continue
 
       const isConsolidation =
-        !!row.debt.anticipatedAt && currentInstallment === row.debt.anticipateFromInstallment
-      const rawConsolidatedCount = isConsolidation && row.debt.installmentsAmount > 0
-        ? Math.round(Number(row.installment.amount) / row.debt.installmentsAmount)
-        : 0
-      const anticipatedCount = Number.isFinite(rawConsolidatedCount) && rawConsolidatedCount > 0
-        ? rawConsolidatedCount
-        : isConsolidation ? row.debt.installmentsCount - currentInstallment + 1 : 0
-      const remainingInstallments = isConsolidation
-        ? Math.max(row.debt.installmentsCount - (currentInstallment + anticipatedCount - 1), 0)
-        : Math.max(row.debt.installmentsCount - currentInstallment, 0)
+        !!row.pm.anticipatedAt && currentInstallment === row.pm.anticipateFromInstallment
 
-      const existing = debtMap.get(row.debt.id)
+      const rawConsolidatedCount =
+        isConsolidation && row.pm.installmentAmount > 0
+          ? Math.round(Number(row.installment.amount) / row.pm.installmentAmount)
+          : 0
+      const anticipatedCount =
+        Number.isFinite(rawConsolidatedCount) && rawConsolidatedCount > 0
+          ? rawConsolidatedCount
+          : isConsolidation
+            ? row.purchase.installmentsCount - currentInstallment + 1
+            : 0
+      const remainingInstallments = isConsolidation
+        ? Math.max(row.purchase.installmentsCount - (currentInstallment + anticipatedCount - 1), 0)
+        : Math.max(row.purchase.installmentsCount - currentInstallment, 0)
+
+      const existing = pmMap.get(row.pm.id)
 
       if (existing) {
-        // Same debt has multiple installments in the target invoice (regular + consolidated).
-        // The consolidation installment should take precedence for display; amounts accumulate.
         if (isConsolidation && !existing.anticipatedAt) {
-          existing.anticipatedAt = row.debt.anticipatedAt?.toISOString() ?? null
+          existing.anticipatedAt = row.pm.anticipatedAt?.toISOString() ?? null
           existing.anticipatedInstallmentsCount = anticipatedCount
-          existing.anticipateFromInstallment = row.debt.anticipateFromInstallment
+          existing.anticipateFromInstallment = row.pm.anticipateFromInstallment
           existing.elapsedInstallments = currentInstallment
           existing.remainingInstallments = remainingInstallments
         }
@@ -206,22 +218,22 @@ export class MembersRepository implements IMembersRepository {
         continue
       }
 
-      const debtEntry: MemberDebtsByCard['debts'][number] = {
-        id: row.debt.id,
-        description: row.debt.description,
-        purchaseDate: row.debt.purchaseDate,
-        amount: row.debt.amount,
-        installmentsCount: row.debt.installmentsCount,
+      const entry: MemberPurchasesByCard['purchases'][number] = {
+        id: row.pm.id,
+        description: row.purchase.description,
+        purchaseDate: row.purchase.purchaseDate,
+        amount: row.pm.amount,
+        installmentsCount: row.purchase.installmentsCount,
         installmentsAmount: Number(row.installment.amount),
         elapsedInstallments: currentInstallment,
         remainingInstallments,
-        anticipatedAt: isConsolidation ? (row.debt.anticipatedAt?.toISOString() ?? null) : null,
+        anticipatedAt: isConsolidation ? (row.pm.anticipatedAt?.toISOString() ?? null) : null,
         anticipatedInstallmentsCount: isConsolidation ? anticipatedCount : null,
-        anticipateFromInstallment: isConsolidation ? row.debt.anticipateFromInstallment : null,
+        anticipateFromInstallment: isConsolidation ? row.pm.anticipateFromInstallment : null,
       }
 
-      debtMap.set(row.debt.id, debtEntry)
-      cardEntry.debts.push(debtEntry)
+      pmMap.set(row.pm.id, entry)
+      cardEntry.purchases.push(entry)
     }
 
     return Array.from(cardMap.values())

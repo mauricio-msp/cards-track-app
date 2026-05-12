@@ -13,7 +13,7 @@ export const updateMemberDto = z.object({
   relationship: z.string().optional(),
 })
 
-export const getMemberDebtsQueryDto = z.object({
+export const getMemberPurchasesQueryDto = z.object({
   month: z.coerce.number().int().min(0).max(11).optional(),
   year: z.coerce.number().int().optional(),
 })
@@ -22,5 +22,5 @@ export const memberSchema = createSelectSchema(members)
 
 export type CreateMemberInput = z.infer<typeof createMemberDto>
 export type UpdateMemberInput = z.infer<typeof updateMemberDto>
-export type GetMemberDebtsQuery = z.infer<typeof getMemberDebtsQueryDto>
+export type GetMemberPurchasesQuery = z.infer<typeof getMemberPurchasesQueryDto>
 export type Member = z.infer<typeof memberSchema>

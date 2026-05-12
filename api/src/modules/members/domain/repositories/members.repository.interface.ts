@@ -4,7 +4,7 @@ import type {
   UpdateMemberInput,
 } from '@/modules/members/http/dto/members.dto'
 
-export type MemberDebtsByCard = {
+export type MemberPurchasesByCard = {
   card: {
     id: string
     name: string
@@ -12,7 +12,7 @@ export type MemberDebtsByCard = {
     targetYear: number
     targetMonth: number
   }
-  debts: {
+  purchases: {
     id: string
     description: string
     purchaseDate: string
@@ -36,10 +36,10 @@ export interface IMembersRepository {
   create(userId: string, data: CreateMemberInput): Promise<Member>
   update(id: string, data: UpdateMemberInput): Promise<Member>
   softDelete(id: string): Promise<void>
-  findDebtsGroupedByCard(
+  findPurchasesGroupedByCard(
     memberId: string,
     userId: string,
     month?: number,
     year?: number,
-  ): Promise<MemberDebtsByCard[]>
+  ): Promise<MemberPurchasesByCard[]>
 }
