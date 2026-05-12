@@ -71,7 +71,12 @@ export class MembersRepository implements IMembersRepository {
   async create(userId: string, data: CreateMemberInput): Promise<Member> {
     const [member] = await this.db
       .insert(members)
-      .values({ userId, name: data.name.trim(), relationship: data.relationship, phone: data.phone ?? null })
+      .values({
+        userId,
+        name: data.name.trim(),
+        relationship: data.relationship,
+        phone: data.phone ?? null,
+      })
       .returning()
 
     return member
@@ -232,10 +237,7 @@ export class MembersRepository implements IMembersRepository {
           )
         : {
             consolidatedCount: 0,
-            remainingInstallments: Math.max(
-              row.purchase.installmentsCount - currentInstallment,
-              0,
-            ),
+            remainingInstallments: Math.max(row.purchase.installmentsCount - currentInstallment, 0),
           }
 
       const existing = pmMap.get(row.pm.id)

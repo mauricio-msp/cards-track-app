@@ -14,7 +14,9 @@ export class GetMemberPurchasesUseCase {
     year?: number,
   ): Promise<MemberPurchasesByCard[]> {
     const member = await this.repo.findById(id, userId)
+
     if (!member) throw new MemberNotFoundError()
+
     return this.repo.findPurchasesGroupedByCard(id, userId, month, year)
   }
 }

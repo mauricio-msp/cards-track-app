@@ -7,7 +7,9 @@ export class CreateMemberUseCase {
 
   async execute(userId: string, data: CreateMemberInput): Promise<Member> {
     const existing = await this.repo.findByName(userId, data.name)
+
     if (existing) throw new MemberAlreadyExistsError()
+
     return this.repo.create(userId, data)
   }
 }

@@ -6,7 +6,9 @@ export class DeleteMemberUseCase {
 
   async execute(id: string, userId: string): Promise<void> {
     const member = await this.repo.findById(id, userId)
+
     if (!member) throw new MemberNotFoundError()
+
     return this.repo.softDelete(id)
   }
 }

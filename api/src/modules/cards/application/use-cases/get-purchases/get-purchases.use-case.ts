@@ -15,6 +15,7 @@ export class GetPurchasesUseCase {
     year?: number,
   ): Promise<CardPurchase[]> {
     const card = await this.repo.findById(id, userId)
+
     if (!card) throw new CardNotFoundError()
 
     const { targetMonth, targetYear } = resolveTargetPeriod(card.dueDay, month, year)

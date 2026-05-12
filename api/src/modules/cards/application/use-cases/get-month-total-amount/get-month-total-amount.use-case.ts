@@ -12,6 +12,7 @@ export class GetMonthTotalAmountUseCase {
     year?: number,
   ): Promise<{ total: number; targetMonth: number; targetYear: number }> {
     const card = await this.repo.findById(id, userId)
+
     if (!card) throw new CardNotFoundError()
 
     const { targetMonth, targetYear } = resolveTargetPeriod(card.dueDay, month, year)

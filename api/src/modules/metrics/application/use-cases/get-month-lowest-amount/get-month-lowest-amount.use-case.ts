@@ -9,8 +9,11 @@ export class GetMonthLowestAmountUseCase {
   async execute(userId: string): Promise<{ amount: number; cards: CardAmountRow[] }> {
     const now = new Date()
     const rows = await this.repo.getMonthCardAmounts(userId, now.getMonth(), now.getFullYear())
+
     if (rows.length === 0) return { amount: 0, cards: [] }
+
     const min = Math.min(...rows.map(r => r.total))
+
     return { amount: min, cards: rows.filter(r => r.total === min) }
   }
 }

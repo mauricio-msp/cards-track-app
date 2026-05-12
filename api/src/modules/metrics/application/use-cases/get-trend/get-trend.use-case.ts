@@ -12,6 +12,7 @@ export class GetTrendUseCase {
       const entry: Record<string, number | string> = {
         date: `${year}-${String(i + 1).padStart(2, '0')}`,
       }
+
       for (const name of uniqueCardNames) entry[name] = 0
       monthMap.set(i, entry)
     }

@@ -19,9 +19,15 @@ const repository = new MetricsRepository(db)
 const controllers = {
   getTrend: new GetTrendController(new GetTrendUseCase(repository)),
   getYears: new GetYearsController(new GetYearsUseCase(repository)),
-  getMonthHighestAmount: new GetMonthHighestAmountController(new GetMonthHighestAmountUseCase(repository)),
-  getMonthLowestAmount: new GetMonthLowestAmountController(new GetMonthLowestAmountUseCase(repository)),
-  getMonthTotalAmount: new GetMonthTotalAmountController(new GetMonthTotalAmountUseCase(repository)),
+  getMonthHighestAmount: new GetMonthHighestAmountController(
+    new GetMonthHighestAmountUseCase(repository),
+  ),
+  getMonthLowestAmount: new GetMonthLowestAmountController(
+    new GetMonthLowestAmountUseCase(repository),
+  ),
+  getMonthTotalAmount: new GetMonthTotalAmountController(
+    new GetMonthTotalAmountUseCase(repository),
+  ),
   getTotalAmount: new GetTotalAmountController(new GetTotalAmountUseCase(repository)),
 }
 

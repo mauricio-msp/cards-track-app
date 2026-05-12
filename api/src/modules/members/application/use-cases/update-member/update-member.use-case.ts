@@ -7,7 +7,9 @@ export class UpdateMemberUseCase {
 
   async execute(id: string, userId: string, data: UpdateMemberInput): Promise<Member> {
     const member = await this.repo.findById(id, userId)
+
     if (!member) throw new MemberNotFoundError()
+
     return this.repo.update(id, data)
   }
 }

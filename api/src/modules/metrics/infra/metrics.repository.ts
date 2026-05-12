@@ -36,6 +36,7 @@ export class MetricsRepository implements IMetricsRepository {
       .innerJoin(purchases, eq(purchaseMembers.purchaseId, purchases.id))
       .innerJoin(cards, and(eq(purchases.cardId, cards.id), eq(cards.ownerUserId, userId)))
       .orderBy(sql`${invoices.year} DESC`)
+
     return rows.map(r => r.year)
   }
 
@@ -55,7 +56,12 @@ export class MetricsRepository implements IMetricsRepository {
       .groupBy(cards.id, cards.name)
   }
 
-  async getMonthTotalAmount(userId: string, month: number, year: number, today: number): Promise<number> {
+  async getMonthTotalAmount(
+    userId: string,
+    month: number,
+    year: number,
+    today: number,
+  ): Promise<number> {
     const [result] = await this.db
       .select({ total: sql<number>`COALESCE(SUM(${installments.amount}), 0)`.mapWith(Number) })
       .from(installments)
@@ -75,7 +81,10 @@ export class MetricsRepository implements IMetricsRepository {
         ),
       )
       .innerJoin(cards, and(eq(purchases.cardId, cards.id), eq(cards.ownerUserId, userId)))
-      .where(and(eq(invoices.month, month), eq(invoices.year, year), sql`${cards.dueDay} > ${today}`))
+      .where(
+        and(eq(invoices.month, month), eq(invoices.year, year), sql`${cards.dueDay} > ${today}`),
+      )
+
     return result?.total ?? 0
   }
 
@@ -110,6 +119,7 @@ export class MetricsRepository implements IMetricsRepository {
         (${invoices.year} = ${currentYear} AND ${invoices.month} > ${currentMonth}) OR
         (${invoices.year} = ${currentYear} AND ${invoices.month} = ${currentMonth} AND ${cards.dueDay} >= ${today})
       `)
+
     return result?.total ?? 0
   }
 }

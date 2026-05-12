@@ -1,4 +1,9 @@
-import type { Card, CreateCardInput, UpdateCardInput } from '@/modules/cards/http/dto/cards.dto'
+import type {
+  Card,
+  CardSummary,
+  CreateCardInput,
+  UpdateCardInput,
+} from '@/modules/cards/http/dto/cards.dto'
 
 export type CardPurchaseMember = {
   id: string
@@ -28,9 +33,7 @@ export type CardPurchase = {
 
 export interface ICardsRepository {
   findById(id: string, userId: string): Promise<Card | null>
-  findAll(
-    userId: string,
-  ): Promise<Pick<Card, 'id' | 'name' | 'limit' | 'closingOffsetDays' | 'dueDay'>[]>
+  findAll(userId: string): Promise<CardSummary[]>
   create(userId: string, data: CreateCardInput): Promise<Card>
   update(id: string, data: UpdateCardInput): Promise<void>
   delete(id: string): Promise<void>
