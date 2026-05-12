@@ -19,13 +19,17 @@ export function HiddenValue({ children, placeholder, className }: HiddenValuePro
 
   if (!hideValues) return <>{children}</>
 
-  if (placeholder !== undefined)
-    return <span aria-hidden="true">{placeholder}</span>
-
   return (
-    <span
-      aria-hidden="true"
-      className={cn('dark:bg-background/40 bg-muted rounded-sm inline-block', className)}
-    />
+    <>
+      <span className="sr-only">{children}</span>
+      {placeholder !== undefined ? (
+        <span aria-hidden="true">{placeholder}</span>
+      ) : (
+        <span
+          aria-hidden="true"
+          className={cn('dark:bg-background/40 bg-muted rounded-sm inline-block', className)}
+        />
+      )}
+    </>
   )
 }

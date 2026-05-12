@@ -59,10 +59,12 @@ export function SignInForm({ className, ...props }: React.ComponentProps<'div'>)
                   disabled={isSubmitting || isLoadingWithGoogle}
                   placeholder="m@example.com"
                   autoComplete="email"
+                  aria-describedby={errors.email ? 'email-error' : undefined}
+                  aria-invalid={!!errors.email}
                   {...register('email')}
                 />
                 {errors.email && (
-                  <FieldError className="text-destructive">{errors.email.message}</FieldError>
+                  <FieldError id="email-error" className="text-destructive">{errors.email.message}</FieldError>
                 )}
               </Field>
               <Field className="gap-1">
@@ -80,10 +82,12 @@ export function SignInForm({ className, ...props }: React.ComponentProps<'div'>)
                   type="password"
                   disabled={isSubmitting || isLoadingWithGoogle}
                   autoComplete="current-password"
+                  aria-describedby={errors.password ? 'password-error' : undefined}
+                  aria-invalid={!!errors.password}
                   {...register('password')}
                 />
                 {errors.password && (
-                  <FieldError className="text-destructive">{errors.password.message}</FieldError>
+                  <FieldError id="password-error" className="text-destructive">{errors.password.message}</FieldError>
                 )}
               </Field>
               <Field>
