@@ -1,40 +1,34 @@
 import { QueryErrorResetBoundary } from '@tanstack/react-query'
-import { Link, useParams } from '@tanstack/react-router'
+import { useParams } from '@tanstack/react-router'
 
-import { ArrowLeft, BadgeDollarSign, CreditCard, Landmark, PlusCircle, User } from 'lucide-react'
+import { BadgeDollarSign, CreditCard, Landmark, PlusCircle, User } from 'lucide-react'
 import { Suspense } from 'react'
 import { ErrorBoundary } from 'react-error-boundary'
-
+import { GoHomeButton } from '@/components/go-home-button'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
-
-import { PurchasesFilter, PurchasesList, PurchasesMembersList } from '@/features/credit-card/components/purchases'
+import { Details } from '@/features/credit-card/components/details'
+import { CardError } from '@/features/credit-card/components/error/card-error'
+import { CreatePurchaseForm } from '@/features/credit-card/components/forms'
+import {
+  PurchasesFilter,
+  PurchasesList,
+  PurchasesMembersList,
+} from '@/features/credit-card/components/purchases'
 import {
   PurchasesListSkeleton,
   PurchasesMembersListSkeleton,
 } from '@/features/credit-card/components/purchases/skeleton'
-import { Details } from '@/features/credit-card/components/details'
-import { CardError } from '@/features/credit-card/components/error/card-error'
-import { CreatePurchaseForm } from '@/features/credit-card/components/forms'
 import { DetailsSkeleton, TotalAmountSkeleton } from '@/features/credit-card/components/skeleton'
 import { TotalAmount } from '@/features/credit-card/components/total-amount'
-import { useIsMobile } from '@/hooks/use-mobile'
 
 export function Overview() {
   const { id } = useParams({ from: '/_app/credit-card/$id' })
-  const isMobile = useIsMobile()
-  const isDesktop = !isMobile
 
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
       <div className="flex items-center justify-between gap-2">
-        <Button variant="ghost" className="self-start cursor-pointer" asChild>
-          <Link to="/dashboard">
-            <ArrowLeft />
-            {isDesktop && 'Voltar para o dashboard'}
-          </Link>
-        </Button>
-
+        <GoHomeButton />
         <PurchasesFilter />
       </div>
 
