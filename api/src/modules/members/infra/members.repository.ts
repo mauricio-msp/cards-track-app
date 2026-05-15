@@ -43,6 +43,16 @@ export class MembersRepository implements IMembersRepository {
     return member ?? null
   }
 
+  async findByIdOnly(id: string): Promise<Member | null> {
+    const [member] = await this.db
+      .select()
+      .from(members)
+      .where(and(eq(members.id, id), isNull(members.deletedAt)))
+      .limit(1)
+
+    return member ?? null
+  }
+
   async findAll(
     userId: string,
   ): Promise<Pick<Member, 'id' | 'name' | 'phone' | 'relationship' | 'createdAt'>[]> {

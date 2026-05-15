@@ -31,6 +31,7 @@ export type MemberPurchasesByCard = {
 
 export interface IMembersRepository {
   findById(id: string, userId: string): Promise<Member | null>
+  findByIdOnly(id: string): Promise<Member | null>
   findAll(
     userId: string,
   ): Promise<Pick<Member, 'id' | 'name' | 'relationship' | 'phone' | 'createdAt'>[]>
