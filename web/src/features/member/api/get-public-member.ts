@@ -1,6 +1,10 @@
 import { z } from 'zod'
 import { apiRequest } from '@/lib/api-client'
 
+type GetPublicMemberParams = {
+  id: string
+}
+
 const GetPublicMemberResponse = z.object({
   member: z.object({
     id: z.string(),
@@ -10,7 +14,7 @@ const GetPublicMemberResponse = z.object({
   }),
 })
 
-export async function getPublicMember({ id }: { id: string }) {
+export async function getPublicMember({ id }: GetPublicMemberParams) {
   const data = await apiRequest(`/api/public/members/${id}`)
   return GetPublicMemberResponse.parse(data)
 }
