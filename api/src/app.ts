@@ -16,7 +16,8 @@ import { env } from '@/env'
 import { auth } from '@/lib/auth'
 
 import { cardsModule } from '@/modules/cards'
-import { membersModule } from '@/modules/members'
+import { memberPaymentsModule } from '@/modules/member-payments'
+import { membersModule, membersPublicModule } from '@/modules/members'
 import { metricsModule } from '@/modules/metrics'
 import { purchasesModule } from '@/modules/purchases'
 import { subscriptionsModule } from '@/modules/subscriptions'
@@ -82,11 +83,13 @@ if (env.NODE_ENV !== 'production') {
 // Cards
 app.register(cardsModule)
 app.register(membersModule)
+app.register(membersPublicModule)
 app.register(metricsModule)
 app.register(purchasesModule)
 
 // Subscriptions
 app.register(subscriptionsModule)
+app.register(memberPaymentsModule)
 
 // Proxy authentication requests to Better Auth
 app.route({
