@@ -9,6 +9,8 @@ import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { Competence } from '@/features/credit-card/components/competence'
 import { useMemberPurchases } from '@/features/member/hooks/use-member-purchases'
+import { usePublicMemberPurchases } from '@/features/member/hooks/use-public-member-purchases'
+import { MemberPaymentsDialog } from '@/features/member-payments/components/member-payments-dialog'
 import { cn, formatPrice } from '@/lib/utils'
 
 type PurchaseItemProps = {
@@ -23,6 +25,7 @@ type PurchaseItemProps = {
   anticipatedAt?: string | null
   anticipatedInstallmentsCount?: number | null
   anticipateFromInstallment?: number | null
+  isPublic?: boolean
 }
 
 type StatusBadge = {
@@ -97,7 +100,9 @@ function PurchaseItem({ purchase }: { purchase: PurchaseItemProps }) {
 
         <div className="text-xs text-muted-foreground flex items-center flex-wrap gap-x-0.5 gap-y-0">
           <span>
-            {new Date(purchase.purchaseDate).toLocaleDateString('pt-BR', { timeZone: 'UTC' })}
+            {new Date(purchase.purchaseDate).toLocaleDateString('pt-BR', {
+              timeZone: 'UTC',
+            })}
           </span>
 
           {purchase.installmentsCount > 1 && (
@@ -120,22 +125,46 @@ function PurchaseItem({ purchase }: { purchase: PurchaseItemProps }) {
       </div>
 
       <div className="ml-auto flex flex-col text-right gap-1 shrink-0">
-        <HiddenValue className="w-20 h-5 dark:bg-muted-foreground/20">
-          <p className="text-sm font-semibold">{formatPrice(purchase.installmentsAmount / 100)}</p>
-        </HiddenValue>
-        <span className="text-xs text-muted-foreground">
-          Total: <HiddenValue placeholder="****">{formatPrice(purchase.amount / 100)}</HiddenValue>
-        </span>
+        {purchase.isPublic ? (
+          <>
+            <p className="text-sm font-semibold">
+              {formatPrice(purchase.installmentsAmount / 100)}
+            </p>
+            <span className="text-xs text-muted-foreground">
+              Total: {formatPrice(purchase.amount / 100)}
+            </span>
+          </>
+        ) : (
+          <>
+            <HiddenValue className="w-20 h-5 dark:bg-muted-foreground/20">
+              <p className="text-sm font-semibold">
+                {formatPrice(purchase.installmentsAmount / 100)}
+              </p>
+            </HiddenValue>
+            <span className="text-xs text-muted-foreground">
+              Total:{' '}
+              <HiddenValue placeholder="****">
+                {formatPrice(purchase.amount / 100)}
+              </HiddenValue>
+            </span>
+          </>
+        )}
       </div>
     </div>
   )
 }
 
-export function PurchasesByCard({ memberId }: { memberId: string }) {
-  const {
-    data: { cardsWithPurchases },
-  } = useMemberPurchases(memberId)
+type CardWithPurchases = ReturnType<typeof useMemberPurchases>['data']['cardsWithPurchases'][number]
 
+function PurchasesByCardView({
+  memberId,
+  cardsWithPurchases,
+  isPublic = false,
+}: {
+  memberId: string
+  cardsWithPurchases: CardWithPurchases[]
+  isPublic?: boolean
+}) {
   const sortedCards = useMemo(
     () => cardsWithPurchases.slice().sort((a, b) => a.card.dueDay - b.card.dueDay),
     [cardsWithPurchases],
@@ -168,38 +197,57 @@ export function PurchasesByCard({ memberId }: { memberId: string }) {
     >
       <div className="flex h-full gap-4 pb-3 lg:pb-0 after:content-[''] after:block after:w-0.5 after:shrink-0 lg:after:hidden">
         {sortedCards.map(cwd => (
-            <Card
-              key={cwd.card.name}
-              className="w-xs md:w-md shrink-0 flex flex-col h-full gap-0 snap-start"
-            >
-              <CardHeader className="flex items-center gap-2 shrink-0 border-b">
-                <Competence
+          <Card
+            key={cwd.card.name}
+            className="w-xs md:w-md shrink-0 flex flex-col h-full gap-0 snap-start"
+          >
+            <CardHeader className="flex items-center gap-2 shrink-0 border-b justify-between">
+              <Competence
+                cardName={cwd.card.name}
+                targetMonth={cwd.card.targetMonth}
+                targetYear={cwd.card.targetYear}
+              />
+              {!isPublic && (
+                <MemberPaymentsDialog
+                  memberId={memberId}
+                  cardId={cwd.card.id}
                   cardName={cwd.card.name}
                   targetMonth={cwd.card.targetMonth}
                   targetYear={cwd.card.targetYear}
                 />
-              </CardHeader>
+              )}
+            </CardHeader>
 
-              <CardContent className="flex-1 min-h-0 p-0">
-                <ScrollArea className="size-full" viewportClassName="[&>div]:![display:unset]">
-                  <div className="px-4 py-4 w-full">
-                    {cwd.purchases
-                      .sort(
-                        (a, b) =>
-                          new Date(b.purchaseDate).getTime() - new Date(a.purchaseDate).getTime(),
-                      )
-                      .map(purchase => (
-                        <PurchaseItem key={purchase.id} purchase={purchase} />
-                      ))}
-                  </div>
-                </ScrollArea>
-              </CardContent>
-
-              <CardFooter className="border-t gap-4 justify-between shrink-0">
-                <div className="flex flex-col">
-                  <span className="text-sm">Total da compra</span>
-                  <span className="text-xs text-muted-foreground">{cwd.card.name}</span>
+            <CardContent className="flex-1 min-h-0 p-0">
+              <ScrollArea className="size-full" viewportClassName="[&>div]:![display:unset]">
+                <div className="px-4 py-4 w-full">
+                  {cwd.purchases
+                    .sort(
+                      (a, b) =>
+                        new Date(b.purchaseDate).getTime() - new Date(a.purchaseDate).getTime(),
+                    )
+                    .map(purchase => (
+                      <PurchaseItem key={purchase.id} purchase={{ ...purchase, isPublic }} />
+                    ))}
                 </div>
+              </ScrollArea>
+            </CardContent>
+
+            <CardFooter className="border-t gap-4 justify-between shrink-0">
+              <div className="flex flex-col">
+                <span className="text-sm">Total da compra</span>
+                <span className="text-xs text-muted-foreground">{cwd.card.name}</span>
+              </div>
+              {isPublic ? (
+                <span className="text-lg text-destructive font-semibold">
+                  {formatPrice(
+                    cwd.purchases.reduce(
+                      (sum, purchase) => sum + purchase.installmentsAmount,
+                      0,
+                    ) / 100,
+                  )}
+                </span>
+              ) : (
                 <HiddenValue className="w-24 h-7 dark:bg-muted-foreground/20">
                   <span className="text-lg text-destructive font-semibold">
                     {formatPrice(
@@ -210,12 +258,31 @@ export function PurchasesByCard({ memberId }: { memberId: string }) {
                     )}
                   </span>
                 </HiddenValue>
-              </CardFooter>
-            </Card>
-          ))}
+              )}
+            </CardFooter>
+          </Card>
+        ))}
       </div>
 
       <ScrollBar orientation="horizontal" />
     </ScrollArea>
+  )
+}
+
+export function PurchasesByCard({ memberId }: { memberId: string }) {
+  const {
+    data: { cardsWithPurchases },
+  } = useMemberPurchases(memberId)
+
+  return <PurchasesByCardView memberId={memberId} cardsWithPurchases={cardsWithPurchases} />
+}
+
+export function PublicPurchasesByCard({ memberId }: { memberId: string }) {
+  const {
+    data: { cardsWithPurchases },
+  } = usePublicMemberPurchases(memberId)
+
+  return (
+    <PurchasesByCardView memberId={memberId} cardsWithPurchases={cardsWithPurchases} isPublic />
   )
 }
