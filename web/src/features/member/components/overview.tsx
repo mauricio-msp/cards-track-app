@@ -1,8 +1,10 @@
 import { QueryErrorResetBoundary } from '@tanstack/react-query'
 import { useParams } from '@tanstack/react-router'
-import { BanknoteArrowDown, User } from 'lucide-react'
+import { BanknoteArrowDown, Link2, User } from 'lucide-react'
 import { Suspense } from 'react'
 import { ErrorBoundary } from 'react-error-boundary'
+import { toast } from 'sonner'
+import { Button } from '@/components/ui/button'
 import { GoHomeButton } from '@/components/go-home-button'
 import { Separator } from '@/components/ui/separator'
 import { PurchasesFilter } from '@/features/credit-card/components/purchases'
@@ -11,13 +13,32 @@ import { MemberError } from '@/features/member/components/error'
 import { PurchasesByCard } from '@/features/member/components/purchases-by-card'
 import { DetailsSkeleton, PurchasesByCardSkeleton } from '@/features/member/components/skeleton'
 
+function CopyPublicLinkButton({ id }: { id: string }) {
+  function handleCopy() {
+    const url = `${window.location.origin}/members/${id}/public`
+    navigator.clipboard.writeText(url).then(() => {
+      toast.success('Link copiado!')
+    })
+  }
+
+  return (
+    <Button variant="outline" size="sm" onClick={handleCopy}>
+      <Link2 />
+      Copiar link público
+    </Button>
+  )
+}
+
 export function MemberOverview() {
   const { id } = useParams({ from: '/_app/members/$id' })
 
   return (
     <div className="flex flex-col flex-1 gap-4 p-4 pt-0 overflow-hidden min-w-0">
       <div className="flex items-center justify-between mb-2 shrink-0">
-        <GoHomeButton />
+        <div className="flex items-center gap-2">
+          <GoHomeButton />
+          <CopyPublicLinkButton id={id} />
+        </div>
         <PurchasesFilter />
       </div>
 
