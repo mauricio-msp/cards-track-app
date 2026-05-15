@@ -1,6 +1,7 @@
 .worktrees
 .superpowers
 .claude
-/docs
+/docs/*
+!/docs/superpowers/
 node_modules
 server/
