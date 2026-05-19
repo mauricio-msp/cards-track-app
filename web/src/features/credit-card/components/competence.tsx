@@ -15,7 +15,7 @@ export function Competence({
   const currentCreditCard = creditCards.find(cc => cc.name.toLowerCase() === cardName)
 
   return (
-    <>
+    <div className="flex items-center gap-3">
       {currentCreditCard?.icon({
         className: 'size-12 rounded-xl grid place-items-center',
         children: <Landmark className="text-white" />,
@@ -27,6 +27,6 @@ export function Competence({
           Competência: {MONTHS[targetMonth]}/{targetYear}
         </span>
       </div>
-    </>
+    </div>
   )
 }
