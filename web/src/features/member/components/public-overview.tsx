@@ -1,6 +1,6 @@
 import { QueryErrorResetBoundary } from '@tanstack/react-query'
 import { useParams } from '@tanstack/react-router'
-import { BanknoteArrowDown, User } from 'lucide-react'
+import { BanknoteArrowDown, BookOpenCheck, User } from 'lucide-react'
 import { Suspense } from 'react'
 import { ErrorBoundary } from 'react-error-boundary'
 import { Badge } from '@/components/ui/badge'
@@ -15,17 +15,20 @@ export function MemberPublicOverview() {
   const { id } = useParams({ from: '/members/$id/public' })
 
   return (
-    <div className="flex flex-col min-h-svh">
+    <div className="flex flex-col h-svh overflow-hidden">
       <header className="flex h-16 shrink-0 items-center justify-between px-4 border-b">
-        <span className="font-semibold">cards.tracks</span>
-        <Badge variant="secondary">Visualização pública</Badge>
+        <div className="flex items-center gap-3">
+          <span className="font-semibold">cards.tracks</span>
+          <Separator orientation="vertical" className="h-4!" />
+          <Badge variant="secondary">
+            <BookOpenCheck />
+            Visualização pública
+          </Badge>
+        </div>
+        <PublicPurchasesFilter />
       </header>
 
       <div className="flex flex-col flex-1 gap-4 p-4 overflow-hidden min-w-0">
-        <div className="flex items-center justify-end shrink-0">
-          <PublicPurchasesFilter />
-        </div>
-
         <div className="shrink-0">
           <QueryErrorResetBoundary>
             {({ reset }) => (

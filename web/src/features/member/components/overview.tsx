@@ -4,27 +4,35 @@ import { BanknoteArrowDown, Link2, User } from 'lucide-react'
 import { Suspense } from 'react'
 import { ErrorBoundary } from 'react-error-boundary'
 import { toast } from 'sonner'
-import { Button } from '@/components/ui/button'
 import { GoHomeButton } from '@/components/go-home-button'
+import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { PurchasesFilter } from '@/features/credit-card/components/purchases'
 import { Details } from '@/features/member/components/details'
 import { MemberError } from '@/features/member/components/error'
 import { PurchasesByCard } from '@/features/member/components/purchases-by-card'
 import { DetailsSkeleton, PurchasesByCardSkeleton } from '@/features/member/components/skeleton'
+import { useIsMobile } from '@/hooks/use-mobile'
 
 function CopyPublicLinkButton({ id }: { id: string }) {
+  const isMobile = useIsMobile()
+
   function handleCopy() {
     const url = `${window.location.origin}/members/${id}/public`
-    navigator.clipboard.writeText(url).then(() => {
-      toast.success('Link copiado!')
-    })
+    navigator.clipboard
+      .writeText(url)
+      .then(() => {
+        toast.success('Link copiado!')
+      })
+      .catch(() => {
+        toast.error('Não foi possível copiar o link')
+      })
   }
 
   return (
-    <Button variant="outline" size="sm" onClick={handleCopy}>
+    <Button variant="outline" onClick={handleCopy}>
       <Link2 />
-      Copiar link público
+      {!isMobile && 'Copiar link público'}
     </Button>
   )
 }
