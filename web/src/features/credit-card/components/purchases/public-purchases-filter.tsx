@@ -1,4 +1,4 @@
-import { BrushCleaning, ListFilter } from 'lucide-react'
+import { BrushCleaning, Funnel, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Popover,
@@ -28,15 +28,21 @@ function getStaticYears() {
 
 export function PublicPurchasesFilter() {
   const isMobile = useIsMobile()
-  const { month, year, setFilters, clearFilters } = usePurchasesFilter()
+  const { month, year, activeCount, setMonth, setYear, clearMonth, clearYear, clearFilters } =
+    usePurchasesFilter()
   const years = getStaticYears()
 
   return (
     <Popover>
       <PopoverTrigger asChild>
         <Button variant="outline">
-          <ListFilter />
+          <Funnel />
           {!isMobile && 'Filtros'}
+          {activeCount > 0 && (
+            <span className="h-4 w-4 rounded-full bg-destructive text-destructive-foreground text-[10px] font-medium flex items-center justify-center">
+              {activeCount}
+            </span>
+          )}
         </Button>
       </PopoverTrigger>
       <PopoverContent align="end" className="max-w-60">
@@ -46,48 +52,58 @@ export function PublicPurchasesFilter() {
         </PopoverHeader>
 
         <div className="flex flex-col gap-4 mt-3">
-          <Select
-            value={month?.toString()}
-            onValueChange={value => setFilters({ month: Number(value) })}
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Selecione um mês" />
-            </SelectTrigger>
-            <SelectContent position="popper">
-              <SelectGroup>
-                <SelectLabel>Meses</SelectLabel>
-                {MONTHS.map((m, index) => (
-                  <SelectItem key={m.toLowerCase()} value={index.toString()}>
-                    {m}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
+          <div className="flex gap-1">
+            <Select value={month !== undefined ? month.toString() : ''} onValueChange={value => setMonth(Number(value))}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Selecione um mês" />
+              </SelectTrigger>
+              <SelectContent position="popper">
+                <SelectGroup>
+                  <SelectLabel>Meses</SelectLabel>
+                  {MONTHS.map((m, index) => (
+                    <SelectItem key={m.toLowerCase()} value={index.toString()}>
+                      {m}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+            {month !== undefined && (
+              <Button size="icon" variant="ghost" onClick={clearMonth} className="shrink-0">
+                <X className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
 
-          <Select
-            value={year?.toString()}
-            onValueChange={value => setFilters({ year: Number(value) })}
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Selecione um ano" />
-            </SelectTrigger>
-            <SelectContent position="popper">
-              <SelectGroup>
-                <SelectLabel>Anos</SelectLabel>
-                {years.map(y => (
-                  <SelectItem key={y} value={y.toString()}>
-                    {y}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
+          <div className="flex gap-1">
+            <Select value={year !== undefined ? year.toString() : ''} onValueChange={value => setYear(Number(value))}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Selecione um ano" />
+              </SelectTrigger>
+              <SelectContent position="popper">
+                <SelectGroup>
+                  <SelectLabel>Anos</SelectLabel>
+                  {years.map(y => (
+                    <SelectItem key={y} value={y.toString()}>
+                      {y}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+            {year !== undefined && (
+              <Button size="icon" variant="ghost" onClick={clearYear} className="shrink-0">
+                <X className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
 
-          <Button variant="ghost" onClick={clearFilters} className="self-start">
-            <BrushCleaning />
-            Limpar filtros
-          </Button>
+          {activeCount > 0 && (
+            <Button variant="ghost" onClick={clearFilters} className="self-start">
+              <BrushCleaning />
+              Limpar filtros
+            </Button>
+          )}
         </div>
       </PopoverContent>
     </Popover>
