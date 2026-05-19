@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 
 import { createPurchase } from '@/features/credit-card/api'
-import { usePurchasesFilter } from '@/hooks/store/use-purchases-filter-store'
+import { usePurchasesFilter } from '@/hooks/use-purchases-filter'
 
 export function useCreatePurchase(cardId: string) {
   const queryClient = useQueryClient()
