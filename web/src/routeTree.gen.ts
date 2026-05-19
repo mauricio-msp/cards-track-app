@@ -17,6 +17,7 @@ import { Route as AuthResetPasswordRouteImport } from './routes/_auth/reset-pass
 import { Route as AuthForgotPasswordRouteImport } from './routes/_auth/forgot-password'
 import { Route as AppSettingsRouteImport } from './routes/_app/settings'
 import { Route as AppDashboardRouteImport } from './routes/_app/dashboard'
+import { Route as MembersIdPublicRouteImport } from './routes/members.$id.public'
 import { Route as AppMembersIdRouteImport } from './routes/_app/members/$id'
 import { Route as AppCreditCardIdRouteImport } from './routes/_app/credit-card/$id'
 
@@ -58,6 +59,11 @@ const AppDashboardRoute = AppDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AppRoute,
 } as any)
+const MembersIdPublicRoute = MembersIdPublicRouteImport.update({
+  id: '/members/$id/public',
+  path: '/members/$id/public',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AppMembersIdRoute = AppMembersIdRouteImport.update({
   id: '/members/$id',
   path: '/members/$id',
@@ -78,6 +84,7 @@ export interface FileRoutesByFullPath {
   '/sign-up': typeof AuthSignUpRoute
   '/credit-card/$id': typeof AppCreditCardIdRoute
   '/members/$id': typeof AppMembersIdRoute
+  '/members/$id/public': typeof MembersIdPublicRoute
 }
 export interface FileRoutesByTo {
   '/': typeof AuthIndexRoute
@@ -88,6 +95,7 @@ export interface FileRoutesByTo {
   '/sign-up': typeof AuthSignUpRoute
   '/credit-card/$id': typeof AppCreditCardIdRoute
   '/members/$id': typeof AppMembersIdRoute
+  '/members/$id/public': typeof MembersIdPublicRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -101,6 +109,7 @@ export interface FileRoutesById {
   '/_auth/': typeof AuthIndexRoute
   '/_app/credit-card/$id': typeof AppCreditCardIdRoute
   '/_app/members/$id': typeof AppMembersIdRoute
+  '/members/$id/public': typeof MembersIdPublicRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -113,6 +122,7 @@ export interface FileRouteTypes {
     | '/sign-up'
     | '/credit-card/$id'
     | '/members/$id'
+    | '/members/$id/public'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -123,6 +133,7 @@ export interface FileRouteTypes {
     | '/sign-up'
     | '/credit-card/$id'
     | '/members/$id'
+    | '/members/$id/public'
   id:
     | '__root__'
     | '/_app'
@@ -135,11 +146,13 @@ export interface FileRouteTypes {
     | '/_auth/'
     | '/_app/credit-card/$id'
     | '/_app/members/$id'
+    | '/members/$id/public'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   AppRoute: typeof AppRouteWithChildren
   AuthRoute: typeof AuthRouteWithChildren
+  MembersIdPublicRoute: typeof MembersIdPublicRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -200,6 +213,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppDashboardRouteImport
       parentRoute: typeof AppRoute
     }
+    '/members/$id/public': {
+      id: '/members/$id/public'
+      path: '/members/$id/public'
+      fullPath: '/members/$id/public'
+      preLoaderRoute: typeof MembersIdPublicRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_app/members/$id': {
       id: '/_app/members/$id'
       path: '/members/$id'
@@ -252,6 +272,7 @@ const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   AppRoute: AppRouteWithChildren,
   AuthRoute: AuthRouteWithChildren,
+  MembersIdPublicRoute: MembersIdPublicRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
