@@ -57,6 +57,13 @@
       "when": 1778604833892,
       "tag": "0007_groovy_triton",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1778854570001,
+      "tag": "0008_long_zuras",
+      "breakpoints": true
     }
   ]
 }
