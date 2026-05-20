@@ -1,6 +1,6 @@
 import type { LucideIcon } from 'lucide-react'
 import { BanknoteX, Dot, Sparkles, TriangleAlert, Zap } from 'lucide-react'
-import React, { useMemo } from 'react'
+import React, { Suspense, useMemo } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty'
@@ -11,7 +11,9 @@ import { Competence } from '@/features/credit-card/components/competence'
 import { useMemberPurchases } from '@/features/member/hooks/use-member-purchases'
 import { usePublicMemberPurchases } from '@/features/member/hooks/use-public-member-purchases'
 import { MemberPaymentsDialog } from '@/features/member-payments/components/member-payments-dialog'
-import { cn, formatPrice } from '@/lib/utils'
+import { useMemberPayments } from '@/features/member-payments/hooks/use-member-payments'
+import { MemberCoveragesDialog } from '@/features/member-coverages/components/member-coverages-dialog'
+import { cn, formatPrice, isPastPeriod } from '@/lib/utils'
 
 type PurchaseItemProps = {
   id: string
@@ -154,6 +156,34 @@ function PurchaseItem({ purchase }: { purchase: PurchaseItemProps }) {
   )
 }
 
+function CoverDifferenceButton({
+  memberId,
+  cardId,
+  cardName,
+  targetMonth,
+  targetYear,
+}: {
+  memberId: string
+  cardId: string
+  cardName: string
+  targetMonth: number
+  targetYear: number
+}) {
+  const { data } = useMemberPayments({ memberId, cardId, targetMonth, targetYear })
+  if (data.remaining <= 0) return null
+  if (isPastPeriod(targetMonth, targetYear)) return null
+  return (
+    <MemberCoveragesDialog
+      memberId={memberId}
+      cardId={cardId}
+      cardName={cardName}
+      targetMonth={targetMonth}
+      targetYear={targetYear}
+      prefillAmountCents={data.remaining}
+    />
+  )
+}
+
 type CardWithPurchases = ReturnType<typeof useMemberPurchases>['data']['cardsWithPurchases'][number]
 
 function PurchasesByCardView({
@@ -208,13 +238,24 @@ function PurchasesByCardView({
                 targetYear={cwd.card.targetYear}
               />
               {!isPublic && (
-                <MemberPaymentsDialog
-                  memberId={memberId}
-                  cardId={cwd.card.id}
-                  cardName={cwd.card.name}
-                  targetMonth={cwd.card.targetMonth}
-                  targetYear={cwd.card.targetYear}
-                />
+                <div className="flex items-center gap-1">
+                  <MemberPaymentsDialog
+                    memberId={memberId}
+                    cardId={cwd.card.id}
+                    cardName={cwd.card.name}
+                    targetMonth={cwd.card.targetMonth}
+                    targetYear={cwd.card.targetYear}
+                  />
+                  <Suspense fallback={null}>
+                    <CoverDifferenceButton
+                      memberId={memberId}
+                      cardId={cwd.card.id}
+                      cardName={cwd.card.name}
+                      targetMonth={cwd.card.targetMonth}
+                      targetYear={cwd.card.targetYear}
+                    />
+                  </Suspense>
+                </div>
               )}
             </CardHeader>
 

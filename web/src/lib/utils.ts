@@ -73,3 +73,8 @@ export function applyBRLMask(raw: string): string {
     maximumFractionDigits: 2,
   })
 }
+
+export function isPastPeriod(month: number, year: number): boolean {
+  const now = new Date()
+  return year < now.getFullYear() || (year === now.getFullYear() && month < now.getMonth())
+}

@@ -1,4 +1,4 @@
-import { NotebookText } from 'lucide-react'
+import { HandCoins } from 'lucide-react'
 import { Suspense, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import {
@@ -11,38 +11,45 @@ import {
 } from '@/components/ui/dialog'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { PaymentsListContent } from '@/features/member-payments/components/member-payments-dialog-list'
-import { PaymentForm } from '@/features/member-payments/components/payment-form'
-import { useMemberPayments } from '@/features/member-payments/hooks/use-member-payments'
+import { CoverageForm } from '@/features/member-coverages/components/coverage-form'
+import { CoveragesListContent } from '@/features/member-coverages/components/member-coverages-dialog-list'
+import { useMemberCoverages } from '@/features/member-coverages/hooks/use-member-coverages'
 import { creditCards } from '@/helpers/credit-cards'
 import { isPastPeriod } from '@/lib/utils'
 
-type MemberPaymentsDialogProps = {
+type MemberCoveragesDialogProps = {
   cardId: string
   cardName: string
   memberId: string
   targetYear: number
   targetMonth: number
+  prefillAmountCents?: number
 }
 
-function PaymentsIndicator({
+function CoveragesIndicator({
   memberId,
   cardId,
   targetMonth,
   targetYear,
-}: Omit<MemberPaymentsDialogProps, 'cardName'>) {
-  const { data } = useMemberPayments({ memberId, cardId, targetMonth, targetYear })
-  if (!data.payments.length) return null
-  return <span className="absolute top-1 right-1 size-1.5 rounded-full bg-green-500" />
+}: Omit<MemberCoveragesDialogProps, 'cardName' | 'prefillAmountCents'>) {
+  const { data } = useMemberCoverages({ memberId, cardId, targetMonth, targetYear })
+  if (!data.coverages.length) return null
+  const hasDebt = data.totalRemaining > 0
+  return (
+    <span
+      className={`absolute top-1 right-1 size-1.5 rounded-full ${hasDebt ? 'bg-orange-500' : 'bg-green-500'}`}
+    />
+  )
 }
 
-export function MemberPaymentsDialog({
+export function MemberCoveragesDialog({
   cardId,
   memberId,
   cardName,
   targetMonth,
   targetYear,
-}: MemberPaymentsDialogProps) {
+  prefillAmountCents,
+}: MemberCoveragesDialogProps) {
   const [open, setOpen] = useState(false)
   const isPast = isPastPeriod(targetMonth, targetYear)
 
@@ -50,9 +57,9 @@ export function MemberPaymentsDialog({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button variant="ghost" size="icon" className="size-7 relative">
-          <NotebookText className="size-4" />
+          <HandCoins className="size-4" />
           <Suspense fallback={null}>
-            <PaymentsIndicator
+            <CoveragesIndicator
               cardId={cardId}
               memberId={memberId}
               targetMonth={targetMonth}
@@ -66,10 +73,10 @@ export function MemberPaymentsDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             {creditCards.find(cc => cc.name.toLowerCase() === cardName.toLowerCase())?.icon({})}
-            Adiantamentos - {cardName}
+            Coberturas - {cardName}
           </DialogTitle>
           <DialogDescription>
-            Registre valores entregues para descontar da fatura.
+            Registre valores que você cobriu e acompanhe o retorno do membro.
           </DialogDescription>
         </DialogHeader>
 
@@ -80,7 +87,7 @@ export function MemberPaymentsDialog({
               disabled={isPast}
               className="flex-1 dark:data-[state=active]:bg-background dark:data-[state=active]:border-background"
             >
-              Adicionar
+              Registrar
             </TabsTrigger>
             <TabsTrigger
               value="history"
@@ -93,22 +100,24 @@ export function MemberPaymentsDialog({
           <TabsContent value="add" className="mt-4">
             {isPast ? (
               <p className="text-sm text-muted-foreground text-center py-4">
-                Adiantamentos só podem ser registrados para o mês atual ou futuros.
+                Coberturas só podem ser registradas para o mês atual ou futuros.
               </p>
             ) : (
-              <PaymentForm
+              <CoverageForm
                 cardId={cardId}
                 memberId={memberId}
                 targetYear={targetYear}
                 targetMonth={targetMonth}
+                prefillAmountCents={prefillAmountCents}
                 onCancel={() => setOpen(false)}
+                onSuccess={() => setOpen(false)}
               />
             )}
           </TabsContent>
 
           <TabsContent value="history" className="mt-4">
             <Suspense fallback={<Skeleton className="h-32 w-full" />}>
-              <PaymentsListContent
+              <CoveragesListContent
                 cardId={cardId}
                 memberId={memberId}
                 targetYear={targetYear}
