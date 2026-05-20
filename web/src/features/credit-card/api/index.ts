@@ -10,3 +10,5 @@ export { getMonthTotalAmountCard } from '@/features/credit-card/api/get-month-to
 export { getTotalAmountUsedCard } from '@/features/credit-card/api/get-total-amount-used-card'
 export { updateCard } from '@/features/credit-card/api/update-card'
 export { updatePurchase } from '@/features/credit-card/api/update-purchase'
+export { parsePurchaseWithAI } from '@/features/credit-card/api/parse-purchase-with-ai'
+export type { ParsedPurchaseAI, ParsePurchaseAIResponse } from '@/features/credit-card/api/parse-purchase-with-ai'

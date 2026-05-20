@@ -21,18 +21,13 @@ export function CreatePurchaseForm({ children }: { children: ReactNode }) {
     form,
     fields,
     isPending,
-    calendarOpen,
-    setCalendarOpen,
-    installmentsEnabled,
-    setInstallmentsEnabled,
-    installmentsCount,
-    totalAmountInCents,
-    selectedMembersForCombobox,
-    membersStore,
-    handleMembersChange,
     onSubmit,
-    isRecurring,
-    setIsRecurring,
+    resetAll,
+    calendar,
+    installments,
+    members,
+    recurring,
+    ai,
   } = useCreatePurchaseForm()
 
   const {
@@ -45,50 +40,45 @@ export function CreatePurchaseForm({ children }: { children: ReactNode }) {
     <Dialog>
       <DialogTrigger asChild>{children}</DialogTrigger>
 
-      <DialogContent className="sm:max-w-2xl" onCloseAutoFocus={() => form.reset()}>
-        <form onSubmit={onSubmit} className="flex flex-col justify-end flex-1 gap-4">
-          <DialogHeader>
-            <DialogTitle>Adicionar despesa</DialogTitle>
-            <DialogDescription>
-              Registre uma nova compra e associe ao cartão de crédito.
-            </DialogDescription>
-          </DialogHeader>
+      <DialogContent className="sm:max-w-2xl gap-0" onCloseAutoFocus={resetAll}>
+        <DialogHeader className="pb-2">
+          <DialogTitle>Adicionar despesa</DialogTitle>
+          <DialogDescription>
+            Registre uma nova compra e associe ao cartão de crédito.
+          </DialogDescription>
+        </DialogHeader>
 
+        <form id="form-purchase" onSubmit={onSubmit} className="flex flex-col justify-end flex-1">
           <PurchaseFormFields
-            control={control}
-            register={register}
-            errors={errors}
-            fields={fields}
-            isPending={isPending}
-            calendarOpen={calendarOpen}
-            setCalendarOpen={setCalendarOpen}
-            installmentsEnabled={installmentsEnabled}
-            setInstallmentsEnabled={setInstallmentsEnabled}
-            installmentsCount={installmentsCount}
-            totalAmountInCents={totalAmountInCents}
-            membersStore={membersStore}
-            selectedMembersForCombobox={selectedMembersForCombobox}
-            handleMembersChange={handleMembersChange}
-            isRecurring={isRecurring}
-            setIsRecurring={setIsRecurring}
+            ai={ai}
+            form={{ control, register, errors, fields, isPending }}
+            members={members}
+            calendar={calendar}
+            recurring={recurring}
+            installments={installments}
           />
-
-          <DialogFooter>
-            <DialogClose asChild>
-              <Button disabled={isPending} variant="outline">
-                Cancelar
-              </Button>
-            </DialogClose>
-            <Button type="submit" className="cursor-pointer" disabled={isPending}>
-              {isPending ? (
-                <Loader className="size-4 animate-spin" />
-              ) : (
-                <PlusCircle className="size-4" />
-              )}
-              {isPending ? 'Salvando...' : 'Adicionar despesa'}
-            </Button>
-          </DialogFooter>
         </form>
+
+        <DialogFooter>
+          <DialogClose asChild>
+            <Button disabled={isPending} variant="outline">
+              Cancelar
+            </Button>
+          </DialogClose>
+          <Button
+            type="submit"
+            form="form-purchase"
+            className="cursor-pointer"
+            disabled={isPending}
+          >
+            {isPending ? (
+              <Loader className="size-4 animate-spin" />
+            ) : (
+              <PlusCircle className="size-4" />
+            )}
+            {isPending ? 'Salvando...' : 'Adicionar despesa'}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   )

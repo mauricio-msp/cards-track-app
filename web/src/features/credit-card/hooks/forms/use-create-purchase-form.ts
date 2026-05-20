@@ -2,7 +2,10 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useParams } from '@tanstack/react-router'
 import React from 'react'
 import { useFieldArray, useForm } from 'react-hook-form'
+import { toast } from 'sonner'
 import { z } from 'zod'
+import type { ParsedPurchaseAI } from '@/features/credit-card/api/parse-purchase-with-ai'
+import { useParsePurchaseWithAI } from '@/features/credit-card/hooks/forms/use-parse-purchase-with-ai'
 import { useCreatePurchase } from '@/features/credit-card/hooks/purchases/use-create-purchase'
 import type { Member } from '@/features/member/api/get-members'
 import { useMembers } from '@/features/member/hooks'
@@ -63,11 +66,18 @@ const defaultValues: Partial<CreatePurchaseFormValues> = {
 export function useCreatePurchaseForm() {
   const { id: cardId } = useParams({ from: '/_app/credit-card/$id' })
   const { mutateAsync: createPurchaseFn, isPending } = useCreatePurchase(cardId)
-  const { data: { members: membersStore } } = useMembers()
+  const {
+    data: { members: membersStore },
+  } = useMembers()
+  const { mutateAsync: parsePurchaseFn, isPending: isParsing } = useParsePurchaseWithAI()
 
   const [calendarOpen, setCalendarOpen] = React.useState(false)
   const [installmentsEnabled, setInstallmentsEnabled] = React.useState(false)
   const [isRecurring, setIsRecurring] = React.useState(false)
+  const [aiText, setAiText] = React.useState('')
+  const [missingFields, setMissingFields] = React.useState<string[]>([])
+  const [parsedFields, setParsedFields] = React.useState<ParsedPurchaseAI | null>(null)
+  const [unknownMemberNames, setUnknownMemberNames] = React.useState<string[]>([])
 
   const form = useForm<CreatePurchaseFormValues>({
     resolver: zodResolver(CreatePurchaseFormSchema),
@@ -84,7 +94,6 @@ export function useCreatePurchaseForm() {
 
   const watchedMembers = form.watch('members')
   const installmentsCount = form.watch('installmentsCount') || 1
-
   const purchaseDate = form.watch('purchaseDate')
 
   React.useEffect(() => {
@@ -93,11 +102,9 @@ export function useCreatePurchaseForm() {
     }
   }, [purchaseDate, form])
 
-  // Membros selecionados no Combobox sincronizados com o FieldArray
   const currentMembersIds = fields.map(f => f.id)
   const selectedMembersForCombobox = membersStore.filter(m => currentMembersIds.includes(m.id))
 
-  // Total calculado considerando o intervalo de parcelas de cada membro
   const totalAmountInCents = watchedMembers.reduce((sum, member) => {
     const start = member.startInstallment
     const end = member.endInstallment ?? installmentsCount
@@ -121,6 +128,81 @@ export function useCreatePurchaseForm() {
         }
       }),
     )
+  }
+
+  function handleFillFromAi(parsed: ParsedPurchaseAI) {
+    if (parsed.description && !form.getValues('description')) {
+      form.setValue('description', parsed.description)
+    }
+
+    if (parsed.purchaseDate && !form.getValues('purchaseDate')) {
+      const [year, month, day] = parsed.purchaseDate.split('-').map(Number)
+      form.setValue('purchaseDate', new Date(year, month - 1, day))
+    }
+
+    if (parsed.category && !form.getValues('category')) {
+      form.setValue('category', parsed.category)
+    }
+
+    if (parsed.installmentsCount && parsed.installmentsCount > 1) {
+      setInstallmentsEnabled(true)
+      form.setValue('installmentsCount', parsed.installmentsCount)
+    }
+
+    if (parsed.isRecurring) {
+      handleSetIsRecurring(true)
+    }
+
+    if (parsed.members && parsed.members.length > 0) {
+      const validMembers = parsed.members.filter(pm => membersStore.some(m => m.id === pm.id))
+      if (validMembers.length > 0) {
+        replace(
+          validMembers.map(pm => ({
+            id: pm.id,
+            name: pm.name,
+            amount: pm.amount || '',
+            startInstallment: pm.startInstallment ?? 1,
+            endInstallment: pm.endInstallment ?? undefined,
+          })),
+        )
+      }
+    }
+  }
+
+  async function handleParsePurchase() {
+    if (!aiText.trim()) return
+    try {
+      const result = await parsePurchaseFn({
+        text: aiText,
+        members: membersStore,
+      })
+      handleFillFromAi(result.parsed)
+      setMissingFields(result.missing)
+      setParsedFields(result.parsed)
+      setUnknownMemberNames(result.unknownMemberNames)
+    } catch (error) {
+      const message = error instanceof Error ? error.message : ''
+      if (
+        message.includes('429') ||
+        message.toLowerCase().includes('quota') ||
+        message.toLowerCase().includes('limit')
+      ) {
+        toast.error('Limite de IA atingido, tente em instantes.')
+      } else {
+        toast.error('Serviço de IA indisponível, tente novamente.')
+      }
+    }
+  }
+
+  function resetAll() {
+    form.reset(defaultValues)
+    form.clearErrors(['category', 'members'])
+    setInstallmentsEnabled(false)
+    setIsRecurring(false)
+    setAiText('')
+    setMissingFields([])
+    setParsedFields(null)
+    setUnknownMemberNames([])
   }
 
   function handleSetIsRecurring(value: boolean) {
@@ -159,23 +241,50 @@ export function useCreatePurchaseForm() {
     form.clearErrors(['category', 'members'])
     setInstallmentsEnabled(false)
     setIsRecurring(false)
+    setAiText('')
+    setMissingFields([])
+    setParsedFields(null)
+    setUnknownMemberNames([])
   }
 
   return {
     form,
     fields,
     isPending,
-    calendarOpen,
-    setCalendarOpen,
-    installmentsEnabled,
-    setInstallmentsEnabled,
-    installmentsCount,
-    totalAmountInCents,
-    membersStore,
-    selectedMembersForCombobox,
-    handleMembersChange,
-    isRecurring,
-    setIsRecurring: handleSetIsRecurring,
     onSubmit: form.handleSubmit(onSubmit),
+    resetAll,
+
+    calendar: {
+      open: calendarOpen,
+      setOpen: setCalendarOpen,
+    },
+
+    installments: {
+      installmentsEnabled,
+      setInstallmentsEnabled,
+      installmentsCount,
+      totalAmountInCents,
+    },
+
+    members: {
+      membersStore,
+      selectedMembersForCombobox,
+      handleMembersChange,
+    },
+
+    recurring: {
+      isRecurring,
+      setIsRecurring: handleSetIsRecurring,
+    },
+
+    ai: {
+      aiText,
+      setAiText,
+      isParsing,
+      missingFields,
+      parsedFields,
+      unknownMemberNames,
+      handleParsePurchase,
+    },
   }
 }
