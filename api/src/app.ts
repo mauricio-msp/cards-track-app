@@ -15,6 +15,7 @@ import {
 import { env } from '@/env'
 import { auth } from '@/lib/auth'
 
+import { aiModule } from '@/modules/ai'
 import { cardsModule } from '@/modules/cards'
 import { memberPaymentsModule } from '@/modules/member-payments'
 import { membersModule, membersPublicModule } from '@/modules/members'
@@ -90,6 +91,9 @@ app.register(purchasesModule)
 // Subscriptions
 app.register(subscriptionsModule)
 app.register(memberPaymentsModule)
+
+// AI
+app.register(aiModule)
 
 // Proxy authentication requests to Better Auth
 app.route({

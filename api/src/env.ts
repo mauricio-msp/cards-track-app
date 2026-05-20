@@ -12,6 +12,7 @@ const EnvSchema = z.object({
   GOOGLE_CLIENT_SECRET: z.string(),
   RESEND_API_KEY: z.string(),
   RESEND_EMAIL_FROM: z.string(),
+  GROQ_API_KEY: z.string(),
 })
 
 export const env = EnvSchema.parse(process.env)
