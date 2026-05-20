@@ -4,3 +4,10 @@ export class MemberPaymentNotFoundError extends Error {
     this.name = 'MemberPaymentNotFoundError'
   }
 }
+
+export class PaymentForPastPeriodError extends Error {
+  constructor() {
+    super('Adiantamento só pode ser registrado para o mês atual ou futuros')
+    this.name = 'PaymentForPastPeriodError'
+  }
+}
