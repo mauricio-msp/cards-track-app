@@ -1,10 +1,13 @@
 import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod'
 import { z } from 'zod'
 import { authMiddleware } from '@/middleware/auth'
+import type { ChatController } from '@/modules/ai/http/controllers/chat.controller'
 import type { ParsePurchaseController } from '@/modules/ai/http/controllers/parse-purchase.controller'
+import { chatBodySchema } from '@/modules/ai/http/dto/chat.dto'
 
 type Controllers = {
   parsePurchase: ParsePurchaseController
+  chat: ChatController
 }
 
 export const aiRoutes =
@@ -55,5 +58,18 @@ export const aiRoutes =
         },
       },
       (req, reply) => controllers.parsePurchase.handle(req.body, reply, req.log),
+    )
+
+    app.post(
+      '/api/ai/chat',
+      {
+        preHandler: [authMiddleware],
+        schema: {
+          summary: 'Chat com assistente financeiro via streaming SSE',
+          tags: ['AI'],
+          body: chatBodySchema,
+        },
+      },
+      (req, reply) => controllers.chat.handle(req.body, req.user.id, req.headers.origin, reply, req.log),
     )
   }
