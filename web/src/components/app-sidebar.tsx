@@ -1,7 +1,7 @@
 import { QueryErrorResetBoundary } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 
-import { Command, LayoutDashboard, Settings2 } from 'lucide-react'
+import { Command, HandCoins, LayoutDashboard, Settings2 } from 'lucide-react'
 import { type ComponentProps, Suspense } from 'react'
 import { ErrorBoundary } from 'react-error-boundary'
 
@@ -24,6 +24,11 @@ const data = {
       url: '/dashboard',
       name: 'Dashboard',
       icon: LayoutDashboard,
+    },
+    {
+      url: '/coverages',
+      name: 'Coberturas',
+      icon: HandCoins,
     },
     {
       url: '/settings',

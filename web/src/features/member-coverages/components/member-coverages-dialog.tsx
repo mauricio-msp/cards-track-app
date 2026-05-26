@@ -69,7 +69,7 @@ export function MemberCoveragesDialog({
         </Button>
       </DialogTrigger>
 
-      <DialogContent className="max-w-lg">
+      <DialogContent className="max-w-xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             {creditCards.find(cc => cc.name.toLowerCase() === cardName.toLowerCase())?.icon({})}

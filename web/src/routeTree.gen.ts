@@ -17,6 +17,7 @@ import { Route as AuthResetPasswordRouteImport } from './routes/_auth/reset-pass
 import { Route as AuthForgotPasswordRouteImport } from './routes/_auth/forgot-password'
 import { Route as AppSettingsRouteImport } from './routes/_app/settings'
 import { Route as AppDashboardRouteImport } from './routes/_app/dashboard'
+import { Route as AppCoveragesRouteImport } from './routes/_app/coverages'
 import { Route as MembersIdPublicRouteImport } from './routes/members.$id.public'
 import { Route as AppMembersIdRouteImport } from './routes/_app/members/$id'
 import { Route as AppCreditCardIdRouteImport } from './routes/_app/credit-card/$id'
@@ -59,6 +60,11 @@ const AppDashboardRoute = AppDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AppRoute,
 } as any)
+const AppCoveragesRoute = AppCoveragesRouteImport.update({
+  id: '/coverages',
+  path: '/coverages',
+  getParentRoute: () => AppRoute,
+} as any)
 const MembersIdPublicRoute = MembersIdPublicRouteImport.update({
   id: '/members/$id/public',
   path: '/members/$id/public',
@@ -77,6 +83,7 @@ const AppCreditCardIdRoute = AppCreditCardIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthIndexRoute
+  '/coverages': typeof AppCoveragesRoute
   '/dashboard': typeof AppDashboardRoute
   '/settings': typeof AppSettingsRoute
   '/forgot-password': typeof AuthForgotPasswordRoute
@@ -88,6 +95,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof AuthIndexRoute
+  '/coverages': typeof AppCoveragesRoute
   '/dashboard': typeof AppDashboardRoute
   '/settings': typeof AppSettingsRoute
   '/forgot-password': typeof AuthForgotPasswordRoute
@@ -101,6 +109,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_app': typeof AppRouteWithChildren
   '/_auth': typeof AuthRouteWithChildren
+  '/_app/coverages': typeof AppCoveragesRoute
   '/_app/dashboard': typeof AppDashboardRoute
   '/_app/settings': typeof AppSettingsRoute
   '/_auth/forgot-password': typeof AuthForgotPasswordRoute
@@ -115,6 +124,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/coverages'
     | '/dashboard'
     | '/settings'
     | '/forgot-password'
@@ -126,6 +136,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/coverages'
     | '/dashboard'
     | '/settings'
     | '/forgot-password'
@@ -138,6 +149,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/_app'
     | '/_auth'
+    | '/_app/coverages'
     | '/_app/dashboard'
     | '/_app/settings'
     | '/_auth/forgot-password'
@@ -213,6 +225,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppDashboardRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/coverages': {
+      id: '/_app/coverages'
+      path: '/coverages'
+      fullPath: '/coverages'
+      preLoaderRoute: typeof AppCoveragesRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/members/$id/public': {
       id: '/members/$id/public'
       path: '/members/$id/public'
@@ -238,6 +257,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AppRouteChildren {
+  AppCoveragesRoute: typeof AppCoveragesRoute
   AppDashboardRoute: typeof AppDashboardRoute
   AppSettingsRoute: typeof AppSettingsRoute
   AppCreditCardIdRoute: typeof AppCreditCardIdRoute
@@ -245,6 +265,7 @@ interface AppRouteChildren {
 }
 
 const AppRouteChildren: AppRouteChildren = {
+  AppCoveragesRoute: AppCoveragesRoute,
   AppDashboardRoute: AppDashboardRoute,
   AppSettingsRoute: AppSettingsRoute,
   AppCreditCardIdRoute: AppCreditCardIdRoute,
