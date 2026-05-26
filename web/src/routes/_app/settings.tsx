@@ -3,7 +3,7 @@ import { SettingsPage } from '@/features/settings/settings-page'
 
 export const Route = createFileRoute('/_app/settings')({
   component: RouteComponent,
-  loader: () => ({ crumbs: [{ label: 'Home', to: '/dashboard' }, 'Configurações'] }),
+  loader: () => ({ crumbs: ['Configurações'] }),
   head: () => ({
     meta: [
       {

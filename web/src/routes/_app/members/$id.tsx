@@ -3,7 +3,7 @@ import { TooltipProvider } from '@/components/ui/tooltip'
 import { MemberOverview } from '@/features/member/components/overview'
 
 export const Route = createFileRoute('/_app/members/$id')({
-  loader: () => ({ crumbs: ['Membros', 'Overview'] }),
+  loader: () => ({ crumbs: ['Membro'] }),
   head: () => ({
     meta: [
       {

@@ -4,7 +4,6 @@ import { BanknoteArrowDown, Link2, User } from 'lucide-react'
 import { Suspense } from 'react'
 import { ErrorBoundary } from 'react-error-boundary'
 import { toast } from 'sonner'
-import { GoHomeButton } from '@/components/go-home-button'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { PurchasesFilter } from '@/features/credit-card/components/purchases'
@@ -43,10 +42,7 @@ export function MemberOverview() {
   return (
     <div className="flex flex-col flex-1 gap-4 p-4 pt-0 overflow-hidden min-w-0">
       <div className="flex items-center justify-between mb-2 shrink-0">
-        <div className="flex items-center gap-2">
-          <GoHomeButton />
-          <CopyPublicLinkButton id={id} />
-        </div>
+        <CopyPublicLinkButton id={id} />
         <PurchasesFilter />
       </div>
 
