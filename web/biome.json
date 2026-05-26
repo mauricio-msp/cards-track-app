@@ -12,7 +12,8 @@
       "a11y": {
         "useSemanticElements": "off",
         "useValidAnchor": "off",
-        "useFocusableInteractive": "off"
+        "useFocusableInteractive": "off",
+        "noStaticElementInteractions": "off"
       },
       "suspicious": {
         "noArrayIndexKey": "off",

@@ -2,6 +2,6 @@
 .superpowers
 .claude
 /docs/*
-!/docs/superpowers/
+/docs/superpowers/
 node_modules
 server/
