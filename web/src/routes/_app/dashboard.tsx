@@ -1,9 +1,10 @@
 import { QueryErrorResetBoundary } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 
-import { CreditCard, TrendingDown, TrendingUp, Wallet } from 'lucide-react'
+import { CreditCard, LayoutDashboard, TrendingDown, TrendingUp, Wallet } from 'lucide-react'
 import { Suspense } from 'react'
 import { ErrorBoundary } from 'react-error-boundary'
+import { PageHeader } from '@/components/page-header'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import {
   DashboardCardError,
@@ -18,7 +19,7 @@ import {
 import { PurchasesTrendChartError } from '@/features/dashboard/components/chart/error'
 
 export const Route = createFileRoute('/_app/dashboard')({
-  loader: () => ({ crumbs: ['Dashboard', 'Overview'] }),
+  loader: () => ({ crumbs: ['Dashboard'] }),
   head: () => ({
     meta: [
       {
@@ -55,6 +56,14 @@ function GridCardWrapper({ title, icon, Component }: GridCardProps) {
 function RouteComponent() {
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
+      <PageHeader>
+        <PageHeader.Icon>
+          <LayoutDashboard />
+        </PageHeader.Icon>
+        <PageHeader.Title>Dashboard</PageHeader.Title>
+        <PageHeader.Description>Visão geral das suas dívidas e tendências.</PageHeader.Description>
+      </PageHeader>
+
       <ScrollArea
         type="auto"
         className="-mx-4 sm:mx-0"
