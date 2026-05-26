@@ -1,12 +1,12 @@
 import type { LucideIcon } from 'lucide-react'
 import {
+  BadgePlus,
   CreditCard,
   Dot,
+  History,
   Pencil,
   RefreshCw,
-  Sparkles,
   Trash2,
-  TriangleAlert,
   UndoDot,
   Zap,
 } from 'lucide-react'
@@ -109,25 +109,29 @@ export function PurchasesItem({ purchase, onAnticipate, onDelete }: PurchasesIte
       show: isAnticipated,
       icon: Zap,
       label: hasRemainingAfterAnticipation ? 'Parcial' : 'Antecipado',
-      className: 'gap-1 text-amber-600 bg-amber-100 dark:bg-amber-950 dark:text-amber-400',
+      className:
+        'gap-1 text-amber-600 bg-amber-100 dark:bg-amber-950/20 dark:text-amber-400 border border-amber-400',
     },
     {
       show: !!purchase.subscriptionId,
       icon: RefreshCw,
       label: 'Recorrente',
-      className: 'gap-1 text-blue-600 bg-blue-100 dark:bg-blue-950 dark:text-blue-400',
+      className:
+        'gap-1 text-blue-600 bg-blue-100 dark:bg-blue-950/20 dark:text-blue-400 border border-blue-400',
     },
     {
       show: isNewPurchase,
-      icon: Sparkles,
+      icon: BadgePlus,
       label: 'Nova',
-      className: 'gap-1 text-green-600 bg-green-100 dark:bg-green-950 dark:text-green-400',
+      className:
+        'gap-1 text-green-600 bg-green-100 dark:bg-green-950/20 dark:text-green-400 border border-green-400',
     },
     {
       show: isLastPayment,
-      icon: TriangleAlert,
+      icon: History,
       label: 'Último',
-      className: 'gap-1 text-red-600 bg-red-100 dark:bg-red-950 dark:text-red-400',
+      className:
+        'gap-1 text-red-600 bg-red-100 dark:bg-red-950/20 dark:text-red-400 border border-red-400',
     },
   ]
 
@@ -231,7 +235,8 @@ export function PurchasesItem({ purchase, onAnticipate, onDelete }: PurchasesIte
                 <p className="text-lg font-semibold">{formatPrice(totalMembersAmount)}</p>
               </HiddenValue>
               <span className="text-xs text-muted-foreground">
-                Total: <HiddenValue placeholder="****">{formatPrice(fullPurchaseTotal)}</HiddenValue>
+                Total:{' '}
+                <HiddenValue placeholder="****">{formatPrice(fullPurchaseTotal)}</HiddenValue>
               </span>
             </div>
           </div>

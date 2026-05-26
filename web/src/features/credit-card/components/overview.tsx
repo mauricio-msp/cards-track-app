@@ -4,7 +4,6 @@ import { useParams } from '@tanstack/react-router'
 import { BadgeDollarSign, CreditCard, Landmark, PlusCircle, User } from 'lucide-react'
 import { Suspense } from 'react'
 import { ErrorBoundary } from 'react-error-boundary'
-import { GoHomeButton } from '@/components/go-home-button'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Details } from '@/features/credit-card/components/details'
@@ -27,8 +26,7 @@ export function Overview() {
 
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-      <div className="flex items-center justify-between gap-2">
-        <GoHomeButton />
+      <div className="flex justify-end">
         <PurchasesFilter />
       </div>
 

@@ -161,7 +161,7 @@ export function AiField({
             .map(f => (
               <Badge
                 key={f}
-                className="bg-yellow-500/10 border-amber-500/30 gap-1"
+                className="bg-amber-500/10 border-amber-500/30 gap-1"
                 variant="outline"
               >
                 <TriangleAlert className="size-3.5 text-amber-700 dark:text-amber-400" />

@@ -1,5 +1,5 @@
 import type { LucideIcon } from 'lucide-react'
-import { BanknoteX, Dot, Sparkles, TriangleAlert, Zap } from 'lucide-react'
+import { BadgePlus, BanknoteX, Dot, History, Zap } from 'lucide-react'
 import React, { Suspense, useMemo } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
@@ -10,9 +10,9 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { Competence } from '@/features/credit-card/components/competence'
 import { useMemberPurchases } from '@/features/member/hooks/use-member-purchases'
 import { usePublicMemberPurchases } from '@/features/member/hooks/use-public-member-purchases'
+import { MemberCoveragesDialog } from '@/features/member-coverages/components/member-coverages-dialog'
 import { MemberPaymentsDialog } from '@/features/member-payments/components/member-payments-dialog'
 import { useMemberPayments } from '@/features/member-payments/hooks/use-member-payments'
-import { MemberCoveragesDialog } from '@/features/member-coverages/components/member-coverages-dialog'
 import { cn, formatPrice, isPastPeriod } from '@/lib/utils'
 
 type PurchaseItemProps = {
@@ -59,98 +59,99 @@ function PurchaseItem({ purchase }: { purchase: PurchaseItemProps }) {
       show: isAnticipated,
       icon: Zap,
       label: hasRemainingAfterAnticipation ? 'Parcial' : 'Antecipado',
-      className: 'shrink-0 gap-1 text-amber-600 bg-amber-100 dark:bg-amber-950 dark:text-amber-400',
+      className:
+        'shrink-0 gap-1 text-amber-600 bg-amber-100 dark:bg-amber-950/20 dark:text-amber-400 border border-amber-400',
     },
     {
       show: isNewPurchase,
-      icon: Sparkles,
+      icon: BadgePlus,
       label: 'Nova',
-      className: 'shrink-0 gap-1 text-green-600 bg-green-100 dark:bg-green-950 dark:text-green-400',
+      className:
+        'shrink-0 gap-1 text-green-600 bg-green-100 dark:bg-green-950/20 dark:text-green-400 border border-green-400',
     },
     {
       show: isLastPayment,
-      icon: TriangleAlert,
+      icon: History,
       label: 'Último',
-      className: 'shrink-0 gap-1 text-red-600 bg-red-100 dark:bg-red-950 dark:text-red-400',
+      className:
+        'shrink-0 gap-1 text-red-600 bg-red-100 dark:bg-red-950/20 dark:text-red-400 border border-red-400',
     },
   ]
 
   return (
     <div
       key={purchase.id}
-      className="py-4 px-2 flex gap-4 dark:bg-background bg-muted not-last:mb-2 rounded-xl border border-accent"
+      className="py-4 px-2 grid grid-cols-[1fr_auto] gap-x-4 gap-y-0.5 dark:bg-background bg-muted not-last:mb-2 rounded-xl border border-accent"
     >
-      <div className="flex flex-col flex-1 min-w-0">
-        <div className="flex items-center gap-2 min-w-0">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <p ref={descRef} className="text-sm text-primary truncate">
-                {purchase.description}
-              </p>
-            </TooltipTrigger>
-            {isTruncated && <TooltipContent side="top">{purchase.description}</TooltipContent>}
-          </Tooltip>
-          {statusBadges
-            .filter(b => b.show)
-            .map(({ className, icon: Icon, label }) => (
-              <Badge key={label} variant="outline" className={className}>
-                <Icon className="size-3" />
-                {label}
-              </Badge>
-            ))}
-        </div>
-
-        <div className="text-xs text-muted-foreground flex items-center flex-wrap gap-x-0.5 gap-y-0">
-          <span>
-            {new Date(purchase.purchaseDate).toLocaleDateString('pt-BR', {
-              timeZone: 'UTC',
-            })}
-          </span>
-
-          {purchase.installmentsCount > 1 && (
-            <>
-              <Dot className="shrink-0" />
-              {isAnticipated ? (
-                <span className="whitespace-nowrap">
-                  {purchase.anticipatedInstallmentsCount}x consolidadas
-                  {hasRemainingAfterAnticipation &&
-                    ` · ${purchase.remainingInstallments} restante(s)`}
-                </span>
-              ) : (
-                <span className="whitespace-nowrap">
-                  {purchase.elapsedInstallments}/{purchase.installmentsCount}x
-                </span>
-              )}
-            </>
-          )}
-        </div>
+      <div className="flex items-center gap-2 min-w-0">
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <p ref={descRef} className="text-sm text-primary truncate">
+              {purchase.description}
+            </p>
+          </TooltipTrigger>
+          {isTruncated && <TooltipContent side="top">{purchase.description}</TooltipContent>}
+        </Tooltip>
+        {statusBadges
+          .filter(b => b.show)
+          .map(({ className, icon: Icon, label }) => (
+            <Badge key={label} variant="outline" className={className}>
+              <Icon className="size-3" />
+              {label}
+            </Badge>
+          ))}
       </div>
 
-      <div className="ml-auto flex flex-col text-right gap-1 shrink-0">
+      <div className="text-right self-center">
         {purchase.isPublic ? (
-          <>
+          <p className="text-sm font-semibold">
+            {formatPrice(purchase.installmentsAmount / 100)}
+          </p>
+        ) : (
+          <HiddenValue className="w-20 h-5 dark:bg-muted-foreground/20 ml-auto">
             <p className="text-sm font-semibold">
               {formatPrice(purchase.installmentsAmount / 100)}
             </p>
-            <span className="text-xs text-muted-foreground">
-              Total: {formatPrice(purchase.amount / 100)}
-            </span>
-          </>
-        ) : (
+          </HiddenValue>
+        )}
+      </div>
+
+      <div className="text-xs text-muted-foreground flex items-center flex-wrap gap-x-0.5 gap-y-0">
+        <span>
+          {new Date(purchase.purchaseDate).toLocaleDateString('pt-BR', {
+            timeZone: 'UTC',
+          })}
+        </span>
+
+        {purchase.installmentsCount > 1 && (
           <>
-            <HiddenValue className="w-20 h-5 dark:bg-muted-foreground/20">
-              <p className="text-sm font-semibold">
-                {formatPrice(purchase.installmentsAmount / 100)}
-              </p>
-            </HiddenValue>
-            <span className="text-xs text-muted-foreground">
-              Total:{' '}
-              <HiddenValue placeholder="****">
-                {formatPrice(purchase.amount / 100)}
-              </HiddenValue>
-            </span>
+            <Dot className="shrink-0" />
+            {isAnticipated ? (
+              <span className="whitespace-nowrap">
+                {purchase.anticipatedInstallmentsCount}x consolidadas
+                {hasRemainingAfterAnticipation &&
+                  ` · ${purchase.remainingInstallments} restante(s)`}
+              </span>
+            ) : (
+              <span className="whitespace-nowrap">
+                {purchase.elapsedInstallments}/{purchase.installmentsCount}x
+              </span>
+            )}
           </>
         )}
+      </div>
+
+      <div className="text-right self-center">
+        <span className="text-xs text-muted-foreground">
+          {purchase.isPublic ? (
+            <>Total: {formatPrice(purchase.amount / 100)}</>
+          ) : (
+            <>
+              Total:{' '}
+              <HiddenValue placeholder="****">{formatPrice(purchase.amount / 100)}</HiddenValue>
+            </>
+          )}
+        </span>
       </div>
     </div>
   )
@@ -282,10 +283,8 @@ function PurchasesByCardView({
               {isPublic ? (
                 <span className="text-lg text-destructive font-semibold">
                   {formatPrice(
-                    cwd.purchases.reduce(
-                      (sum, purchase) => sum + purchase.installmentsAmount,
-                      0,
-                    ) / 100,
+                    cwd.purchases.reduce((sum, purchase) => sum + purchase.installmentsAmount, 0) /
+                      100,
                   )}
                 </span>
               ) : (
