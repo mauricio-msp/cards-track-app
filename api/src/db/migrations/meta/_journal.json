@@ -64,6 +64,13 @@
       "when": 1778854570001,
       "tag": "0008_long_zuras",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1779303449849,
+      "tag": "0009_rare_groot",
+      "breakpoints": true
     }
   ]
 }

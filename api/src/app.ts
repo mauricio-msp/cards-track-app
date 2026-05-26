@@ -17,6 +17,7 @@ import { auth } from '@/lib/auth'
 
 import { aiModule } from '@/modules/ai'
 import { cardsModule } from '@/modules/cards'
+import { coveragesModule } from '@/modules/coverages'
 import { memberPaymentsModule } from '@/modules/member-payments'
 import { membersModule, membersPublicModule } from '@/modules/members'
 import { metricsModule } from '@/modules/metrics'
@@ -91,6 +92,7 @@ app.register(purchasesModule)
 // Subscriptions
 app.register(subscriptionsModule)
 app.register(memberPaymentsModule)
+app.register(coveragesModule)
 
 // AI
 app.register(aiModule)
