@@ -31,6 +31,16 @@ export type CardPurchase = {
   members: CardPurchaseMember[]
 }
 
+export type MemberPaymentSummary = {
+  id: string
+  name: string
+  relationship: string
+  totalOwed: number
+  totalPaid: number
+  remaining: number
+  isLate: boolean
+}
+
 export interface ICardsRepository {
   findById(id: string, userId: string): Promise<Card | null>
   findAll(userId: string): Promise<CardSummary[]>
@@ -46,4 +56,9 @@ export interface ICardsRepository {
   ): Promise<CardPurchase[]>
   findTotalAmountUsed(cardId: string, targetMonth: number, targetYear: number): Promise<number>
   findMonthTotalAmount(cardId: string, targetMonth: number, targetYear: number): Promise<number>
+  findInvoicePaymentSummary(
+    cardId: string,
+    targetMonth: number,
+    targetYear: number,
+  ): Promise<MemberPaymentSummary[]>
 }

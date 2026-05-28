@@ -4,6 +4,7 @@ import {
   cards,
   installments,
   invoices,
+  memberPayments,
   members,
   purchaseMembers,
   purchases,
@@ -12,6 +13,7 @@ import type {
   CardPurchase,
   CardPurchaseMember,
   ICardsRepository,
+  MemberPaymentSummary,
 } from '@/modules/cards/domain/repositories/cards.repository.interface'
 import type {
   Card,
@@ -323,6 +325,55 @@ export class CardsRepository implements ICardsRepository {
     }
 
     return Array.from(grouped.values()).filter(g => g.members.length > 0)
+  }
+
+  async findInvoicePaymentSummary(
+    cardId: string,
+    targetMonth: number,
+    targetYear: number,
+  ): Promise<MemberPaymentSummary[]> {
+    const ps = this.db
+      .select({
+        memberId: memberPayments.memberId,
+        totalPaid: sql<number>`coalesce(sum(${memberPayments.amount}), 0)`.as('total_paid'),
+      })
+      .from(memberPayments)
+      .where(
+        and(
+          eq(memberPayments.cardId, cardId),
+          eq(memberPayments.targetMonth, targetMonth),
+          eq(memberPayments.targetYear, targetYear),
+        ),
+      )
+      .groupBy(memberPayments.memberId)
+      .as('ps')
+
+    const rows = await this.db
+      .select({
+        id: members.id,
+        name: members.name,
+        relationship: members.relationship,
+        totalOwed: sql<number>`coalesce(sum(${installments.amount}), 0)`.mapWith(Number),
+        totalPaid: sql<number>`coalesce(max(${ps.totalPaid}), 0)`.mapWith(Number),
+      })
+      .from(installments)
+      .innerJoin(invoices, eq(installments.invoiceId, invoices.id))
+      .innerJoin(members, eq(installments.memberId, members.id))
+      .leftJoin(ps, eq(ps.memberId, members.id))
+      .where(
+        and(
+          eq(invoices.cardId, cardId),
+          eq(invoices.month, targetMonth),
+          eq(invoices.year, targetYear),
+        ),
+      )
+      .groupBy(members.id, members.name, members.relationship)
+
+    return rows.map(row => ({
+      ...row,
+      remaining: Math.max(row.totalOwed - row.totalPaid, 0),
+      isLate: row.totalOwed > row.totalPaid,
+    }))
   }
 
 }
