@@ -3,6 +3,7 @@ import { CreateCardUseCase } from '@/modules/cards/application/use-cases/create-
 import { DeleteCardUseCase } from '@/modules/cards/application/use-cases/delete-card/delete-card.use-case'
 import { GetCardUseCase } from '@/modules/cards/application/use-cases/get-card/get-card.use-case'
 import { GetCardsUseCase } from '@/modules/cards/application/use-cases/get-cards/get-cards.use-case'
+import { GetInvoicePaymentSummaryUseCase } from '@/modules/cards/application/use-cases/get-invoice-payment-summary/get-invoice-payment-summary.use-case'
 import { GetMonthTotalAmountUseCase } from '@/modules/cards/application/use-cases/get-month-total-amount/get-month-total-amount.use-case'
 import { GetPurchasesUseCase } from '@/modules/cards/application/use-cases/get-purchases/get-purchases.use-case'
 import { GetTotalAmountUsedUseCase } from '@/modules/cards/application/use-cases/get-total-amount-used/get-total-amount-used.use-case'
@@ -11,6 +12,7 @@ import { CreateCardController } from '@/modules/cards/http/controllers/create-ca
 import { DeleteCardController } from '@/modules/cards/http/controllers/delete-card.controller'
 import { GetCardController } from '@/modules/cards/http/controllers/get-card.controller'
 import { GetCardsController } from '@/modules/cards/http/controllers/get-cards.controller'
+import { GetInvoicePaymentSummaryController } from '@/modules/cards/http/controllers/get-invoice-payment-summary.controller'
 import { GetMonthTotalAmountController } from '@/modules/cards/http/controllers/get-month-total-amount.controller'
 import { GetPurchasesController } from '@/modules/cards/http/controllers/get-purchases.controller'
 import { GetTotalAmountUsedController } from '@/modules/cards/http/controllers/get-total-amount-used.controller'
@@ -30,6 +32,9 @@ const controllers = {
   getTotalAmountUsed: new GetTotalAmountUsedController(new GetTotalAmountUsedUseCase(repository)),
   getMonthTotalAmount: new GetMonthTotalAmountController(
     new GetMonthTotalAmountUseCase(repository),
+  ),
+  getInvoicePaymentSummary: new GetInvoicePaymentSummaryController(
+    new GetInvoicePaymentSummaryUseCase(repository),
   ),
 }
 

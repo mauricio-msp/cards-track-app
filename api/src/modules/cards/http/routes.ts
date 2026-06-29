@@ -5,6 +5,7 @@ import type { CreateCardController } from '@/modules/cards/http/controllers/crea
 import type { DeleteCardController } from '@/modules/cards/http/controllers/delete-card.controller'
 import type { GetCardController } from '@/modules/cards/http/controllers/get-card.controller'
 import type { GetCardsController } from '@/modules/cards/http/controllers/get-cards.controller'
+import type { GetInvoicePaymentSummaryController } from '@/modules/cards/http/controllers/get-invoice-payment-summary.controller'
 import type { GetMonthTotalAmountController } from '@/modules/cards/http/controllers/get-month-total-amount.controller'
 import type { GetPurchasesController } from '@/modules/cards/http/controllers/get-purchases.controller'
 import type { GetTotalAmountUsedController } from '@/modules/cards/http/controllers/get-total-amount-used.controller'
@@ -25,6 +26,7 @@ type Controllers = {
   getPurchases: GetPurchasesController
   getTotalAmountUsed: GetTotalAmountUsedController
   getMonthTotalAmount: GetMonthTotalAmountController
+  getInvoicePaymentSummary: GetInvoicePaymentSummaryController
 }
 
 export const cardsRoutes =
@@ -167,6 +169,7 @@ export const cardsRoutes =
                       relationship: z.string(),
                       installmentAmount: z.number(),
                       perInstallmentAmount: z.number(),
+                      totalOwed: z.number(),
                     }),
                   ),
                 }),
@@ -222,6 +225,46 @@ export const cardsRoutes =
       },
       (req, reply) =>
         controllers.getMonthTotalAmount.handle(
+          req.params.cardId,
+          req.user.id,
+          req.query,
+          reply,
+          req.log,
+        ),
+    )
+
+    app.get(
+      '/api/cards/:cardId/invoice-payment-summary',
+      {
+        preHandler: [authMiddleware],
+        schema: {
+          summary: 'Resumo de adiantamentos/pagamentos da fatura por membro',
+          tags: ['Cards'],
+          params: z.object({ cardId: z.string().uuid() }),
+          querystring: cardPeriodQueryDto,
+          response: {
+            200: z.object({
+              invoiceTotal: z.number(),
+              isPastPeriod: z.boolean(),
+              members: z.array(
+                z.object({
+                  id: z.string(),
+                  name: z.string(),
+                  relationship: z.string(),
+                  totalOwed: z.number(),
+                  totalPaid: z.number(),
+                  remaining: z.number(),
+                  isLate: z.boolean().nullable(),
+                }),
+              ),
+            }),
+            404: z.object({ message: z.string() }),
+            500: z.object({ message: z.string() }),
+          },
+        },
+      },
+      (req, reply) =>
+        controllers.getInvoicePaymentSummary.handle(
           req.params.cardId,
           req.user.id,
           req.query,

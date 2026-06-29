@@ -7,6 +7,7 @@ import { resolveTargetPeriod } from '@/utils/resolve-target-period'
 
 export type GetInvoicePaymentSummaryResult = {
   invoiceTotal: number
+  isPastPeriod: boolean
   members: MemberPaymentSummary[]
 }
 
@@ -23,10 +24,20 @@ export class GetInvoicePaymentSummaryUseCase {
     if (!card) throw new CardNotFoundError()
 
     const { targetMonth, targetYear } = resolveTargetPeriod(card.dueDay, month, year)
+    const { targetMonth: currentMonth, targetYear: currentYear } = resolveTargetPeriod(card.dueDay)
+
+    const isPastPeriod =
+      targetYear < currentYear || (targetYear === currentYear && targetMonth < currentMonth)
 
     const members = await this.repo.findInvoicePaymentSummary(cardId, targetMonth, targetYear)
     const invoiceTotal = members.reduce((sum, m) => sum + m.totalOwed, 0)
 
-    return { invoiceTotal, members }
+    return {
+      invoiceTotal,
+      isPastPeriod,
+      members: isPastPeriod
+        ? members
+        : members.map(m => ({ ...m, isLate: null })),
+    }
   }
 }

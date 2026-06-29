@@ -11,6 +11,7 @@ export type CardPurchaseMember = {
   relationship: string
   installmentAmount: number
   perInstallmentAmount: number
+  totalOwed: number
 }
 
 export type CardPurchase = {
@@ -38,7 +39,7 @@ export type MemberPaymentSummary = {
   totalOwed: number
   totalPaid: number
   remaining: number
-  isLate: boolean
+  isLate: boolean | null
 }
 
 export interface ICardsRepository {

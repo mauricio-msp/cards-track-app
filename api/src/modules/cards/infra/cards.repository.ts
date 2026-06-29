@@ -4,6 +4,7 @@ import {
   cards,
   installments,
   invoices,
+  memberCoverages,
   memberPayments,
   members,
   purchaseMembers,
@@ -318,6 +319,7 @@ export class CardsRepository implements ICardsRepository {
           perInstallmentAmount:
             Number(pm.installmentAmount) ||
             Math.round(Number(pm.amount) / purchase.installmentsCount),
+          totalOwed: Number(pm.amount),
         }
         memberMap.set(member.id, newMember)
         group.members.push(newMember)
@@ -348,32 +350,74 @@ export class CardsRepository implements ICardsRepository {
       .groupBy(memberPayments.memberId)
       .as('ps')
 
+    const cs = this.db
+      .select({
+        memberId: memberCoverages.memberId,
+        totalCovered: sql<number>`coalesce(sum(${memberCoverages.amount}), 0)`.as('total_covered'),
+        coverageRepaid: sql<number>`coalesce(sum(${memberCoverages.amountRepaid}), 0)`.as('coverage_repaid'),
+      })
+      .from(memberCoverages)
+      .where(
+        and(
+          eq(memberCoverages.cardId, cardId),
+          eq(memberCoverages.targetMonth, targetMonth),
+          eq(memberCoverages.targetYear, targetYear),
+        ),
+      )
+      .groupBy(memberCoverages.memberId)
+      .as('cs')
+
     const rows = await this.db
       .select({
         id: members.id,
         name: members.name,
         relationship: members.relationship,
-        totalOwed: sql<number>`coalesce(sum(${installments.amount}), 0)`.mapWith(Number),
+        totalOwed: sql<number>`
+          COALESCE(
+            SUM(
+              CASE
+                WHEN ${installments.number} >= ${purchaseMembers.startInstallment}
+                  AND ${installments.number} <= COALESCE(${purchaseMembers.endInstallment}, ${purchases.installmentsCount})
+                THEN ${installments.amount}
+                ELSE 0
+              END
+            ),
+            0
+          )
+        `.mapWith(Number),
         totalPaid: sql<number>`coalesce(max(${ps.totalPaid}), 0)`.mapWith(Number),
+        totalCovered: sql<number>`coalesce(max(${cs.totalCovered}), 0)`.mapWith(Number),
+        coverageRepaid: sql<number>`coalesce(max(${cs.coverageRepaid}), 0)`.mapWith(Number),
       })
       .from(installments)
       .innerJoin(invoices, eq(installments.invoiceId, invoices.id))
-      .innerJoin(members, eq(installments.memberId, members.id))
+      .innerJoin(purchaseMembers, eq(installments.purchaseMemberId, purchaseMembers.id))
+      .innerJoin(purchases, eq(purchaseMembers.purchaseId, purchases.id))
+      .innerJoin(members, eq(purchaseMembers.memberId, members.id))
       .leftJoin(ps, eq(ps.memberId, members.id))
+      .leftJoin(cs, eq(cs.memberId, members.id))
       .where(
         and(
-          eq(invoices.cardId, cardId),
+          eq(purchases.cardId, cardId),
           eq(invoices.month, targetMonth),
           eq(invoices.year, targetYear),
         ),
       )
       .groupBy(members.id, members.name, members.relationship)
 
-    return rows.map(row => ({
-      ...row,
-      remaining: Math.max(row.totalOwed - row.totalPaid, 0),
-      isLate: row.totalOwed > row.totalPaid,
-    }))
+    return rows.map(row => {
+      const hasAnyRecord = row.totalPaid > 0 || row.totalCovered > 0
+      const effectivePaid = row.totalPaid + row.coverageRepaid
+      return {
+        id: row.id,
+        name: row.name,
+        relationship: row.relationship,
+        totalOwed: row.totalOwed,
+        totalPaid: row.totalPaid,
+        remaining: hasAnyRecord ? Math.max(row.totalOwed - row.totalPaid, 0) : 0,
+        isLate: hasAnyRecord ? row.totalOwed > effectivePaid : null,
+      }
+    })
   }
 
 }

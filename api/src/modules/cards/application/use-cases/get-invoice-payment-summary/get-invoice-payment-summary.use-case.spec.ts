@@ -49,7 +49,7 @@ describe('GetInvoicePaymentSummaryUseCase', () => {
     expect(result.members).toHaveLength(0)
   })
 
-  it('aggregates invoiceTotal from member totalOwed values', async () => {
+  it('preserves isLate from repository for past periods', async () => {
     const repo = makeRepo({
       findById: vi.fn().mockResolvedValue(fakeCard),
       findInvoicePaymentSummary: vi.fn().mockResolvedValue([
@@ -59,12 +59,42 @@ describe('GetInvoicePaymentSummaryUseCase', () => {
     })
     const useCase = new GetInvoicePaymentSummaryUseCase(repo)
 
-    const result = await useCase.execute('card-1', 'user-1', 5, 2026)
+    // month 4 (May) is past for dueDay=10 with today=2026-05-28
+    const result = await useCase.execute('card-1', 'user-1', 4, 2026)
 
     expect(result.invoiceTotal).toBe(30000)
     expect(result.members).toHaveLength(2)
-    expect(result.members[0].name).toBe('Kauan')
+    expect(result.members[0].isLate).toBe(true)
     expect(result.members[1].isLate).toBe(false)
+  })
+
+  it('sets isLate to null for current period (no badge shown)', async () => {
+    const repo = makeRepo({
+      findById: vi.fn().mockResolvedValue(fakeCard),
+      findInvoicePaymentSummary: vi.fn().mockResolvedValue([
+        { id: 'm1', name: 'Kauan', relationship: 'Irmão', totalOwed: 10000, totalPaid: 4800, remaining: 5200, isLate: true },
+      ]),
+    })
+    const useCase = new GetInvoicePaymentSummaryUseCase(repo)
+
+    // month 5 (June) is current period for dueDay=10 with today=2026-05-28
+    const result = await useCase.execute('card-1', 'user-1', 5, 2026)
+
+    expect(result.members[0].isLate).toBeNull()
+  })
+
+  it('sets isLate to null for past period when member has no payment records', async () => {
+    const repo = makeRepo({
+      findById: vi.fn().mockResolvedValue(fakeCard),
+      findInvoicePaymentSummary: vi.fn().mockResolvedValue([
+        { id: 'm1', name: 'Kauan', relationship: 'Irmão', totalOwed: 10000, totalPaid: 0, remaining: 0, isLate: null },
+      ]),
+    })
+    const useCase = new GetInvoicePaymentSummaryUseCase(repo)
+
+    const result = await useCase.execute('card-1', 'user-1', 4, 2026)
+
+    expect(result.members[0].isLate).toBeNull()
   })
 
   it('passes resolved targetMonth and targetYear to repository', async () => {

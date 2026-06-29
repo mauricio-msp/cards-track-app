@@ -1,6 +1,6 @@
 import { and, eq, sql } from 'drizzle-orm'
 import type { db as Db } from '@/db'
-import { installments, invoices, memberPayments } from '@/db/schema'
+import { installments, invoices, memberPayments, purchaseMembers, purchases } from '@/db/schema'
 import type {
   CreateMemberPaymentData,
   IMemberPaymentsRepository,
@@ -40,9 +40,25 @@ export class MemberPaymentsRepository implements IMemberPaymentsRepository {
     targetYear: number,
   ): Promise<number> {
     const [result] = await this.db
-      .select({ total: sql<number>`coalesce(sum(${installments.amount}), 0)` })
+      .select({
+        total: sql<number>`
+          COALESCE(
+            SUM(
+              CASE
+                WHEN ${installments.number} >= ${purchaseMembers.startInstallment}
+                  AND ${installments.number} <= COALESCE(${purchaseMembers.endInstallment}, ${purchases.installmentsCount})
+                THEN ${installments.amount}
+                ELSE 0
+              END
+            ),
+            0
+          )
+        `.mapWith(Number),
+      })
       .from(installments)
       .innerJoin(invoices, eq(installments.invoiceId, invoices.id))
+      .innerJoin(purchaseMembers, eq(installments.purchaseMemberId, purchaseMembers.id))
+      .innerJoin(purchases, eq(purchaseMembers.purchaseId, purchases.id))
       .where(
         and(
           eq(installments.memberId, memberId),
