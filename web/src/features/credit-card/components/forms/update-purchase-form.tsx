@@ -21,10 +21,12 @@ type Purchase = z.infer<typeof GetCardPurchasesItem>
 
 interface UpdatePurchaseFormProps {
   purchase: Purchase
-  children: ReactNode
+  children?: ReactNode
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
 }
 
-export function UpdatePurchaseForm({ purchase, children }: UpdatePurchaseFormProps) {
+export function UpdatePurchaseForm({ purchase, children, open, onOpenChange }: UpdatePurchaseFormProps) {
   const {
     form,
     fields,
@@ -47,8 +49,8 @@ export function UpdatePurchaseForm({ purchase, children }: UpdatePurchaseFormPro
   } = form
 
   return (
-    <Dialog>
-      <DialogTrigger asChild>{children}</DialogTrigger>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      {children ? <DialogTrigger asChild>{children}</DialogTrigger> : null}
 
       <DialogContent className="sm:max-w-xl" onCloseAutoFocus={() => form.reset()}>
         <form onSubmit={onSubmit} className="flex flex-col justify-end flex-1 gap-4">

@@ -4,16 +4,16 @@ import {
   CreditCard,
   Dot,
   History,
-  Pencil,
+  MoreVertical,
   RefreshCw,
   Trash2,
-  UndoDot,
   Zap,
 } from 'lucide-react'
 import React from 'react'
 import type { z } from 'zod'
 import { ActionAlertDialog } from '@/components/action-alert-dialog'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import {
   ContextMenu,
   ContextMenuContent,
@@ -25,17 +25,30 @@ import {
   ContextMenuSubTrigger,
   ContextMenuTrigger,
 } from '@/components/ui/context-menu'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { HiddenValue } from '@/components/ui/hidden-value'
 import { Progress } from '@/components/ui/progress'
 import { Separator } from '@/components/ui/separator'
 import type { GetCardPurchasesItem } from '@/features/credit-card/api/get-card-purchases'
+import { UpdatePurchaseForm } from '@/features/credit-card/components/forms'
+import { PurchaseActionsItems } from '@/features/credit-card/components/purchases/purchase-actions-items'
 import { cn, formatPrice } from '@/lib/utils'
 
 type Purchase = z.infer<typeof GetCardPurchasesItem>
 
 interface PurchasesItemProps {
   purchase: Purchase
-  onAnticipate: (installments: number) => Promise<unknown>
+  onAnticipate: (args: { purchaseMemberId: string; anticipateCount: number }) => Promise<unknown>
   onDelete: (purchaseMemberId: string) => Promise<unknown>
 }
 
@@ -46,12 +59,13 @@ type StatusBadge = {
   label: string
 }
 
-export function PurchasesItem({ purchase, onAnticipate, onDelete }: PurchasesItemProps) {
+function PurchasesItemComponent({ purchase, onAnticipate, onDelete }: PurchasesItemProps) {
   const [deleteOpen, setDeleteOpen] = React.useState(false)
   const [isDeleting, setIsDeleting] = React.useState(false)
   const [anticipateOpen, setAnticipateOpen] = React.useState(false)
   const [anticipatingCount, setAnticipaingCount] = React.useState(0)
   const [isAnticipating, setIsAnticipating] = React.useState(false)
+  const [editOpen, setEditOpen] = React.useState(false)
 
   async function handleConfirmDelete() {
     setIsDeleting(true)
@@ -66,7 +80,10 @@ export function PurchasesItem({ purchase, onAnticipate, onDelete }: PurchasesIte
   async function handleConfirmAnticipate() {
     setIsAnticipating(true)
     try {
-      await onAnticipate(anticipatingCount)
+      await onAnticipate({
+        purchaseMemberId: purchase.purchaseMemberId,
+        anticipateCount: anticipatingCount,
+      })
       setAnticipateOpen(false)
     } finally {
       setIsAnticipating(false)
@@ -102,7 +119,10 @@ export function PurchasesItem({ purchase, onAnticipate, onDelete }: PurchasesIte
     0,
   )
 
-  const fullPurchaseTotal = perInstallmentTotal * purchase.installmentsCount
+  const fullPurchaseTotal = purchase.members.reduce(
+    (sum: number, member) => sum + member.totalOwed / 100,
+    0,
+  )
 
   const statusBadges: StatusBadge[] = [
     {
@@ -142,11 +162,43 @@ export function PurchasesItem({ purchase, onAnticipate, onDelete }: PurchasesIte
           disabled={isComplete}
           data-complete={isComplete}
           className={cn(
-            'py-4 bg-muted/30 rounded-xl border flex flex-wrap gap-x-4 gap-y-2 px-2',
+            'relative group py-4 bg-muted/30 rounded-xl border flex flex-wrap gap-x-4 gap-y-2 px-2 pr-12',
             'sm:flex-nowrap sm:gap-4 sm:rounded-none sm:border-0 sm:bg-transparent sm:not-last:border-b sm:rounded-t-lg',
             'data-[complete=true]:cursor-default data-[complete=false]:cursor-context-menu',
           )}
         >
+          {!isComplete && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  aria-label="Ações da despesa"
+                  className="absolute top-2 right-2 z-10 size-8 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100 focus-visible:opacity-100"
+                >
+                  <MoreVertical className="size-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="min-w-60">
+                <PurchaseActionsItems
+                  components={{
+                    Group: DropdownMenuGroup,
+                    Item: DropdownMenuItem,
+                    Sub: DropdownMenuSub,
+                    SubTrigger: DropdownMenuSubTrigger,
+                    SubContent: DropdownMenuSubContent,
+                    Separator: DropdownMenuSeparator,
+                  }}
+                  purchase={purchase}
+                  isComplete={isComplete}
+                  onEdit={() => setEditOpen(true)}
+                  onSelectAnticipate={handleSelectAnticipate}
+                  onDelete={() => setDeleteOpen(true)}
+                />
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+
           <div className="size-10 bg-muted/50 rounded-lg grid place-items-center shrink-0">
             <CreditCard className="size-4 text-muted-foreground" />
           </div>
@@ -243,44 +295,21 @@ export function PurchasesItem({ purchase, onAnticipate, onDelete }: PurchasesIte
         </ContextMenuTrigger>
 
         <ContextMenuContent className="min-w-60">
-          <ContextMenuGroup>
-            <ContextMenuItem>
-              <Pencil /> Editar
-            </ContextMenuItem>
-          </ContextMenuGroup>
-
-          {!isComplete && purchase.anticipatableInstallments > 0 && (
-            <ContextMenuSub>
-              <ContextMenuSubTrigger>
-                <UndoDot className="mr-2" /> Antecipar parcelas
-              </ContextMenuSubTrigger>
-              <ContextMenuSubContent className="min-w-20">
-                {Array.from({ length: purchase.anticipatableInstallments }, (_, i) => (
-                  <ContextMenuItem
-                    key={i}
-                    onSelect={e => {
-                      e.preventDefault()
-                      handleSelectAnticipate(i + 1)
-                    }}
-                  >
-                    {i + 1}x
-                  </ContextMenuItem>
-                ))}
-              </ContextMenuSubContent>
-            </ContextMenuSub>
-          )}
-
-          <ContextMenuSeparator />
-
-          <ContextMenuItem
-            variant="destructive"
-            onSelect={event => {
-              event.preventDefault()
-              setDeleteOpen(true)
+          <PurchaseActionsItems
+            components={{
+              Group: ContextMenuGroup,
+              Item: ContextMenuItem,
+              Sub: ContextMenuSub,
+              SubTrigger: ContextMenuSubTrigger,
+              SubContent: ContextMenuSubContent,
+              Separator: ContextMenuSeparator,
             }}
-          >
-            <Trash2 /> Excluir
-          </ContextMenuItem>
+            purchase={purchase}
+            isComplete={isComplete}
+            onEdit={() => setEditOpen(true)}
+            onSelectAnticipate={handleSelectAnticipate}
+            onDelete={() => setDeleteOpen(true)}
+          />
         </ContextMenuContent>
       </ContextMenu>
 
@@ -331,6 +360,10 @@ export function PurchasesItem({ purchase, onAnticipate, onDelete }: PurchasesIte
         onConfirm={() => handleConfirmAnticipate()}
         onOpenChange={setAnticipateOpen}
       />
+
+      <UpdatePurchaseForm purchase={purchase} open={editOpen} onOpenChange={setEditOpen} />
     </>
   )
 }
+
+export const PurchasesItem = React.memo(PurchasesItemComponent)

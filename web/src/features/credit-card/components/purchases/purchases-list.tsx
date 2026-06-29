@@ -49,13 +49,8 @@ export function PurchasesList({ cardId }: { cardId: string }) {
           <PurchasesItem
             key={purchase.groupId}
             purchase={purchase}
-            onAnticipate={count =>
-              anticipatePurchaseFn({
-                purchaseMemberId: purchase.purchaseMemberId,
-                anticipateCount: count,
-              })
-            }
-            onDelete={purchaseMemberId => deletePurchaseFn(purchaseMemberId)}
+            onAnticipate={anticipatePurchaseFn}
+            onDelete={deletePurchaseFn}
           />
         ))}
 
