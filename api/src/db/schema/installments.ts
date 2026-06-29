@@ -23,6 +23,8 @@ export const installments = pgTable(
     amount: integer('amount').notNull(),
 
     paidAt: timestamp('paid_at'),
+    anticipatedAt: timestamp('anticipated_at'),
+    originalInvoiceId: text('original_invoice_id'),
     createdAt: timestamp('created_at').notNull().defaultNow(),
   },
   table => [

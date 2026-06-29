@@ -1,6 +1,8 @@
-import { index, integer, pgTable, text, timestamp } from 'drizzle-orm/pg-core'
+import { index, integer, pgEnum, pgTable, text, timestamp } from 'drizzle-orm/pg-core'
 import { uuidv7 } from 'uuidv7'
 import { users } from '@/db/schema'
+
+export const anticipationMode = pgEnum('anticipation_mode', ['none', 'gap', 'tail'])
 
 export const cards = pgTable('cards', {
   id: text('id')
@@ -15,6 +17,7 @@ export const cards = pgTable('cards', {
   limit: integer('limit').notNull(),
   closingOffsetDays: integer('closing_offset_days').notNull(),
   dueDay: integer('due_day').notNull(),
+  anticipationMode: anticipationMode('anticipation_mode').notNull().default('gap'),
   createdAt: timestamp('created_at').notNull().defaultNow(),
 },
 table => [
