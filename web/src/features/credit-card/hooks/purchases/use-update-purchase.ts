@@ -19,7 +19,7 @@ export function useUpdatePurchase(cardId: string) {
       ])
     },
     onError: (error: Error) => {
-      console.error('Failed to update purchase:', error)
+      console.error('Falha ao atualizar despesa:', error)
     },
   })
 }

@@ -79,7 +79,7 @@ export function AppSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
           {({ reset }) => (
             <ErrorBoundary
               onReset={reset}
-              fallbackRender={props => <MembersNavError title="Members" {...props} />}
+              fallbackRender={props => <MembersNavError title="Membros" {...props} />}
             >
               <Suspense fallback={<MembersNavSkeleton />}>
                 <MembersNav />

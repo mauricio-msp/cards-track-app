@@ -12,7 +12,7 @@ export function useCreateCard() {
       toast.success('Cartão criado com sucesso!')
     },
     onError: error => {
-      console.error('Failed to create card:', error)
+      console.error('Falha ao criar cartão:', error)
       toast.error('Falhou ao criar o cartão. Por favor, tente novamente.')
     },
   })

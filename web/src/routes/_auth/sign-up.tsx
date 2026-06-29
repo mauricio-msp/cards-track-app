@@ -5,7 +5,7 @@ export const Route = createFileRoute('/_auth/sign-up')({
   head: () => ({
     meta: [
       {
-        title: 'sign up',
+        title: 'Criar conta',
       },
     ],
   }),

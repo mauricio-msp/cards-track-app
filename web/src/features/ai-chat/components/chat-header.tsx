@@ -17,7 +17,13 @@ export function ChatHeader() {
       <Sparkles className="size-4 text-primary" />
       <span className="flex-1 text-sm font-semibold">Assistente</span>
       <ChatSettings />
-      <Button variant="ghost" size="icon" className="size-7" onClick={handleClose}>
+      <Button
+        variant="ghost"
+        size="icon"
+        className="size-7"
+        onClick={handleClose}
+        aria-label="Fechar assistente"
+      >
         <X className="size-3.5" />
       </Button>
     </div>

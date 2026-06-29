@@ -50,7 +50,7 @@ export function CreateMemberForm({ children }: { children: ReactNode }) {
                   id="name"
                   disabled={isPending}
                   aria-invalid={!!errors.name}
-                  placeholder="John Doe"
+                  placeholder="João da Silva"
                   {...register('name')}
                 />
               </InputGroup>

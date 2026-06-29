@@ -12,7 +12,7 @@ export function useUpdateCard() {
       queryClient.invalidateQueries({ queryKey: ['cards', variables.id] })
     },
     onError: (error: Error) => {
-      console.error('Failed to update card:', error)
+      console.error('Falha ao atualizar cartão:', error)
       toast.error('Erro ao atualizar cartão. Por favor, tente novamente.')
     },
   })

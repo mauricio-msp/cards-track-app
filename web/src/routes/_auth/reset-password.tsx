@@ -6,7 +6,7 @@ export const Route = createFileRoute('/_auth/reset-password')({
   head: () => ({
     meta: [
       {
-        title: 'reset password',
+        title: 'Redefinir senha',
       },
     ],
   }),

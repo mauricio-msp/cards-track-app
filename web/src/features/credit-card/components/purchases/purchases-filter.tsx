@@ -73,7 +73,13 @@ export function PurchasesFilter() {
               </SelectContent>
             </Select>
             {month !== undefined && (
-              <Button size="icon" variant="ghost" onClick={clearMonth} className="shrink-0">
+              <Button
+                size="icon"
+                variant="ghost"
+                onClick={clearMonth}
+                className="shrink-0"
+                aria-label="Limpar mês"
+              >
                 <X className="size-4" />
               </Button>
             )}

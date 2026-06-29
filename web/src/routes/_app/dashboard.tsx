@@ -23,7 +23,7 @@ export const Route = createFileRoute('/_app/dashboard')({
   head: () => ({
     meta: [
       {
-        title: 'Dashboard',
+        title: 'Painel',
       },
     ],
   }),

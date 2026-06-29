@@ -27,7 +27,12 @@ export function ChatSettings() {
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button variant="ghost" size="icon" className="size-7">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="size-7"
+          aria-label="Configurações do assistente"
+        >
           <Settings2 className="size-3.5" />
         </Button>
       </PopoverTrigger>

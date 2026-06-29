@@ -34,7 +34,13 @@ export function ChatInput() {
         onKeyDown={handleKeyDown}
         className="min-h-0 flex-1 resize-none text-sm"
       />
-      <Button size="icon" disabled={isStreaming} onClick={handleSend} className="shrink-0 self-end">
+      <Button
+        size="icon"
+        disabled={isStreaming}
+        onClick={handleSend}
+        className="shrink-0 self-end"
+        aria-label="Enviar mensagem"
+      >
         <ArrowUp className="size-4" />
       </Button>
     </div>

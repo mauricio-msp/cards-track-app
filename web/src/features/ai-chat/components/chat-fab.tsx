@@ -12,6 +12,7 @@ export function ChatFab() {
       size="icon"
       onClick={toggleOpen}
       data-position={position as Position}
+      aria-label="Abrir assistente"
       className={cn(
         'fixed z-50 size-12 rounded-full shadow-lg',
         'data-[position=bottom-left]:bottom-4 data-[position=bottom-left]:left-4',

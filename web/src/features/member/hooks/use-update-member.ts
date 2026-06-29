@@ -13,7 +13,7 @@ export function useUpdateMember() {
       toast.success('Membro atualizado com sucesso!')
     },
     onError: error => {
-      console.error('Failed to update member:', error)
+      console.error('Falha ao atualizar membro:', error)
       toast.error('Falha ao atualizar membro. Por favor, tente novamente.')
     },
   })

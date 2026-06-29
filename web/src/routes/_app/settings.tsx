@@ -7,7 +7,7 @@ export const Route = createFileRoute('/_app/settings')({
   head: () => ({
     meta: [
       {
-        title: 'Settings',
+        title: 'Configurações',
       },
     ],
   }),

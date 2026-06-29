@@ -20,7 +20,7 @@ export function useCreatePurchase(cardId: string) {
       ])
     },
     onError: error => {
-      console.error('Failed to create purchase:', error)
+      console.error('Falha ao criar despesa:', error)
     },
   })
 }

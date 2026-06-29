@@ -11,7 +11,7 @@ export function useCreateMember() {
       queryClient.invalidateQueries({ queryKey: ['members'] })
     },
     onError: error => {
-      console.error('Failed to create member:', error)
+      console.error('Falha ao criar membro:', error)
       toast.error('Falha ao criar membro. Por favor, tente novamente.')
     },
   })

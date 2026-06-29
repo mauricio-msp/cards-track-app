@@ -11,7 +11,7 @@ export function useDeleteMember() {
       queryClient.invalidateQueries({ queryKey: ['members'] })
     },
     onError: error => {
-      console.error('Failed to delete member:', error)
+      console.error('Falha ao excluir membro:', error)
       toast.error('Falha ao excluir membro. Por favor, tente novamente.')
     },
   })
