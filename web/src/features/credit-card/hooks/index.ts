@@ -14,6 +14,7 @@ export {
   useCardPurchases,
   useCreatePurchase,
   useDeletePurchase,
+  useInvoicePaymentSummary,
   useMonthTotalAmountCard,
   useUpdatePurchase,
 } from '@/features/credit-card/hooks/purchases'

@@ -32,6 +32,7 @@ export const GetCardPurchasesItem = z.object({
       relationship: z.string(),
       installmentAmount: z.coerce.number(),
       perInstallmentAmount: z.coerce.number(),
+      totalOwed: z.coerce.number(),
     }),
   ),
 })

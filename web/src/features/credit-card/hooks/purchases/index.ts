@@ -3,4 +3,5 @@ export { useUpdatePurchase } from '@/features/credit-card/hooks/purchases/use-up
 export { useDeletePurchase } from '@/features/credit-card/hooks/purchases/use-delete-purchase'
 export { useAnticipatePurchase } from '@/features/credit-card/hooks/purchases/use-anticipate-purchase'
 export { useCardPurchases } from '@/features/credit-card/hooks/purchases/use-card-purchases'
+export { useInvoicePaymentSummary } from '@/features/credit-card/hooks/purchases/use-invoice-payment-summary'
 export { useMonthTotalAmountCard } from '@/features/credit-card/hooks/purchases/use-month-total-amount-card'
