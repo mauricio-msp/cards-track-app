@@ -4,6 +4,7 @@ import { ActionAlertDialog } from '@/components/action-alert-dialog'
 import { Button } from '@/components/ui/button'
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty'
 import { HiddenValue } from '@/components/ui/hidden-value'
+import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
 import type { MemberPayment } from '@/features/member-payments/api/get-member-payments'
 import { PaymentForm } from '@/features/member-payments/components/payment-form'
@@ -90,7 +91,13 @@ function PaymentItem({
         </div>
 
         <div className="flex items-center gap-0.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-          <Button variant="ghost" size="icon" className="size-7" onClick={() => setIsEditing(true)}>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="size-7"
+            onClick={() => setIsEditing(true)}
+            aria-label="Editar pagamento"
+          >
             <Pencil className="size-3.5" />
           </Button>
           <Button
@@ -99,6 +106,7 @@ function PaymentItem({
             className="size-7 text-destructive hover:text-destructive"
             onClick={() => setDeleteOpen(true)}
             disabled={isDeleting}
+            aria-label="Remover pagamento"
           >
             <Trash2 className="size-3.5" />
           </Button>
@@ -150,17 +158,21 @@ export function PaymentsList({
 
   return (
     <div className="flex flex-col">
-      <div className="flex flex-col gap-0.5">
-        {payments.map(payment => (
-          <PaymentItem
-            key={payment.id}
-            payment={payment}
-            memberId={memberId}
-            cardId={cardId}
-            targetMonth={targetMonth}
-            targetYear={targetYear}
-          />
-        ))}
+      <div className="flex flex-col max-h-80">
+        <ScrollArea className="flex-1 min-h-0">
+          <div className="flex flex-col gap-0.5 pr-3">
+            {payments.map(payment => (
+              <PaymentItem
+                key={payment.id}
+                payment={payment}
+                memberId={memberId}
+                cardId={cardId}
+                targetMonth={targetMonth}
+                targetYear={targetYear}
+              />
+            ))}
+          </div>
+        </ScrollArea>
       </div>
 
       <Separator className="my-3" />

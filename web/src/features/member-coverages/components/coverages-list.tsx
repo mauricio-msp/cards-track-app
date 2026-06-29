@@ -87,7 +87,7 @@ function CoverageItem({
       <div className="flex flex-col gap-4 py-2.5 px-2 rounded-lg border border-border bg-muted/20">
         <div className="flex items-center gap-2">
           <div className="shrink-0 size-9 rounded-lg bg-muted flex items-center justify-center border border-border">
-            <HandCoins className="size-4 text-orange-500 dark:text-orange-400" />
+            <HandCoins className="size-4 text-amber-500 dark:text-amber-400" />
           </div>
           <div className="flex flex-col flex-1 min-w-0">
             <div className="flex flex-col">
@@ -103,6 +103,7 @@ function CoverageItem({
             className="size-7 text-destructive hover:text-destructive shrink-0"
             onClick={() => setDeleteOpen(true)}
             disabled={isDeleting}
+            aria-label="Remover cobertura"
           >
             <Trash2 className="size-3.5" />
           </Button>
@@ -114,13 +115,37 @@ function CoverageItem({
           </span>
         )}
 
+        {!isSettled && coverage.amountRepaid > 0 && (
+          <div className="grid grid-cols-2 divide-x border rounded-xl overflow-hidden">
+            <div className="flex flex-col gap-0.5 px-3 py-2">
+              <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                Recebido
+              </span>
+              <HiddenValue placeholder="****">
+                <span className="text-sm font-semibold text-green-600 dark:text-green-400">
+                  {formatPrice(coverage.amountRepaid / 100)}
+                </span>
+              </HiddenValue>
+            </div>
+            <div className="flex flex-col gap-0.5 px-3 py-2">
+              <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                Deve
+              </span>
+              <HiddenValue placeholder="****">
+                <span className="text-sm font-semibold text-destructive">
+                  {formatPrice(coverage.remaining / 100)}
+                </span>
+              </HiddenValue>
+            </div>
+          </div>
+        )}
+
         <div className="flex flex-col gap-3">
           {!isSettled && (
             <CurrencyInput
               value={partialValue}
               onChange={e => setPartialValue(e.target.value)}
-              className="text-xs"
-              placeholder="0,00"
+              placeholder={coverage.amountRepaid > 0 ? 'Atualizar valor recebido...' : '0,00'}
             />
           )}
 
@@ -155,15 +180,6 @@ function CoverageItem({
             )}
           </div>
         </div>
-
-        {!isSettled && coverage.amountRepaid > 0 && (
-          <div className="flex justify-between pl-11 text-xs text-muted-foreground">
-            <span>Recebido: {formatPrice(coverage.amountRepaid / 100)}</span>
-            <span className="text-destructive font-medium">
-              Deve: {formatPrice(coverage.remaining / 100)}
-            </span>
-          </div>
-        )}
       </div>
 
       <ActionAlertDialog
@@ -233,7 +249,7 @@ export function CoveragesList({
             Coberto
           </span>
           <HiddenValue placeholder="****">
-            <span className="font-semibold text-orange-600 dark:text-orange-400">
+            <span className="font-semibold text-amber-600 dark:text-amber-400">
               {formatPrice(totalCovered / 100)}
             </span>
           </HiddenValue>

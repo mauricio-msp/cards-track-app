@@ -1,4 +1,5 @@
 import { BanknoteArrowUp, CalendarIcon, Loader, Save } from 'lucide-react'
+import { useState } from 'react'
 import { Controller } from 'react-hook-form'
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
@@ -7,7 +8,12 @@ import { DialogFooter } from '@/components/ui/dialog'
 import { Field, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { useMemberPaymentForm } from '@/features/member-payments/hooks/forms/use-member-payment-form'
+import { Separator } from '@/components/ui/separator'
+import { Switch } from '@/components/ui/switch'
+import {
+  centsToBRLMask,
+  useMemberPaymentForm,
+} from '@/features/member-payments/hooks/forms/use-member-payment-form'
 import { cn } from '@/lib/utils'
 
 type PaymentFormProps = {
@@ -19,6 +25,7 @@ type PaymentFormProps = {
   editingAmountCents?: number
   editingPaidAt?: string
   editingDescription?: string
+  remaining?: number
   onCancel?: () => void
   onSuccess?: () => void
 }
@@ -32,6 +39,7 @@ export function PaymentForm({
   editingAmountCents,
   editingPaidAt,
   editingDescription,
+  remaining,
   onCancel,
   onSuccess,
 }: PaymentFormProps) {
@@ -47,6 +55,8 @@ export function PaymentForm({
     onSuccess,
   })
 
+  const [isFullPayment, setIsFullPayment] = useState(false)
+
   const {
     register,
     control,
@@ -54,6 +64,16 @@ export function PaymentForm({
   } = form
 
   const isEditing = !!editingPaymentId
+  const showFullPaymentSwitch = !isEditing && !!remaining && remaining > 0
+
+  function handleFullPaymentToggle(checked: boolean) {
+    setIsFullPayment(checked)
+    if (checked && remaining) {
+      form.setValue('amount', centsToBRLMask(remaining), { shouldValidate: true })
+    } else {
+      form.setValue('amount', '', { shouldValidate: false })
+    }
+  }
 
   const actions = (
     <>
@@ -76,6 +96,24 @@ export function PaymentForm({
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-4">
       <FieldGroup className="gap-4">
+        {showFullPaymentSwitch && (
+          <div className="flex items-center gap-2">
+            <Switch
+              id="full-payment"
+              checked={isFullPayment}
+              onCheckedChange={handleFullPaymentToggle}
+            />
+            <label
+              htmlFor="full-payment"
+              className="text-sm text-muted-foreground cursor-pointer select-none"
+            >
+              Quitação total
+            </label>
+          </div>
+        )}
+
+        <Separator />
+
         <Field data-invalid={!!errors.amount} className="gap-1">
           <FieldLabel>Valor</FieldLabel>
           <Controller
@@ -85,6 +123,7 @@ export function PaymentForm({
               <CurrencyInput
                 value={field.value}
                 aria-invalid={!!errors.amount}
+                disabled={isFullPayment}
                 onChange={e => field.onChange(e.target.value)}
               />
             )}
@@ -95,8 +134,8 @@ export function PaymentForm({
         <Field data-invalid={!!errors.paidAt} className="gap-1">
           <FieldLabel>Data</FieldLabel>
           <Controller
-            control={control}
             name="paidAt"
+            control={control}
             render={({ field }) => (
               <Popover>
                 <PopoverTrigger asChild>

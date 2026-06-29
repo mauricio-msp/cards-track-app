@@ -36,6 +36,35 @@ function PaymentsIndicator({
   return <span className="absolute top-1 right-1 size-1.5 rounded-full bg-green-500" />
 }
 
+type PaymentFormContentProps = {
+  cardId: string
+  memberId: string
+  targetMonth: number
+  targetYear: number
+  onCancel: () => void
+}
+
+function PaymentFormContent({
+  cardId,
+  memberId,
+  targetMonth,
+  targetYear,
+  onCancel,
+}: PaymentFormContentProps) {
+  const { data } = useMemberPayments({ memberId, cardId, targetMonth, targetYear })
+  return (
+    <PaymentForm
+      cardId={cardId}
+      memberId={memberId}
+      targetYear={targetYear}
+      targetMonth={targetMonth}
+      remaining={data.remaining}
+      onCancel={onCancel}
+      onSuccess={onCancel}
+    />
+  )
+}
+
 export function MemberPaymentsDialog({
   cardId,
   memberId,
@@ -49,7 +78,12 @@ export function MemberPaymentsDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="icon" className="size-7 relative">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="size-7 relative"
+          aria-label="Ver pagamentos do membro"
+        >
           <NotebookText className="size-4" />
           <Suspense fallback={null}>
             <PaymentsIndicator
@@ -66,7 +100,7 @@ export function MemberPaymentsDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             {creditCards.find(cc => cc.name.toLowerCase() === cardName.toLowerCase())?.icon({})}
-            Adiantamentos - {cardName}
+            Adiantamentos/pagamentos - {cardName}
           </DialogTitle>
           <DialogDescription>
             Registre valores entregues para descontar da fatura.
@@ -93,20 +127,22 @@ export function MemberPaymentsDialog({
           <TabsContent value="add" className="mt-4">
             {isPast ? (
               <p className="text-sm text-muted-foreground text-center py-4">
-                Adiantamentos só podem ser registrados para o mês atual ou futuros.
+                Adiantamentos/pagamentos só podem ser registrados para o mês atual ou futuros.
               </p>
             ) : (
-              <PaymentForm
-                cardId={cardId}
-                memberId={memberId}
-                targetYear={targetYear}
-                targetMonth={targetMonth}
-                onCancel={() => setOpen(false)}
-              />
+              <Suspense fallback={<Skeleton className="h-32 w-full" />}>
+                <PaymentFormContent
+                  cardId={cardId}
+                  memberId={memberId}
+                  targetYear={targetYear}
+                  targetMonth={targetMonth}
+                  onCancel={() => setOpen(false)}
+                />
+              </Suspense>
             )}
           </TabsContent>
 
-          <TabsContent value="history" className="mt-4">
+          <TabsContent value="history" className="mt-4 flex flex-col">
             <Suspense fallback={<Skeleton className="h-32 w-full" />}>
               <PaymentsListContent
                 cardId={cardId}
