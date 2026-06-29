@@ -24,6 +24,7 @@ type MemberCoveragesDialogProps = {
   targetYear: number
   targetMonth: number
   prefillAmountCents?: number
+  defaultOpen?: boolean
 }
 
 function CoveragesIndicator({
@@ -49,14 +50,20 @@ export function MemberCoveragesDialog({
   targetMonth,
   targetYear,
   prefillAmountCents,
+  defaultOpen = false,
 }: MemberCoveragesDialogProps) {
-  const [open, setOpen] = useState(false)
+  const [open, setOpen] = useState(defaultOpen)
   const isPast = isPastPeriod(targetMonth, targetYear)
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="icon" className="size-7 relative">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="size-7 relative"
+          aria-label="Ver coberturas do membro"
+        >
           <HandCoins className="size-4" />
           <Suspense fallback={null}>
             <CoveragesIndicator

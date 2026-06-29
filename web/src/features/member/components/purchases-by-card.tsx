@@ -1,3 +1,4 @@
+import { useSearch } from '@tanstack/react-router'
 import type { LucideIcon } from 'lucide-react'
 import { BadgePlus, BanknoteX, Dot, History, Zap } from 'lucide-react'
 import React, { Suspense, useMemo } from 'react'
@@ -104,9 +105,7 @@ function PurchaseItem({ purchase }: { purchase: PurchaseItemProps }) {
 
       <div className="text-right self-center">
         {purchase.isPublic ? (
-          <p className="text-sm font-semibold">
-            {formatPrice(purchase.installmentsAmount / 100)}
-          </p>
+          <p className="text-sm font-semibold">{formatPrice(purchase.installmentsAmount / 100)}</p>
         ) : (
           <HiddenValue className="w-20 h-5 dark:bg-muted-foreground/20 ml-auto">
             <p className="text-sm font-semibold">
@@ -157,30 +156,39 @@ function PurchaseItem({ purchase }: { purchase: PurchaseItemProps }) {
   )
 }
 
-function CoverDifferenceButton({
+function CoverageButton({
   memberId,
   cardId,
   cardName,
   targetMonth,
   targetYear,
+  defaultOpen,
+  coverageTargetMonth,
+  coverageTargetYear,
 }: {
   memberId: string
   cardId: string
   cardName: string
   targetMonth: number
   targetYear: number
+  defaultOpen?: boolean
+  coverageTargetMonth?: number
+  coverageTargetYear?: number
 }) {
+  const dialogMonth = defaultOpen && coverageTargetMonth !== undefined ? coverageTargetMonth : targetMonth
+  const dialogYear = defaultOpen && coverageTargetYear !== undefined ? coverageTargetYear : targetYear
   const { data } = useMemberPayments({ memberId, cardId, targetMonth, targetYear })
-  if (data.remaining <= 0) return null
-  if (isPastPeriod(targetMonth, targetYear)) return null
+  const prefill =
+    data.remaining > 0 && !isPastPeriod(targetMonth, targetYear) ? data.remaining : undefined
   return (
     <MemberCoveragesDialog
       memberId={memberId}
       cardId={cardId}
       cardName={cardName}
-      targetMonth={targetMonth}
-      targetYear={targetYear}
-      prefillAmountCents={data.remaining}
+      targetMonth={dialogMonth}
+      targetYear={dialogYear}
+      prefillAmountCents={prefill}
+      defaultOpen={defaultOpen}
     />
   )
 }
@@ -191,10 +199,12 @@ function PurchasesByCardView({
   memberId,
   cardsWithPurchases,
   isPublic = false,
+  coverageParams,
 }: {
   memberId: string
   cardsWithPurchases: CardWithPurchases[]
   isPublic?: boolean
+  coverageParams?: { cardId: string; month: number; year: number }
 }) {
   const sortedCards = useMemo(
     () => cardsWithPurchases.slice().sort((a, b) => a.card.dueDay - b.card.dueDay),
@@ -248,12 +258,19 @@ function PurchasesByCardView({
                     targetYear={cwd.card.targetYear}
                   />
                   <Suspense fallback={null}>
-                    <CoverDifferenceButton
+                    <CoverageButton
                       memberId={memberId}
                       cardId={cwd.card.id}
                       cardName={cwd.card.name}
                       targetMonth={cwd.card.targetMonth}
                       targetYear={cwd.card.targetYear}
+                      defaultOpen={coverageParams?.cardId === cwd.card.id}
+                      coverageTargetMonth={
+                        coverageParams?.cardId === cwd.card.id ? coverageParams.month : undefined
+                      }
+                      coverageTargetYear={
+                        coverageParams?.cardId === cwd.card.id ? coverageParams.year : undefined
+                      }
                     />
                   </Suspense>
                 </div>
@@ -314,7 +331,22 @@ export function PurchasesByCard({ memberId }: { memberId: string }) {
     data: { cardsWithPurchases },
   } = useMemberPurchases(memberId)
 
-  return <PurchasesByCardView memberId={memberId} cardsWithPurchases={cardsWithPurchases} />
+  const { coverageCardId, coverageMonth, coverageYear } = useSearch({
+    from: '/_app/members/$id',
+  })
+
+  const coverageParams =
+    coverageCardId && coverageMonth !== undefined && coverageYear !== undefined
+      ? { cardId: coverageCardId, month: coverageMonth, year: coverageYear }
+      : undefined
+
+  return (
+    <PurchasesByCardView
+      memberId={memberId}
+      cardsWithPurchases={cardsWithPurchases}
+      coverageParams={coverageParams}
+    />
+  )
 }
 
 export function PublicPurchasesByCard({ memberId }: { memberId: string }) {

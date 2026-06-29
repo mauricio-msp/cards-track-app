@@ -1,3 +1,4 @@
+import { useNavigate } from '@tanstack/react-router'
 import {
   type Column,
   type ColumnDef,
@@ -160,7 +161,7 @@ const columns: ColumnDef<AllCoverageItem>[] = [
       row.original.settledAt ? (
         <Check className="size-4 text-green-500" />
       ) : (
-        <Clock className="size-4 text-orange-500" />
+        <Clock className="size-4 text-amber-500" />
       ),
   },
 ]
@@ -170,6 +171,7 @@ type CoveragesTableProps = {
 }
 
 export function CoveragesTable({ coverages }: CoveragesTableProps) {
+  const navigate = useNavigate()
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [rawFilter, setRawFilter] = useState('')
@@ -226,7 +228,23 @@ export function CoveragesTable({ coverages }: CoveragesTableProps) {
           </TableHeader>
           <TableBody>
             {table.getRowModel().rows.map(row => (
-              <TableRow key={row.id}>
+              <TableRow
+                key={row.id}
+                className="cursor-pointer hover:bg-muted/60"
+                onClick={() =>
+                  navigate({
+                    to: '/members/$id',
+                    params: { id: row.original.memberId },
+                    search: {
+                      coverageCardId: row.original.cardId,
+                      coverageMonth: row.original.targetMonth,
+                      coverageYear: row.original.targetYear,
+                      month: row.original.targetMonth,
+                      year: row.original.targetYear,
+                    },
+                  })
+                }
+              >
                 {row.getVisibleCells().map(cell => (
                   <TableCell key={cell.id}>
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -252,6 +270,7 @@ export function CoveragesTable({ coverages }: CoveragesTableProps) {
               className="size-8"
               onClick={() => table.previousPage()}
               disabled={!table.getCanPreviousPage()}
+              aria-label="Página anterior"
             >
               <ChevronLeft className="size-4" />
             </Button>
@@ -264,6 +283,7 @@ export function CoveragesTable({ coverages }: CoveragesTableProps) {
               className="size-8"
               onClick={() => table.nextPage()}
               disabled={!table.getCanNextPage()}
+              aria-label="Próxima página"
             >
               <ChevronRight className="size-4" />
             </Button>
