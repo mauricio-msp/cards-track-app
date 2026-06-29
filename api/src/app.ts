@@ -14,7 +14,6 @@ import {
 
 import { env } from '@/env'
 import { auth } from '@/lib/auth'
-
 import { aiModule } from '@/modules/ai'
 import { cardsModule } from '@/modules/cards'
 import { coveragesModule } from '@/modules/coverages'
@@ -23,6 +22,7 @@ import { membersModule, membersPublicModule } from '@/modules/members'
 import { metricsModule } from '@/modules/metrics'
 import { purchasesModule } from '@/modules/purchases'
 import { subscriptionsModule } from '@/modules/subscriptions'
+import { registerObservability } from '@/plugins/observability'
 
 export const app = fastify({
   logger: {
@@ -81,6 +81,9 @@ if (env.NODE_ENV !== 'production') {
     routePrefix: '/docs',
   })
 }
+
+// Observability — registered before route modules so hooks apply globally
+registerObservability(app)
 
 // Cards
 app.register(cardsModule)

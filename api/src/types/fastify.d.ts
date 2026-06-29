@@ -11,5 +11,6 @@ declare module 'fastify' {
       name: string
       image?: string | null | undefined
     }
+    startTime: number
   }
 }
