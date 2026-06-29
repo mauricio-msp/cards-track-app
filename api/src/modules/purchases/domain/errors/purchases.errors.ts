@@ -32,3 +32,10 @@ export class InvalidAnticipateInstallmentError extends Error {
     this.name = 'InvalidAnticipateInstallmentError'
   }
 }
+
+export class CardDoesNotSupportAnticipationError extends Error {
+  constructor() {
+    super('Este cartão não permite antecipação de parcelas')
+    this.name = 'CardDoesNotSupportAnticipationError'
+  }
+}
