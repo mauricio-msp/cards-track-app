@@ -1,4 +1,4 @@
-import { and, eq, inArray, isNull, lte, sql } from 'drizzle-orm'
+import { and, eq, inArray, isNull, sql } from 'drizzle-orm'
 import { uuidv7 } from 'uuidv7'
 import type { db as Db } from '@/db'
 import { cards, installments, invoices, members, purchaseMembers, purchases, subscriptions } from '@/db/schema'
@@ -207,7 +207,11 @@ export class PurchasesRepository implements IPurchasesRepository {
         installmentsCount: purchases.installmentsCount,
         installmentAmount: purchaseMembers.installmentAmount,
         anticipatedAt: purchaseMembers.anticipatedAt,
-        card: { dueDay: cards.dueDay, closingOffsetDays: cards.closingOffsetDays },
+        card: {
+          dueDay: cards.dueDay,
+          closingOffsetDays: cards.closingOffsetDays,
+          anticipationMode: cards.anticipationMode,
+        },
       })
       .from(purchaseMembers)
       .innerJoin(purchases, eq(purchaseMembers.purchaseId, purchases.id))
@@ -225,63 +229,83 @@ export class PurchasesRepository implements IPurchasesRepository {
     return count
   }
 
-  async findUnpaidInstallments(pmId: string): Promise<{ number: number; invoiceMonth: number; invoiceYear: number }[]> {
+  async findUnpaidFutureInstallments(
+    pmId: string,
+    currentMonth: number,
+    currentYear: number,
+  ): Promise<{ id: string; number: number }[]> {
     return this.db
-      .select({ number: installments.number, invoiceMonth: invoices.month, invoiceYear: invoices.year })
+      .select({ id: installments.id, number: installments.number })
       .from(installments)
       .innerJoin(invoices, eq(installments.invoiceId, invoices.id))
-      .where(and(eq(installments.purchaseMemberId, pmId), isNull(installments.paidAt)))
+      .where(
+        and(
+          eq(installments.purchaseMemberId, pmId),
+          isNull(installments.paidAt),
+          // strictly after the current open invoice period
+          sql`(${invoices.year} > ${currentYear} OR (${invoices.year} = ${currentYear} AND ${invoices.month} > ${currentMonth}))`,
+        ),
+      )
       .orderBy(installments.number)
   }
 
-  async anticipateInstallments(params: {
-    pmId: string
-    memberId: string
+  async relocateInstallmentsToCurrentInvoice(params: {
+    installmentIds: string[]
     cardId: string
     dueDay: number
     closingOffsetDays: number
-    anticipateFromInstallment: number
-    anticipateCount: number
-    anticipatedAmount: number
   }): Promise<void> {
-    const { pmId, memberId, cardId, dueDay, closingOffsetDays, anticipateFromInstallment, anticipateCount, anticipatedAmount } = params
-    const anticipateToInstallment = anticipateFromInstallment + anticipateCount - 1
+    const { installmentIds, cardId, dueDay, closingOffsetDays } = params
+    if (installmentIds.length === 0) return
+
+    const { invoiceMonth, invoiceYear } = calculateInvoiceCompetence(
+      new Date(),
+      dueDay,
+      closingOffsetDays,
+    )
 
     await this.db.transaction(async tx => {
-      await tx
-        .delete(installments)
-        .where(and(
-          eq(installments.purchaseMemberId, pmId),
-          sql`${installments.number} >= ${anticipateFromInstallment}`,
-          lte(installments.number, anticipateToInstallment),
-        ))
-
-      const { invoiceMonth, invoiceYear } = calculateInvoiceCompetence(new Date(), dueDay, closingOffsetDays)
-
       let [inv] = await tx
         .select()
         .from(invoices)
-        .where(and(eq(invoices.cardId, cardId), eq(invoices.month, invoiceMonth), eq(invoices.year, invoiceYear)))
+        .where(
+          and(
+            eq(invoices.cardId, cardId),
+            eq(invoices.month, invoiceMonth),
+            eq(invoices.year, invoiceYear),
+          ),
+        )
 
       if (!inv) {
         const [newInv] = await tx
           .insert(invoices)
-          .values({ cardId, month: invoiceMonth, year: invoiceYear, dueDate: new Date(invoiceYear, invoiceMonth, dueDay) })
+          .values({
+            cardId,
+            month: invoiceMonth,
+            year: invoiceYear,
+            dueDate: new Date(invoiceYear, invoiceMonth, dueDay),
+          })
           .returning()
         inv = newInv
       }
 
-      await tx.insert(installments).values({
-        purchaseMemberId: pmId,
-        memberId,
-        invoiceId: inv.id,
-        number: anticipateFromInstallment,
-        amount: anticipatedAmount,
-      })
-
-      await tx.update(purchaseMembers)
-        .set({ anticipatedAt: new Date(), anticipateFromInstallment })
-        .where(eq(purchaseMembers.id, pmId))
+      // Re-point each selected installment to the current invoice, preserving its
+      // origin so the move is reversible. Do not touch already-anticipated rows' origin.
+      await tx
+        .update(installments)
+        .set({
+          invoiceId: inv.id,
+          originalInvoiceId: sql`COALESCE(${installments.originalInvoiceId}, ${installments.invoiceId})`,
+          anticipatedAt: new Date(),
+        })
+        .where(inArray(installments.id, installmentIds))
     })
+  }
+
+  async markPurchaseMemberAnticipated(pmId: string): Promise<void> {
+    await this.db
+      .update(purchaseMembers)
+      .set({ anticipatedAt: new Date() })
+      .where(eq(purchaseMembers.id, pmId))
   }
 }
