@@ -1,6 +1,7 @@
 import type { FastifyBaseLogger, FastifyReply } from 'fastify'
 import type { AnticipatePurchaseUseCase } from '@/modules/purchases/application/use-cases/anticipate-purchase/anticipate-purchase.use-case'
 import {
+  CardDoesNotSupportAnticipationError,
   InvalidAnticipateInstallmentError,
   NoUnpaidInstallmentsError,
   PurchaseAlreadyAnticipatedError,
@@ -24,7 +25,8 @@ export class AnticipatePurchaseController {
       if (
         err instanceof PurchaseAlreadyAnticipatedError ||
         err instanceof PurchaseSharedBetweenMembersError ||
-        err instanceof InvalidAnticipateInstallmentError
+        err instanceof InvalidAnticipateInstallmentError ||
+        err instanceof CardDoesNotSupportAnticipationError
       ) return reply.status(400).send({ message: err.message })
       log.error(err)
       return reply.status(500).send({ message: 'Erro ao antecipar parcelas' })

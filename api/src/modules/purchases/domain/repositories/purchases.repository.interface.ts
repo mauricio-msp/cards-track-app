@@ -15,7 +15,7 @@ export type PurchaseMemberWithCard = {
   installmentsCount: number
   installmentAmount: number
   anticipatedAt: Date | null
-  card: { dueDay: number; closingOffsetDays: number }
+  card: { dueDay: number; closingOffsetDays: number; anticipationMode: 'none' | 'gap' | 'tail' }
 }
 
 export type PurchaseCreateResult = {
@@ -60,15 +60,16 @@ export interface IPurchasesRepository {
   // anticipate
   findPurchaseMemberWithCard(pmId: string, userId: string): Promise<PurchaseMemberWithCard | null>
   countPurchaseMembers(purchaseId: string): Promise<number>
-  findUnpaidInstallments(pmId: string): Promise<{ number: number; invoiceMonth: number; invoiceYear: number }[]>
-  anticipateInstallments(params: {
-    pmId: string
-    memberId: string
+  findUnpaidFutureInstallments(
+    pmId: string,
+    currentMonth: number,
+    currentYear: number,
+  ): Promise<{ id: string; number: number }[]>
+  relocateInstallmentsToCurrentInvoice(params: {
+    installmentIds: string[]
     cardId: string
     dueDay: number
     closingOffsetDays: number
-    anticipateFromInstallment: number
-    anticipateCount: number
-    anticipatedAmount: number
   }): Promise<void>
+  markPurchaseMemberAnticipated(pmId: string): Promise<void>
 }

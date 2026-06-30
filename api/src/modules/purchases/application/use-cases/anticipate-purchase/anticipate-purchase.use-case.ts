@@ -1,8 +1,7 @@
-import { PurchaseMemberEntity } from '@/modules/purchases/domain/entities/purchase-member.entity'
 import {
+  CardDoesNotSupportAnticipationError,
   InvalidAnticipateInstallmentError,
   NoUnpaidInstallmentsError,
-  PurchaseAlreadyAnticipatedError,
   PurchaseNotFoundError,
   PurchaseSharedBetweenMembersError,
 } from '@/modules/purchases/domain/errors/purchases.errors'
@@ -20,61 +19,47 @@ export class AnticipatePurchaseUseCase {
   ): Promise<{ anticipatedAmount: number; installmentsAnticipated: number }> {
     const { anticipateCount } = data
 
-    const raw = await this.repo.findPurchaseMemberWithCard(pmId, userId)
-    if (!raw) throw new PurchaseNotFoundError()
+    const pm = await this.repo.findPurchaseMemberWithCard(pmId, userId)
+    if (!pm) throw new PurchaseNotFoundError()
 
-    const pm = new PurchaseMemberEntity(
-      raw.id,
-      raw.purchaseId,
-      raw.cardId,
-      raw.memberId,
-      raw.installmentsCount,
-      raw.installmentAmount,
-      raw.anticipatedAt,
-    )
-
-    if (pm.isAnticipated()) throw new PurchaseAlreadyAnticipatedError()
+    if (pm.card.anticipationMode === 'none') throw new CardDoesNotSupportAnticipationError()
 
     const count = await this.repo.countPurchaseMembers(pm.purchaseId)
-    if (pm.isShared(count)) throw new PurchaseSharedBetweenMembersError()
+    if (count > 1) throw new PurchaseSharedBetweenMembersError()
 
-    const unpaidInstallments = await this.repo.findUnpaidInstallments(pmId)
-    if (unpaidInstallments.length === 0) throw new NoUnpaidInstallmentsError()
-
-    const { invoiceMonth: targetMonth, invoiceYear: targetYear } = calculateInvoiceCompetence(
+    const { invoiceMonth, invoiceYear } = calculateInvoiceCompetence(
       new Date(),
-      raw.card.dueDay,
-      raw.card.closingOffsetDays,
+      pm.card.dueDay,
+      pm.card.closingOffsetDays,
     )
 
-    const firstAnticipatable = unpaidInstallments.find(
-      inst =>
-        inst.invoiceYear > targetYear ||
-        (inst.invoiceYear === targetYear && inst.invoiceMonth > targetMonth),
-    )
+    const candidates = await this.repo.findUnpaidFutureInstallments(pmId, invoiceMonth, invoiceYear)
+    if (candidates.length === 0) throw new NoUnpaidInstallmentsError()
 
-    if (!firstAnticipatable) throw new NoUnpaidInstallmentsError()
-
-    const lastAnticipated = firstAnticipatable.number + anticipateCount - 1
-    if (lastAnticipated > pm.installmentsCount) {
+    if (anticipateCount > candidates.length) {
       throw new InvalidAnticipateInstallmentError(
-        `Não é possível antecipar ${anticipateCount} parcelas. Disponíveis: ${pm.installmentsCount - firstAnticipatable.number + 1}`,
+        `Não é possível antecipar ${anticipateCount} parcelas. Disponíveis: ${candidates.length}`,
       )
     }
 
-    const anticipatedAmount = anticipateCount * pm.installmentAmount
+    // candidates come ordered by number ASC.
+    const selected =
+      pm.card.anticipationMode === 'tail'
+        ? [...candidates].reverse().slice(0, anticipateCount)
+        : candidates.slice(0, anticipateCount)
 
-    await this.repo.anticipateInstallments({
-      pmId,
-      memberId: pm.memberId,
+    await this.repo.relocateInstallmentsToCurrentInvoice({
+      installmentIds: selected.map(s => s.id),
       cardId: pm.cardId,
-      dueDay: raw.card.dueDay,
-      closingOffsetDays: raw.card.closingOffsetDays,
-      anticipateFromInstallment: firstAnticipatable.number,
-      anticipateCount,
-      anticipatedAmount,
+      dueDay: pm.card.dueDay,
+      closingOffsetDays: pm.card.closingOffsetDays,
     })
 
-    return { anticipatedAmount, installmentsAnticipated: anticipateCount }
+    await this.repo.markPurchaseMemberAnticipated(pmId)
+
+    return {
+      anticipatedAmount: anticipateCount * pm.installmentAmount,
+      installmentsAnticipated: anticipateCount,
+    }
   }
 }
