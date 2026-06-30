@@ -33,4 +33,4 @@ export type CreateCardInput = z.infer<typeof createCardDto>
 export type UpdateCardInput = z.infer<typeof updateCardDto>
 export type CardPeriodQuery = z.infer<typeof cardPeriodQueryDto>
 export type Card = z.infer<typeof cardSchema>
-export type CardSummary = Pick<Card, 'id' | 'name' | 'limit' | 'closingOffsetDays' | 'dueDay'>
+export type CardSummary = Pick<Card, 'id' | 'name' | 'limit' | 'closingOffsetDays' | 'dueDay' | 'anticipationMode'>

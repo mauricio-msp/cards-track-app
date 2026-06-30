@@ -51,7 +51,7 @@ export interface ICardsRepository {
   hasActiveInstallments(cardId: string): Promise<boolean>
   findPurchases(
     cardId: string,
-    card: Pick<Card, 'dueDay' | 'closingOffsetDays'>,
+    card: Pick<Card, 'dueDay' | 'closingOffsetDays' | 'anticipationMode'>,
     targetMonth: number,
     targetYear: number,
   ): Promise<CardPurchase[]>

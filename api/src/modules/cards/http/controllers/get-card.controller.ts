@@ -14,6 +14,7 @@ export class GetCardController {
           limit: card.limit,
           dueDay: card.dueDay,
           closingOffsetDays: card.closingOffsetDays,
+          anticipationMode: card.anticipationMode,
         },
       })
     } catch (err) {

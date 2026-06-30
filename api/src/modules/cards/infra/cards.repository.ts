@@ -53,6 +53,7 @@ export class CardsRepository implements ICardsRepository {
         limit: cards.limit,
         closingOffsetDays: cards.closingOffsetDays,
         dueDay: cards.dueDay,
+        anticipationMode: cards.anticipationMode,
       })
       .from(cards)
       .where(eq(cards.ownerUserId, userId))
@@ -66,6 +67,7 @@ export class CardsRepository implements ICardsRepository {
         limit: data.limit,
         closingOffsetDays: data.closingOffsetDays,
         dueDay: data.dueDay,
+        anticipationMode: data.anticipationMode,
         ownerUserId: userId,
       })
       .returning()
@@ -76,7 +78,7 @@ export class CardsRepository implements ICardsRepository {
   async update(id: string, data: UpdateCardInput): Promise<void> {
     await this.db
       .update(cards)
-      .set({ limit: data.limit, closingOffsetDays: data.closingOffsetDays, dueDay: data.dueDay })
+      .set({ limit: data.limit, closingOffsetDays: data.closingOffsetDays, dueDay: data.dueDay, anticipationMode: data.anticipationMode })
       .where(eq(cards.id, id))
   }
 
@@ -101,7 +103,7 @@ export class CardsRepository implements ICardsRepository {
 
   async findPurchases(
     cardId: string,
-    card: Pick<Card, 'dueDay' | 'closingOffsetDays'>,
+    card: Pick<Card, 'dueDay' | 'closingOffsetDays' | 'anticipationMode'>,
     targetMonth: number,
     targetYear: number,
   ): Promise<CardPurchase[]> {
@@ -229,7 +231,7 @@ export class CardsRepository implements ICardsRepository {
     rows: PurchaseRow[],
     targetMonth: number,
     targetYear: number,
-    card: Pick<Card, 'dueDay' | 'closingOffsetDays'>,
+    card: Pick<Card, 'dueDay' | 'closingOffsetDays' | 'anticipationMode'>,
   ): CardPurchase[] {
     const grouped = new Map<string, CardPurchase>()
     const memberMaps = new Map<string, Map<string, CardPurchaseMember>>()
@@ -248,15 +250,16 @@ export class CardsRepository implements ICardsRepository {
       let group = grouped.get(purchase.id)
 
       if (!group) {
-        const anticipatableInstallments = pm.anticipatedAt
-          ? 0
-          : this.countAnticipatableInstallments(
-              currentInstallment,
-              purchase.installmentsCount,
-              targetMonth,
-              targetYear,
-              targetBill,
-            )
+        const anticipatableInstallments =
+          card.anticipationMode === 'none' || pm.anticipatedAt
+            ? 0
+            : this.countAnticipatableInstallments(
+                currentInstallment,
+                purchase.installmentsCount,
+                targetMonth,
+                targetYear,
+                targetBill,
+              )
 
         const { consolidatedCount, remainingInstallments } = isConsolidation
           ? calculateConsolidation(

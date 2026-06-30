@@ -84,6 +84,7 @@ export const cardsRoutes =
                 limit: z.coerce.number(),
                 dueDay: z.coerce.number(),
                 closingOffsetDays: z.coerce.number(),
+                anticipationMode: z.enum(['none', 'gap', 'tail']),
               }),
             }),
             404: z.object({ message: z.string() }),
