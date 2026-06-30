@@ -1,6 +1,7 @@
 import { and, eq, isNotNull } from 'drizzle-orm'
 import type { db as Db } from '@/db'
-import { installments, invoices, purchaseMembers, purchases } from '@/db/schema'
+import { cards, installments, invoices, purchaseMembers, purchases } from '@/db/schema'
+import { calculateInvoiceCompetence } from '@/utils/calculate-invoice-competence'
 
 type PlanInput = {
   installmentAmount: number
@@ -79,22 +80,39 @@ export async function reconstructAnticipations(
     // Idempotency: already reconstructed (row already flagged) -> skip.
     if (!lump || lump.anticipatedAt) continue
 
-    // base period = invoice period of this pm's installment number = 1.
-    const [firstInst] = await db
-      .select({ month: invoices.month, year: invoices.year })
-      .from(installments)
-      .innerJoin(invoices, eq(installments.invoiceId, invoices.id))
-      .where(and(eq(installments.purchaseMemberId, pm.id), eq(installments.number, 1)))
+    // base period = the purchase's natural first competence, recomputed from
+    // purchaseDate + card config the same way create-purchase originally did.
+    // (NOT installments.number = 1 -- when F === 1, that row IS the relocated
+    // lump and no longer sits in its natural period.)
+    const [purchaseCard] = await db
+      .select({
+        cardId: purchases.cardId,
+        purchaseDate: purchases.purchaseDate,
+        dueDay: cards.dueDay,
+        closingOffsetDays: cards.closingOffsetDays,
+      })
+      .from(purchases)
+      .innerJoin(cards, eq(purchases.cardId, cards.id))
+      .where(eq(purchases.id, pm.purchaseId))
 
-    if (!firstInst) continue
+    if (!purchaseCard) continue
+
+    const [datePart] = purchaseCard.purchaseDate.split('T')
+    const purchaseDateResetHours = new Date(`${datePart}T00:00:00`)
+    const { invoiceMonth: baseMonth, invoiceYear: baseYear } = calculateInvoiceCompetence(
+      purchaseDateResetHours,
+      purchaseCard.dueDay,
+      purchaseCard.closingOffsetDays,
+    )
+    const cardId = purchaseCard.cardId
 
     const plan = planReconstruction({
       installmentAmount: pm.installmentAmount,
       anticipateFromInstallment: F,
       lumpAmount: lump.amount,
       lumpInvoiceId: lump.invoiceId,
-      baseMonth: firstInst.month,
-      baseYear: firstInst.year,
+      baseMonth,
+      baseYear,
     })
 
     await db.transaction(async tx => {
@@ -103,7 +121,6 @@ export async function reconstructAnticipations(
 
       for (const row of plan.rows) {
         // ensure the natural invoice exists (for original_invoice_id)
-        const cardId = await getCardId(tx, pm.purchaseId)
         let [natInv] = await tx
           .select({ id: invoices.id })
           .from(invoices)
@@ -143,9 +160,4 @@ export async function reconstructAnticipations(
   }
 
   return { pmsProcessed, rowsCreated }
-}
-
-async function getCardId(tx: any, purchaseId: string): Promise<string> {
-  const [p] = await tx.select({ cardId: purchases.cardId }).from(purchases).where(eq(purchases.id, purchaseId))
-  return p.cardId
 }
