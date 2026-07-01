@@ -16,8 +16,10 @@ const baseRepo = (overrides: Partial<ICardsRepository> = {}): ICardsRepository =
     findMonthTotalAmount: vi.fn(),
     findInvoicePaymentSummary: vi.fn(),
     findAnticipatedPurchaseMembers: vi.fn(),
-    getAnticipationAnchor: vi.fn(),
-    revertAnticipation: vi.fn(),
+    getAnticipationAnchors: vi.fn(),
+    revertAnticipationInInvoice: vi.fn(),
+    countAnticipatedInstallments: vi.fn(),
+    setPurchaseMemberAnticipation: vi.fn(),
     reapplyAnticipation: vi.fn(),
     ...overrides,
   }) as ICardsRepository
@@ -44,20 +46,24 @@ describe('ReconcileAnticipationsUseCase', () => {
   it('tail card: reverts then reapplies each anticipated pm at its anchor', async () => {
     const revert = vi.fn().mockResolvedValue(2)
     const reapply = vi.fn().mockResolvedValue(2)
+    const setAnticipation = vi.fn()
     const repo = baseRepo({
       findById: vi.fn().mockResolvedValue(card('tail')),
       findAnticipatedPurchaseMembers: vi.fn().mockResolvedValue([{ id: 'pm-1' }]),
-      getAnticipationAnchor: vi.fn().mockResolvedValue({ month: 5, year: 2026, count: 2 }),
-      revertAnticipation: revert,
+      getAnticipationAnchors: vi.fn().mockResolvedValue([{ month: 5, year: 2026, count: 2 }]),
+      revertAnticipationInInvoice: revert,
       reapplyAnticipation: reapply,
+      countAnticipatedInstallments: vi.fn().mockResolvedValue(2),
+      setPurchaseMemberAnticipation: setAnticipation,
     })
 
     const result = await new ReconcileAnticipationsUseCase(repo).execute('card-1', 'u')
 
-    expect(revert).toHaveBeenCalledWith('pm-1')
+    expect(revert).toHaveBeenCalledWith('pm-1', 5, 2026)
     expect(reapply).toHaveBeenCalledWith(
       expect.objectContaining({ pmId: 'pm-1', mode: 'tail', count: 2, anchorMonth: 5, anchorYear: 2026 }),
     )
+    expect(setAnticipation).toHaveBeenCalledWith('pm-1', expect.any(Date))
     expect(result.cotasAfetadas).toBe(1)
     expect(result.parcelasMovidas).toBe(2)
   })
@@ -65,18 +71,63 @@ describe('ReconcileAnticipationsUseCase', () => {
   it('none card: reverts and does NOT reapply', async () => {
     const revert = vi.fn().mockResolvedValue(3)
     const reapply = vi.fn()
+    const setAnticipation = vi.fn()
     const repo = baseRepo({
       findById: vi.fn().mockResolvedValue(card('none')),
       findAnticipatedPurchaseMembers: vi.fn().mockResolvedValue([{ id: 'pm-1' }]),
-      getAnticipationAnchor: vi.fn().mockResolvedValue({ month: 5, year: 2026, count: 3 }),
-      revertAnticipation: revert,
+      getAnticipationAnchors: vi.fn().mockResolvedValue([{ month: 5, year: 2026, count: 3 }]),
+      revertAnticipationInInvoice: revert,
       reapplyAnticipation: reapply,
+      setPurchaseMemberAnticipation: setAnticipation,
     })
 
     const result = await new ReconcileAnticipationsUseCase(repo).execute('card-1', 'u')
 
-    expect(revert).toHaveBeenCalledWith('pm-1')
+    expect(revert).toHaveBeenCalledWith('pm-1', 5, 2026)
     expect(reapply).not.toHaveBeenCalled()
+    expect(setAnticipation).toHaveBeenCalledWith('pm-1', null)
     expect(result.cotasAfetadas).toBe(1)
+  })
+
+  it('pm with TWO anchors: reverts and reapplies both, summing parcelasMovidas', async () => {
+    const revert = vi.fn().mockResolvedValue(1)
+    const reapply = vi
+      .fn()
+      .mockResolvedValueOnce(2)
+      .mockResolvedValueOnce(3)
+    const setAnticipation = vi.fn()
+    const repo = baseRepo({
+      findById: vi.fn().mockResolvedValue(card('gap')),
+      findAnticipatedPurchaseMembers: vi.fn().mockResolvedValue([{ id: 'pm-1' }]),
+      getAnticipationAnchors: vi.fn().mockResolvedValue([
+        { month: 5, year: 2026, count: 2 },
+        { month: 7, year: 2026, count: 3 },
+      ]),
+      revertAnticipationInInvoice: revert,
+      reapplyAnticipation: reapply,
+      countAnticipatedInstallments: vi.fn().mockResolvedValue(5),
+      setPurchaseMemberAnticipation: setAnticipation,
+    })
+
+    const result = await new ReconcileAnticipationsUseCase(repo).execute('card-1', 'u')
+
+    expect(revert).toHaveBeenCalledTimes(2)
+    expect(revert).toHaveBeenNthCalledWith(1, 'pm-1', 5, 2026)
+    expect(revert).toHaveBeenNthCalledWith(2, 'pm-1', 7, 2026)
+
+    expect(reapply).toHaveBeenCalledTimes(2)
+    expect(reapply).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({ pmId: 'pm-1', mode: 'gap', count: 2, anchorMonth: 5, anchorYear: 2026 }),
+    )
+    expect(reapply).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({ pmId: 'pm-1', mode: 'gap', count: 3, anchorMonth: 7, anchorYear: 2026 }),
+    )
+
+    expect(result.cotasAfetadas).toBe(1)
+    expect(result.parcelasMovidas).toBe(5)
+    expect(result.valorRealocado).toBe(5)
+    expect(setAnticipation).toHaveBeenCalledWith('pm-1', expect.any(Date))
   })
 })

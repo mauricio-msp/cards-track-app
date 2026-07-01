@@ -95,8 +95,7 @@ function PurchasesItemComponent({ purchase, onAnticipate, onDelete }: PurchasesI
     setAnticipateOpen(true)
   }
 
-  const isAnticipated =
-    !!purchase.anticipatedAt && purchase.elapsedInstallments === purchase.anticipateFromInstallment
+  const isAnticipated = !!purchase.anticipatedAt && (purchase.anticipatedInstallmentsCount ?? 0) > 0
 
   const isComplete = purchase.remainingInstallments === 0
 

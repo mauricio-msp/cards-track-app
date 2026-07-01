@@ -47,8 +47,7 @@ function PurchaseItem({ purchase }: { purchase: PurchaseItemProps }) {
     if (el) setIsTruncated(el.scrollWidth > el.clientWidth)
   }, [])
 
-  const isAnticipated =
-    !!purchase.anticipatedAt && purchase.elapsedInstallments === purchase.anticipateFromInstallment
+  const isAnticipated = !!purchase.anticipatedAt && (purchase.anticipatedInstallmentsCount ?? 0) > 0
   const isComplete = purchase.remainingInstallments === 0
   const hasRemainingAfterAnticipation = isAnticipated && purchase.remainingInstallments > 0
   const isNewPurchase =
@@ -175,8 +174,10 @@ function CoverageButton({
   coverageTargetMonth?: number
   coverageTargetYear?: number
 }) {
-  const dialogMonth = defaultOpen && coverageTargetMonth !== undefined ? coverageTargetMonth : targetMonth
-  const dialogYear = defaultOpen && coverageTargetYear !== undefined ? coverageTargetYear : targetYear
+  const dialogMonth =
+    defaultOpen && coverageTargetMonth !== undefined ? coverageTargetMonth : targetMonth
+  const dialogYear =
+    defaultOpen && coverageTargetYear !== undefined ? coverageTargetYear : targetYear
   const { data } = useMemberPayments({ memberId, cardId, targetMonth, targetYear })
   const prefill =
     data.remaining > 0 && !isPastPeriod(targetMonth, targetYear) ? data.remaining : undefined

@@ -137,6 +137,7 @@ export class CardsRepository implements ICardsRepository {
           eq(invoices.year, targetYear),
         ),
       )
+      .orderBy(installments.number)
 
     return this.mapPurchaseRows(rows, targetMonth, targetYear, card)
   }
@@ -234,6 +235,7 @@ export class CardsRepository implements ICardsRepository {
   ): CardPurchase[] {
     const grouped = new Map<string, CardPurchase>()
     const memberMaps = new Map<string, Map<string, CardPurchaseMember>>()
+    const groupNumbers = new Map<string, { minAll: number; minNonAnticipated: number | null }>()
     const targetBill = calculateInvoiceCompetence(new Date(), card.dueDay, card.closingOffsetDays)
 
     for (const { installment, pm, purchase, member } of rows) {
@@ -274,6 +276,16 @@ export class CardsRepository implements ICardsRepository {
         }
         grouped.set(purchase.id, group)
         memberMaps.set(purchase.id, new Map())
+        groupNumbers.set(purchase.id, { minAll: currentInstallment, minNonAnticipated: null })
+      }
+
+      // biome-ignore lint/style/noNonNullAssertion: set alongside group above
+      const numbers = groupNumbers.get(purchase.id)!
+      if (currentInstallment < numbers.minAll) numbers.minAll = currentInstallment
+      if (!isAnticipatedRow) {
+        if (numbers.minNonAnticipated === null || currentInstallment < numbers.minNonAnticipated) {
+          numbers.minNonAnticipated = currentInstallment
+        }
       }
 
       if (isAnticipatedRow) {
@@ -284,9 +296,6 @@ export class CardsRepository implements ICardsRepository {
         if (group.anticipateFromInstallment === null || currentInstallment < group.anticipateFromInstallment) {
           group.anticipateFromInstallment = currentInstallment
         }
-      }
-      if (installment.paidAt == null) {
-        group.remainingInstallments = (group.remainingInstallments ?? 0) + 1
       }
 
       group.totalAmount += amount
@@ -312,6 +321,16 @@ export class CardsRepository implements ICardsRepository {
       }
     }
 
+    for (const [purchaseId, group] of grouped) {
+      // biome-ignore lint/style/noNonNullAssertion: set alongside group above
+      const numbers = groupNumbers.get(purchaseId)!
+      group.elapsedInstallments = numbers.minNonAnticipated ?? numbers.minAll
+      group.remainingInstallments = Math.max(
+        group.installmentsCount - group.elapsedInstallments,
+        0,
+      )
+    }
+
     return Array.from(grouped.values()).filter(g => g.members.length > 0)
   }
 
@@ -324,10 +343,10 @@ export class CardsRepository implements ICardsRepository {
       .where(and(eq(purchases.cardId, cardId), isNotNull(installments.anticipatedAt)))
   }
 
-  async getAnticipationAnchor(
+  async getAnticipationAnchors(
     pmId: string,
-  ): Promise<{ month: number; year: number; count: number } | null> {
-    const rows = await this.db
+  ): Promise<{ month: number; year: number; count: number }[]> {
+    return this.db
       .select({
         month: invoices.month,
         year: invoices.year,
@@ -338,10 +357,14 @@ export class CardsRepository implements ICardsRepository {
       .where(and(eq(installments.purchaseMemberId, pmId), isNotNull(installments.anticipatedAt)))
       .groupBy(invoices.month, invoices.year)
       .orderBy(sql`count(*) desc`)
-    return rows[0] ?? null
   }
 
-  async revertAnticipation(pmId: string): Promise<number> {
+  async revertAnticipationInInvoice(pmId: string, month: number, year: number): Promise<number> {
+    const currentInvoiceIds = this.db
+      .select({ id: invoices.id })
+      .from(invoices)
+      .where(and(eq(invoices.month, month), eq(invoices.year, year)))
+
     const reverted = await this.db
       .update(installments)
       .set({
@@ -354,14 +377,30 @@ export class CardsRepository implements ICardsRepository {
           eq(installments.purchaseMemberId, pmId),
           isNotNull(installments.anticipatedAt),
           isNotNull(installments.originalInvoiceId),
+          inArray(installments.invoiceId, currentInvoiceIds),
         ),
       )
       .returning({ id: installments.id })
+    return reverted.length
+  }
+
+  async countAnticipatedInstallments(pmId: string): Promise<number> {
+    const [result] = await this.db
+      .select({ count: sql<number>`count(*)`.mapWith(Number) })
+      .from(installments)
+      .where(and(eq(installments.purchaseMemberId, pmId), isNotNull(installments.anticipatedAt)))
+    return result?.count ?? 0
+  }
+
+  async setPurchaseMemberAnticipation(pmId: string, anticipatedAt: Date | null): Promise<void> {
     await this.db
       .update(purchaseMembers)
-      .set({ anticipatedAt: null, anticipateFromInstallment: null })
+      .set(
+        anticipatedAt
+          ? { anticipatedAt }
+          : { anticipatedAt: null, anticipateFromInstallment: null },
+      )
       .where(eq(purchaseMembers.id, pmId))
-    return reverted.length
   }
 
   async reapplyAnticipation(params: {
@@ -382,6 +421,7 @@ export class CardsRepository implements ICardsRepository {
         and(
           eq(installments.purchaseMemberId, pmId),
           isNull(installments.paidAt),
+          isNull(installments.anticipatedAt),
           sql`(${invoices.year} > ${anchorYear} OR (${invoices.year} = ${anchorYear} AND ${invoices.month} > ${anchorMonth}))`,
         ),
       )
@@ -422,10 +462,6 @@ export class CardsRepository implements ICardsRepository {
           anticipatedAt: new Date(),
         })
         .where(inArray(installments.id, selected.map(s => s.id)))
-      await tx
-        .update(purchaseMembers)
-        .set({ anticipatedAt: new Date() })
-        .where(eq(purchaseMembers.id, pmId))
       return selected.length
     })
   }

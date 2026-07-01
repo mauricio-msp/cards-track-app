@@ -20,23 +20,34 @@ export class ReconcileAnticipationsUseCase {
     let parcelasMovidas = 0
 
     for (const pm of pms) {
-      const anchor = await this.repo.getAnticipationAnchor(pm.id)
-      if (!anchor) continue
+      const anchors = await this.repo.getAnticipationAnchors(pm.id)
+      if (anchors.length === 0) continue
 
-      await this.repo.revertAnticipation(pm.id)
       cotasAfetadas++
 
-      if (card.anticipationMode === 'none') continue
+      for (const anchor of anchors) {
+        await this.repo.revertAnticipationInInvoice(pm.id, anchor.month, anchor.year)
 
-      const moved = await this.repo.reapplyAnticipation({
-        pmId: pm.id,
-        mode: card.anticipationMode,
-        count: anchor.count,
-        anchorMonth: anchor.month,
-        anchorYear: anchor.year,
-        cardId,
-      })
-      parcelasMovidas += moved
+        if (card.anticipationMode === 'none') continue
+
+        const moved = await this.repo.reapplyAnticipation({
+          pmId: pm.id,
+          mode: card.anticipationMode,
+          count: anchor.count,
+          anchorMonth: anchor.month,
+          anchorYear: anchor.year,
+          cardId,
+        })
+        parcelasMovidas += moved
+      }
+
+      if (card.anticipationMode === 'none') {
+        await this.repo.setPurchaseMemberAnticipation(pm.id, null)
+        continue
+      }
+
+      const remaining = await this.repo.countAnticipatedInstallments(pm.id)
+      await this.repo.setPurchaseMemberAnticipation(pm.id, remaining > 0 ? new Date() : null)
     }
 
     return { cotasAfetadas, parcelasMovidas, valorRealocado: parcelasMovidas }

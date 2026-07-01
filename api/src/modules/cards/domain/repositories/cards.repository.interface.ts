@@ -63,10 +63,10 @@ export interface ICardsRepository {
     targetYear: number,
   ): Promise<MemberPaymentSummary[]>
   findAnticipatedPurchaseMembers(cardId: string): Promise<{ id: string }[]>
-  getAnticipationAnchor(
-    pmId: string,
-  ): Promise<{ month: number; year: number; count: number } | null>
-  revertAnticipation(pmId: string): Promise<number>
+  getAnticipationAnchors(pmId: string): Promise<{ month: number; year: number; count: number }[]>
+  revertAnticipationInInvoice(pmId: string, month: number, year: number): Promise<number>
+  countAnticipatedInstallments(pmId: string): Promise<number>
+  setPurchaseMemberAnticipation(pmId: string, anticipatedAt: Date | null): Promise<void>
   reapplyAnticipation(params: {
     pmId: string
     mode: 'gap' | 'tail'

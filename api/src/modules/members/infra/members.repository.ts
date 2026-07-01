@@ -215,6 +215,7 @@ export class MembersRepository implements IMembersRepository {
   private mapGroupedRows(rows: GroupedPurchaseRow[]): MemberPurchasesByCard[] {
     const cardMap = new Map<string, MemberPurchasesByCard>()
     const pmByCard = new Map<string, Map<string, MemberPurchase>>()
+    const pmNumbers = new Map<string, { minAll: number; minNonAnticipated: number | null }>()
 
     for (const row of rows) {
       const currentInstallment = row.installment.number
@@ -243,6 +244,18 @@ export class MembersRepository implements IMembersRepository {
 
       const existing = pmMap.get(row.pm.id)
 
+      let numbers = pmNumbers.get(row.pm.id)
+      if (!numbers) {
+        numbers = { minAll: currentInstallment, minNonAnticipated: null }
+        pmNumbers.set(row.pm.id, numbers)
+      }
+      if (currentInstallment < numbers.minAll) numbers.minAll = currentInstallment
+      if (!isAnticipatedRow) {
+        if (numbers.minNonAnticipated === null || currentInstallment < numbers.minNonAnticipated) {
+          numbers.minNonAnticipated = currentInstallment
+        }
+      }
+
       if (existing) {
         existing.installmentsAmount += amount
 
@@ -257,9 +270,6 @@ export class MembersRepository implements IMembersRepository {
           ) {
             existing.anticipateFromInstallment = currentInstallment
           }
-        }
-        if (row.installment.paidAt == null) {
-          existing.remainingInstallments = (existing.remainingInstallments ?? 0) + 1
         }
 
         continue
@@ -285,12 +295,18 @@ export class MembersRepository implements IMembersRepository {
         entry.anticipatedAt = row.installment.anticipatedAt!.toISOString()
         entry.anticipateFromInstallment = currentInstallment
       }
-      if (row.installment.paidAt == null) {
-        entry.remainingInstallments = (entry.remainingInstallments ?? 0) + 1
-      }
 
       pmMap.set(row.pm.id, entry)
       cardEntry.purchases.push(entry)
+    }
+
+    for (const pmMap of pmByCard.values()) {
+      for (const entry of pmMap.values()) {
+        // biome-ignore lint/style/noNonNullAssertion: populated for every pm processed above
+        const numbers = pmNumbers.get(entry.id)!
+        entry.elapsedInstallments = numbers.minNonAnticipated ?? numbers.minAll
+        entry.remainingInstallments = Math.max(entry.installmentsCount - entry.elapsedInstallments, 0)
+      }
     }
 
     return Array.from(cardMap.values())
