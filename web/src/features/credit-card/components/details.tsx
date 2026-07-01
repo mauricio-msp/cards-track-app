@@ -4,6 +4,7 @@ import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import { HiddenValue } from '@/components/ui/hidden-value'
 import { Progress } from '@/components/ui/progress'
 import { UpdateCardForm } from '@/features/credit-card/components/forms'
+import { ReconcileAnticipationsDialog } from '@/features/credit-card/components/reconcile-anticipations-dialog'
 import { useCard, useTotalAmountUsedCard } from '@/features/credit-card/hooks'
 import { creditCards } from '@/helpers/credit-cards'
 import { MONTHS } from '@/helpers/months'
@@ -58,6 +59,7 @@ export function Details({ cardId }: { cardId: string }) {
                 <Pencil />
               </Button>
             </UpdateCardForm>
+            <ReconcileAnticipationsDialog cardId={cardId} />
           </p>
           <span className="text-sm text-muted-foreground">
             {isDesktop && 'Competência: '}
