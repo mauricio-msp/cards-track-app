@@ -7,6 +7,7 @@ import { GetInvoicePaymentSummaryUseCase } from '@/modules/cards/application/use
 import { GetMonthTotalAmountUseCase } from '@/modules/cards/application/use-cases/get-month-total-amount/get-month-total-amount.use-case'
 import { GetPurchasesUseCase } from '@/modules/cards/application/use-cases/get-purchases/get-purchases.use-case'
 import { GetTotalAmountUsedUseCase } from '@/modules/cards/application/use-cases/get-total-amount-used/get-total-amount-used.use-case'
+import { ReconcileAnticipationsUseCase } from '@/modules/cards/application/use-cases/reconcile-anticipations/reconcile-anticipations.use-case'
 import { UpdateCardUseCase } from '@/modules/cards/application/use-cases/update-card/update-card.use-case'
 import { CreateCardController } from '@/modules/cards/http/controllers/create-card.controller'
 import { DeleteCardController } from '@/modules/cards/http/controllers/delete-card.controller'
@@ -16,6 +17,7 @@ import { GetInvoicePaymentSummaryController } from '@/modules/cards/http/control
 import { GetMonthTotalAmountController } from '@/modules/cards/http/controllers/get-month-total-amount.controller'
 import { GetPurchasesController } from '@/modules/cards/http/controllers/get-purchases.controller'
 import { GetTotalAmountUsedController } from '@/modules/cards/http/controllers/get-total-amount-used.controller'
+import { ReconcileAnticipationsController } from '@/modules/cards/http/controllers/reconcile-anticipations.controller'
 import { UpdateCardController } from '@/modules/cards/http/controllers/update-card.controller'
 import { cardsRoutes } from '@/modules/cards/http/routes'
 import { CardsRepository } from '@/modules/cards/infra/cards.repository'
@@ -35,6 +37,9 @@ const controllers = {
   ),
   getInvoicePaymentSummary: new GetInvoicePaymentSummaryController(
     new GetInvoicePaymentSummaryUseCase(repository),
+  ),
+  reconcileAnticipations: new ReconcileAnticipationsController(
+    new ReconcileAnticipationsUseCase(repository),
   ),
 }
 

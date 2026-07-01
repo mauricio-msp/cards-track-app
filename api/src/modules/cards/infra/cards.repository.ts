@@ -1,4 +1,4 @@
-import { and, eq, isNull, sql } from 'drizzle-orm'
+import { and, eq, inArray, isNotNull, isNull, sql } from 'drizzle-orm'
 import type { db as Db } from '@/db'
 import {
   cards,
@@ -330,6 +330,121 @@ export class CardsRepository implements ICardsRepository {
     }
 
     return Array.from(grouped.values()).filter(g => g.members.length > 0)
+  }
+
+  async findAnticipatedPurchaseMembers(cardId: string): Promise<{ id: string }[]> {
+    return this.db
+      .selectDistinct({ id: purchaseMembers.id })
+      .from(purchaseMembers)
+      .innerJoin(purchases, eq(purchaseMembers.purchaseId, purchases.id))
+      .innerJoin(installments, eq(installments.purchaseMemberId, purchaseMembers.id))
+      .where(and(eq(purchases.cardId, cardId), isNotNull(installments.anticipatedAt)))
+  }
+
+  async getAnticipationAnchor(
+    pmId: string,
+  ): Promise<{ month: number; year: number; count: number } | null> {
+    const rows = await this.db
+      .select({
+        month: invoices.month,
+        year: invoices.year,
+        count: sql<number>`count(*)`.mapWith(Number),
+      })
+      .from(installments)
+      .innerJoin(invoices, eq(installments.invoiceId, invoices.id))
+      .where(and(eq(installments.purchaseMemberId, pmId), isNotNull(installments.anticipatedAt)))
+      .groupBy(invoices.month, invoices.year)
+      .orderBy(sql`count(*) desc`)
+    return rows[0] ?? null
+  }
+
+  async revertAnticipation(pmId: string): Promise<number> {
+    const reverted = await this.db
+      .update(installments)
+      .set({
+        invoiceId: sql`${installments.originalInvoiceId}`,
+        anticipatedAt: null,
+        originalInvoiceId: null,
+      })
+      .where(
+        and(
+          eq(installments.purchaseMemberId, pmId),
+          isNotNull(installments.anticipatedAt),
+          isNotNull(installments.originalInvoiceId),
+        ),
+      )
+      .returning({ id: installments.id })
+    await this.db
+      .update(purchaseMembers)
+      .set({ anticipatedAt: null, anticipateFromInstallment: null })
+      .where(eq(purchaseMembers.id, pmId))
+    return reverted.length
+  }
+
+  async reapplyAnticipation(params: {
+    pmId: string
+    mode: 'gap' | 'tail'
+    count: number
+    anchorMonth: number
+    anchorYear: number
+    cardId: string
+  }): Promise<number> {
+    const { pmId, mode, count, anchorMonth, anchorYear, cardId } = params
+
+    const candidates = await this.db
+      .select({ id: installments.id, number: installments.number })
+      .from(installments)
+      .innerJoin(invoices, eq(installments.invoiceId, invoices.id))
+      .where(
+        and(
+          eq(installments.purchaseMemberId, pmId),
+          isNull(installments.paidAt),
+          sql`(${invoices.year} > ${anchorYear} OR (${invoices.year} = ${anchorYear} AND ${invoices.month} > ${anchorMonth}))`,
+        ),
+      )
+      .orderBy(installments.number)
+
+    const selected =
+      mode === 'tail' ? [...candidates].reverse().slice(0, count) : candidates.slice(0, count)
+    if (selected.length === 0) return 0
+
+    return this.db.transaction(async tx => {
+      let [inv] = await tx
+        .select({ id: invoices.id })
+        .from(invoices)
+        .where(
+          and(
+            eq(invoices.cardId, cardId),
+            eq(invoices.month, anchorMonth),
+            eq(invoices.year, anchorYear),
+          ),
+        )
+      if (!inv) {
+        const [created] = await tx
+          .insert(invoices)
+          .values({
+            cardId,
+            month: anchorMonth,
+            year: anchorYear,
+            dueDate: new Date(anchorYear, anchorMonth, 1),
+          })
+          .returning({ id: invoices.id })
+        inv = created
+      }
+      await tx
+        .update(installments)
+        .set({
+          invoiceId: inv.id,
+          originalInvoiceId: sql`COALESCE(${installments.originalInvoiceId}, ${installments.invoiceId})`,
+          anticipatedAt: new Date(),
+        })
+        .where(inArray(installments.id, selected.map(s => s.id)))
+      await tx
+        .update(purchaseMembers)
+        .set({ anticipatedAt: new Date() })
+        .where(eq(purchaseMembers.id, pmId))
+      return selected.length
+    })
   }
 
   async findInvoicePaymentSummary(

@@ -9,6 +9,7 @@ import type { GetInvoicePaymentSummaryController } from '@/modules/cards/http/co
 import type { GetMonthTotalAmountController } from '@/modules/cards/http/controllers/get-month-total-amount.controller'
 import type { GetPurchasesController } from '@/modules/cards/http/controllers/get-purchases.controller'
 import type { GetTotalAmountUsedController } from '@/modules/cards/http/controllers/get-total-amount-used.controller'
+import type { ReconcileAnticipationsController } from '@/modules/cards/http/controllers/reconcile-anticipations.controller'
 import type { UpdateCardController } from '@/modules/cards/http/controllers/update-card.controller'
 import {
   cardPeriodQueryDto,
@@ -27,6 +28,7 @@ type Controllers = {
   getTotalAmountUsed: GetTotalAmountUsedController
   getMonthTotalAmount: GetMonthTotalAmountController
   getInvoicePaymentSummary: GetInvoicePaymentSummaryController
+  reconcileAnticipations: ReconcileAnticipationsController
 }
 
 export const cardsRoutes =
@@ -272,5 +274,28 @@ export const cardsRoutes =
           reply,
           req.log,
         ),
+    )
+
+    app.post(
+      '/api/cards/:cardId/reconcile-anticipations',
+      {
+        preHandler: [authMiddleware],
+        schema: {
+          summary: 'Reconcilia antecipações do cartão ao modo atual',
+          tags: ['Cards'],
+          params: z.object({ cardId: z.string().uuid() }),
+          response: {
+            200: z.object({
+              cotasAfetadas: z.number(),
+              parcelasMovidas: z.number(),
+              valorRealocado: z.number(),
+            }),
+            404: z.object({ message: z.string() }),
+            500: z.object({ message: z.string() }),
+          },
+        },
+      },
+      (req, reply) =>
+        controllers.reconcileAnticipations.handle(req.params.cardId, req.user.id, reply, req.log),
     )
   }
