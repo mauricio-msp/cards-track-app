@@ -11,7 +11,6 @@ import type {
   Member,
   UpdateMemberInput,
 } from '@/modules/members/http/dto/members.dto'
-import { calculateConsolidation } from '@/utils/calculate-consolidation'
 
 type GroupedPurchaseRow = {
   card: { id: string; name: string; dueDay: number }
@@ -25,7 +24,7 @@ type GroupedPurchaseRow = {
     anticipateFromInstallment: number | null
   }
   purchase: { description: string; purchaseDate: string; installmentsCount: number }
-  installment: { number: number; amount: unknown }
+  installment: { number: number; amount: unknown; anticipatedAt: Date | null; paidAt: Date | null }
   targetMonth: unknown
   targetYear: unknown
 }
@@ -136,7 +135,12 @@ export class MembersRepository implements IMembersRepository {
           purchaseDate: purchases.purchaseDate,
           installmentsCount: purchases.installmentsCount,
         },
-        installment: { number: installments.number, amount: installments.amount },
+        installment: {
+          number: installments.number,
+          amount: installments.amount,
+          anticipatedAt: installments.anticipatedAt,
+          paidAt: installments.paidAt,
+        },
         targetMonth: targetMonthExpr,
         targetYear: targetYearExpr,
       })
@@ -235,32 +239,29 @@ export class MembersRepository implements IMembersRepository {
       // biome-ignore lint/style/noNonNullAssertion: set above
       const pmMap = pmByCard.get(row.card.id)!
 
-      const isConsolidation =
-        !!row.pm.anticipatedAt && currentInstallment === row.pm.anticipateFromInstallment
-
-      const { consolidatedCount, remainingInstallments } = isConsolidation
-        ? calculateConsolidation(
-            amount,
-            row.pm.installmentAmount,
-            row.purchase.installmentsCount,
-            currentInstallment,
-          )
-        : {
-            consolidatedCount: 0,
-            remainingInstallments: Math.max(row.purchase.installmentsCount - currentInstallment, 0),
-          }
+      const isAnticipatedRow = row.installment.anticipatedAt != null
 
       const existing = pmMap.get(row.pm.id)
 
       if (existing) {
-        if (isConsolidation && !existing.anticipatedAt) {
-          existing.anticipatedAt = row.pm.anticipatedAt?.toISOString() ?? null
-          existing.anticipatedInstallmentsCount = consolidatedCount
-          existing.anticipateFromInstallment = row.pm.anticipateFromInstallment
-          existing.elapsedInstallments = currentInstallment
-          existing.remainingInstallments = remainingInstallments
-        }
         existing.installmentsAmount += amount
+
+        if (isAnticipatedRow) {
+          existing.anticipatedInstallmentsCount = (existing.anticipatedInstallmentsCount ?? 0) + 1
+          // biome-ignore lint/style/noNonNullAssertion: guarded by isAnticipatedRow
+          const iso = row.installment.anticipatedAt!.toISOString()
+          if (!existing.anticipatedAt || iso > existing.anticipatedAt) existing.anticipatedAt = iso
+          if (
+            existing.anticipateFromInstallment === null ||
+            currentInstallment < existing.anticipateFromInstallment
+          ) {
+            existing.anticipateFromInstallment = currentInstallment
+          }
+        }
+        if (row.installment.paidAt == null) {
+          existing.remainingInstallments = (existing.remainingInstallments ?? 0) + 1
+        }
+
         continue
       }
 
@@ -272,10 +273,20 @@ export class MembersRepository implements IMembersRepository {
         installmentsCount: row.purchase.installmentsCount,
         installmentsAmount: amount,
         elapsedInstallments: currentInstallment,
-        remainingInstallments,
-        anticipatedAt: isConsolidation ? (row.pm.anticipatedAt?.toISOString() ?? null) : null,
-        anticipatedInstallmentsCount: isConsolidation ? consolidatedCount : null,
-        anticipateFromInstallment: isConsolidation ? row.pm.anticipateFromInstallment : null,
+        remainingInstallments: 0,
+        anticipatedAt: null,
+        anticipatedInstallmentsCount: 0,
+        anticipateFromInstallment: null,
+      }
+
+      if (isAnticipatedRow) {
+        entry.anticipatedInstallmentsCount = (entry.anticipatedInstallmentsCount ?? 0) + 1
+        // biome-ignore lint/style/noNonNullAssertion: guarded by isAnticipatedRow
+        entry.anticipatedAt = row.installment.anticipatedAt!.toISOString()
+        entry.anticipateFromInstallment = currentInstallment
+      }
+      if (row.installment.paidAt == null) {
+        entry.remainingInstallments = (entry.remainingInstallments ?? 0) + 1
       }
 
       pmMap.set(row.pm.id, entry)

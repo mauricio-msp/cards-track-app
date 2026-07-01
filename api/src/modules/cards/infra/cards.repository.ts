@@ -22,7 +22,6 @@ import type {
   CreateCardInput,
   UpdateCardInput,
 } from '@/modules/cards/http/dto/cards.dto'
-import { calculateConsolidation } from '@/utils/calculate-consolidation'
 import { calculateInvoiceCompetence } from '@/utils/calculate-invoice-competence'
 
 type PurchaseRow = {
@@ -240,12 +239,7 @@ export class CardsRepository implements ICardsRepository {
     for (const { installment, pm, purchase, member } of rows) {
       const currentInstallment = installment.number
       const amount = Number(installment.amount)
-
-      const isConsolidation =
-        !!pm.anticipatedAt &&
-        (pm.anticipateFromInstallment !== null
-          ? installment.number === pm.anticipateFromInstallment
-          : amount > pm.installmentAmount)
+      const isAnticipatedRow = installment.anticipatedAt != null
 
       let group = grouped.get(purchase.id)
 
@@ -261,18 +255,6 @@ export class CardsRepository implements ICardsRepository {
                 targetBill,
               )
 
-        const { consolidatedCount, remainingInstallments } = isConsolidation
-          ? calculateConsolidation(
-              amount,
-              pm.installmentAmount,
-              purchase.installmentsCount,
-              currentInstallment,
-            )
-          : {
-              consolidatedCount: 0,
-              remainingInstallments: Math.max(purchase.installmentsCount - currentInstallment, 0),
-            }
-
         group = {
           purchaseMemberId: pm.id,
           groupId: purchase.id,
@@ -282,28 +264,29 @@ export class CardsRepository implements ICardsRepository {
           totalAmount: 0,
           installmentsCount: purchase.installmentsCount,
           elapsedInstallments: currentInstallment,
-          remainingInstallments,
-          anticipatedAt: isConsolidation ? (pm.anticipatedAt?.toISOString() ?? null) : null,
-          anticipatedInstallmentsCount: isConsolidation ? consolidatedCount : null,
-          anticipateFromInstallment: isConsolidation ? currentInstallment : null,
+          remainingInstallments: 0,
+          anticipatedAt: null,
+          anticipatedInstallmentsCount: 0,
+          anticipateFromInstallment: null,
           anticipatableInstallments,
           subscriptionId: purchase.subscriptionId ?? null,
           members: [],
         }
         grouped.set(purchase.id, group)
         memberMaps.set(purchase.id, new Map())
-      } else if (isConsolidation && !group.anticipatedAt) {
-        const { consolidatedCount, remainingInstallments } = calculateConsolidation(
-          amount,
-          pm.installmentAmount,
-          purchase.installmentsCount,
-          currentInstallment,
-        )
-        group.anticipatedAt = pm.anticipatedAt?.toISOString() ?? null
-        group.anticipatedInstallmentsCount = consolidatedCount
-        group.anticipateFromInstallment = currentInstallment
-        group.elapsedInstallments = currentInstallment
-        group.remainingInstallments = remainingInstallments
+      }
+
+      if (isAnticipatedRow) {
+        group.anticipatedInstallmentsCount = (group.anticipatedInstallmentsCount ?? 0) + 1
+        // biome-ignore lint/style/noNonNullAssertion: guarded by isAnticipatedRow
+        const iso = installment.anticipatedAt!.toISOString()
+        if (!group.anticipatedAt || iso > group.anticipatedAt) group.anticipatedAt = iso
+        if (group.anticipateFromInstallment === null || currentInstallment < group.anticipateFromInstallment) {
+          group.anticipateFromInstallment = currentInstallment
+        }
+      }
+      if (installment.paidAt == null) {
+        group.remainingInstallments = (group.remainingInstallments ?? 0) + 1
       }
 
       group.totalAmount += amount
