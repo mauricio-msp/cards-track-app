@@ -113,6 +113,32 @@ export function CreateCardForm({ children }: { children: ReactNode }) {
                 {errors.dueDay && <FieldError>{errors.dueDay.message}</FieldError>}
               </Field>
             </div>
+
+            <Field data-invalid={!!errors.anticipationMode}>
+              <FieldLabel>Modo de antecipação</FieldLabel>
+              <Controller
+                name="anticipationMode"
+                control={control}
+                render={({ field }) => (
+                  <Select disabled={isPending} value={field.value} onValueChange={field.onChange}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione o modo" />
+                    </SelectTrigger>
+                    <SelectContent position="popper">
+                      <SelectGroup>
+                        <SelectItem value="none">Não antecipa</SelectItem>
+                        <SelectItem value="gap">Pula meses (ex.: Neon)</SelectItem>
+                        <SelectItem value="tail">Encurta o fim (ex.: Nubank)</SelectItem>
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+              <p className="text-xs text-muted-foreground">
+                Como o banco trata a antecipação: pular os próximos meses ou remover as últimas
+                parcelas.
+              </p>
+            </Field>
           </FieldGroup>
 
           <DialogFooter>

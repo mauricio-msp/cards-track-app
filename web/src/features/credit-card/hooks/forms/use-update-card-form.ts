@@ -16,6 +16,7 @@ const UpdateCardFormSchema = z.object({
     .number({ error: 'Dia de vencimento é obrigatório' })
     .positive('Dia de vencimento deve ser maior que zero')
     .max(31, 'Dia de vencimento deve ser no máximo 31'),
+  anticipationMode: z.enum(['none', 'gap', 'tail']),
 })
 
 export type UpdateCardFormValues = z.infer<typeof UpdateCardFormSchema>
@@ -26,6 +27,7 @@ type CardDefaults = {
   limit: number
   closingOffsetDays: number
   dueDay: number
+  anticipationMode: 'none' | 'gap' | 'tail'
 }
 
 function limitToDisplay(cents: number): string {
@@ -44,6 +46,7 @@ export function useUpdateCardForm(card: CardDefaults, onSuccess?: () => void) {
       limit: limitToDisplay(card.limit),
       closingOffsetDays: card.closingOffsetDays,
       dueDay: card.dueDay,
+      anticipationMode: card.anticipationMode,
     },
   })
 
@@ -52,10 +55,16 @@ export function useUpdateCardForm(card: CardDefaults, onSuccess?: () => void) {
       limit: limitToDisplay(card.limit),
       closingOffsetDays: card.closingOffsetDays,
       dueDay: card.dueDay,
+      anticipationMode: card.anticipationMode,
     })
   }
 
-  async function onSubmit({ limit, closingOffsetDays, dueDay }: UpdateCardFormValues) {
+  async function onSubmit({
+    limit,
+    closingOffsetDays,
+    dueDay,
+    anticipationMode,
+  }: UpdateCardFormValues) {
     const limitInCents = formatValueToCents(limit) ?? 0
 
     await updateCardFn({
@@ -63,6 +72,7 @@ export function useUpdateCardForm(card: CardDefaults, onSuccess?: () => void) {
       limit: limitInCents,
       closingOffsetDays,
       dueDay,
+      anticipationMode,
     })
 
     onSuccess?.()

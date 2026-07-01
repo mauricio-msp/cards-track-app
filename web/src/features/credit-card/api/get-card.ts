@@ -11,6 +11,7 @@ const GetCardResponse = z.object({
     limit: z.coerce.number(),
     closingOffsetDays: z.coerce.number(),
     dueDay: z.coerce.number(),
+    anticipationMode: z.enum(['none', 'gap', 'tail']),
   }),
 })
 

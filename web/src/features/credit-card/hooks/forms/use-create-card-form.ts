@@ -17,6 +17,7 @@ const CreateCardFormSchema = z.object({
     .number({ error: 'Dia de vencimento é obrigatório' })
     .positive('Dia de vencimento deve ser maior que zero')
     .max(31, 'Dia de vencimento deve ser no máximo 31'),
+  anticipationMode: z.enum(['none', 'gap', 'tail']),
 })
 
 type CreateCardForm = z.infer<typeof CreateCardFormSchema>
@@ -26,6 +27,7 @@ const defaultValues: CreateCardForm = {
   limit: '',
   closingOffsetDays: 0,
   dueDay: 0,
+  anticipationMode: 'gap',
 }
 
 export function useCreateCardForm() {
@@ -36,7 +38,13 @@ export function useCreateCardForm() {
     defaultValues,
   })
 
-  async function onSubmit({ name, limit, closingOffsetDays, dueDay }: CreateCardForm) {
+  async function onSubmit({
+    name,
+    limit,
+    closingOffsetDays,
+    dueDay,
+    anticipationMode,
+  }: CreateCardForm) {
     const limitInCents = formatValueToCents(limit) ?? 0
 
     await createCardFn({
@@ -44,6 +52,7 @@ export function useCreateCardForm() {
       limit: limitInCents,
       closingOffsetDays,
       dueDay,
+      anticipationMode,
     })
 
     form.reset(defaultValues)
